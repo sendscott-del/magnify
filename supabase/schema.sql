@@ -3,44 +3,35 @@
 
 create extension if not exists "uuid-ossp";
 
--- Drop existing tables (clean slate)
+-- Drop Magnify-specific tables only (safe to recreate)
 drop table if exists calling_log cascade;
 drop table if exists ward_sustainings cascade;
 drop table if exists callings cascade;
 drop table if exists wards cascade;
-drop table if exists profiles cascade;
-
--- Drop Sparkle Pro tables if they exist
-drop table if exists photos cascade;
-drop table if exists expenses cascade;
-drop table if exists time_entries cascade;
-drop table if exists checklist_items cascade;
-drop table if exists invoices cascade;
-drop table if exists jobs cascade;
-drop table if exists rooms cascade;
-drop table if exists staff_availability cascade;
-drop table if exists employee_availability cascade;
-drop table if exists employees cascade;
-drop table if exists clients cascade;
-drop table if exists business_settings cascade;
 
 -- Drop old trigger if exists
 drop trigger if exists on_auth_user_created on auth.users;
 drop function if exists handle_new_user();
 
 -- ─────────────────────────────────────────────
--- PROFILES
+-- PROFILES (shared table — alter to add Magnify columns if missing)
 -- ─────────────────────────────────────────────
-create table profiles (
+create table if not exists profiles (
   id uuid references auth.users on delete cascade primary key,
   email text unique not null,
   full_name text not null default '',
-  role text not null default 'stake_clerk'
-    check (role in ('stake_president','first_counselor','second_counselor','high_councilor','stake_clerk','exec_secretary')),
-  status text not null default 'pending'
-    check (status in ('pending','approved','rejected')),
+  role text not null default 'stake_clerk',
   created_at timestamptz default now()
 );
+
+-- Add Magnify-specific columns if they don't exist
+alter table profiles add column if not exists status text not null default 'pending'
+  check (status in ('pending','approved','rejected'));
+
+-- Drop old role constraint if it exists and add the Magnify one
+alter table profiles drop constraint if exists profiles_role_check;
+alter table profiles add constraint profiles_role_check
+  check (role in ('stake_president','first_counselor','second_counselor','high_councilor','stake_clerk','exec_secretary'));
 
 -- ─────────────────────────────────────────────
 -- WARDS
