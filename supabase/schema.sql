@@ -101,6 +101,13 @@ alter table callings enable row level security;
 alter table ward_sustainings enable row level security;
 alter table calling_log enable row level security;
 
+drop policy if exists "profiles_select" on profiles;
+drop policy if exists "profiles_insert" on profiles;
+drop policy if exists "profiles_update_own" on profiles;
+drop policy if exists "profiles_admin_update" on profiles;
+drop policy if exists "Public read" on profiles;
+drop policy if exists "Public insert" on profiles;
+
 create policy "profiles_select" on profiles for select using (auth.role() = 'authenticated');
 create policy "profiles_insert" on profiles for insert with check (auth.uid() = id);
 create policy "profiles_update_own" on profiles for update using (auth.uid() = id);
