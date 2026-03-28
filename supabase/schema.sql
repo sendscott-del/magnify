@@ -1,5 +1,36 @@
+-- Magnify Schema
+-- Run this in Supabase SQL Editor
+
 create extension if not exists "uuid-ossp";
 
+-- Drop existing tables (clean slate)
+drop table if exists calling_log cascade;
+drop table if exists ward_sustainings cascade;
+drop table if exists callings cascade;
+drop table if exists wards cascade;
+drop table if exists profiles cascade;
+
+-- Drop Sparkle Pro tables if they exist
+drop table if exists photos cascade;
+drop table if exists expenses cascade;
+drop table if exists time_entries cascade;
+drop table if exists checklist_items cascade;
+drop table if exists invoices cascade;
+drop table if exists jobs cascade;
+drop table if exists rooms cascade;
+drop table if exists staff_availability cascade;
+drop table if exists employee_availability cascade;
+drop table if exists employees cascade;
+drop table if exists clients cascade;
+drop table if exists business_settings cascade;
+
+-- Drop old trigger if exists
+drop trigger if exists on_auth_user_created on auth.users;
+drop function if exists handle_new_user();
+
+-- ─────────────────────────────────────────────
+-- PROFILES
+-- ─────────────────────────────────────────────
 create table profiles (
   id uuid references auth.users on delete cascade primary key,
   email text unique not null,
@@ -11,6 +42,9 @@ create table profiles (
   created_at timestamptz default now()
 );
 
+-- ─────────────────────────────────────────────
+-- WARDS
+-- ─────────────────────────────────────────────
 create table wards (
   id uuid default uuid_generate_v4() primary key,
   name text not null,
@@ -18,6 +52,9 @@ create table wards (
   sort_order integer default 0
 );
 
+-- ─────────────────────────────────────────────
+-- CALLINGS
+-- ─────────────────────────────────────────────
 create table callings (
   id uuid default uuid_generate_v4() primary key,
   type text not null check (type in ('ward_calling','stake_calling','mp_ordination')),
@@ -37,6 +74,9 @@ create table callings (
   completed_at timestamptz
 );
 
+-- ─────────────────────────────────────────────
+-- WARD SUSTAININGS (per-ward tracking for stake callings)
+-- ─────────────────────────────────────────────
 create table ward_sustainings (
   id uuid default uuid_generate_v4() primary key,
   calling_id uuid references callings(id) on delete cascade not null,
@@ -47,6 +87,9 @@ create table ward_sustainings (
   unique (calling_id, ward_id)
 );
 
+-- ─────────────────────────────────────────────
+-- CALLING LOG (append-only audit trail)
+-- ─────────────────────────────────────────────
 create table calling_log (
   id uuid default uuid_generate_v4() primary key,
   calling_id uuid references callings(id) on delete cascade not null,
@@ -58,6 +101,9 @@ create table calling_log (
   created_at timestamptz default now()
 );
 
+-- ─────────────────────────────────────────────
+-- ROW LEVEL SECURITY
+-- ─────────────────────────────────────────────
 alter table profiles enable row level security;
 alter table wards enable row level security;
 alter table callings enable row level security;
@@ -70,9 +116,11 @@ create policy "profiles_update_own" on profiles for update using (auth.uid() = i
 create policy "profiles_admin_update" on profiles for update using (
   exists (select 1 from profiles p where p.id = auth.uid() and p.status = 'approved' and p.role in ('stake_president','stake_clerk','exec_secretary'))
 );
+
 create policy "wards_select" on wards for select using (
   exists (select 1 from profiles where id = auth.uid() and status = 'approved')
 );
+
 create policy "callings_select" on callings for select using (
   exists (select 1 from profiles where id = auth.uid() and status = 'approved')
 );
@@ -82,6 +130,7 @@ create policy "callings_insert" on callings for insert with check (
 create policy "callings_update" on callings for update using (
   exists (select 1 from profiles where id = auth.uid() and status = 'approved')
 );
+
 create policy "ward_sustainings_select" on ward_sustainings for select using (
   exists (select 1 from profiles where id = auth.uid() and status = 'approved')
 );
@@ -91,6 +140,7 @@ create policy "ward_sustainings_insert" on ward_sustainings for insert with chec
 create policy "ward_sustainings_update" on ward_sustainings for update using (
   exists (select 1 from profiles where id = auth.uid() and status = 'approved')
 );
+
 create policy "calling_log_select" on calling_log for select using (
   exists (select 1 from profiles where id = auth.uid() and status = 'approved')
 );
@@ -98,6 +148,9 @@ create policy "calling_log_insert" on calling_log for insert with check (
   exists (select 1 from profiles where id = auth.uid() and status = 'approved') and performed_by = auth.uid()
 );
 
+-- ─────────────────────────────────────────────
+-- TRIGGER: Auto-create profile on signup
+-- ─────────────────────────────────────────────
 create or replace function handle_new_user()
 returns trigger as $$
 begin
