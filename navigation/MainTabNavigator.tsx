@@ -10,6 +10,7 @@ import { NewCallingScreen } from '../screens/main/NewCallingScreen';
 import { CompletedCallingsScreen } from '../screens/main/CompletedCallingsScreen';
 import { SettingsScreen } from '../screens/main/SettingsScreen';
 import { CallingDetailScreen } from '../screens/main/CallingDetailScreen';
+import { HCAdminScreen } from '../screens/main/HCAdminScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -37,6 +38,15 @@ function CompletedStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="CompletedList" component={CompletedCallingsScreen} />
       <Stack.Screen name="CallingDetail" component={CallingDetailScreen} />
+    </Stack.Navigator>
+  );
+}
+
+function SettingsStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="SettingsMain" component={SettingsScreen} />
+      <Stack.Screen name="HCAdmin" component={HCAdminScreen} />
     </Stack.Navigator>
   );
 }
@@ -89,7 +99,7 @@ export function MainTabNavigator() {
       />
       <Tab.Screen
         name="Settings"
-        component={SettingsScreen}
+        component={SettingsStack}
         options={{ tabBarLabel: 'Settings' }}
       />
     </Tab.Navigator>

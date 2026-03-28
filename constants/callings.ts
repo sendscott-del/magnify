@@ -27,67 +27,53 @@ export const WARDS = [
   { name: 'Chicago 2nd', abbreviation: 'CH2' },
 ];
 
+// Only callings requiring Stake Presidency + High Council approval per the Church Handbook
 export const CALLING_GROUPS: { org: string; callings: string[] }[] = [
   {
     org: 'Bishopric',
     callings: [
       'First Counselor in Bishopric',
       'Second Counselor in Bishopric',
-      'Ward Executive Secretary',
       'Ward Clerk',
       'Assistant Ward Clerk',
+      'Ward Executive Secretary',
+      'Assistant Ward Executive Secretary',
     ],
   },
   {
     org: 'Elders Quorum',
     callings: [
       'Elders Quorum President',
-      'First Counselor in Elders Quorum',
-      'Second Counselor in Elders Quorum',
-      'Elders Quorum Secretary',
     ],
   },
   {
     org: 'Relief Society',
     callings: [
       'Relief Society President',
-      'First Counselor in Relief Society',
-      'Second Counselor in Relief Society',
-      'Relief Society Secretary',
     ],
   },
   {
     org: 'Young Women',
     callings: [
       'Young Women President',
-      'First Counselor in Young Women',
-      'Second Counselor in Young Women',
-      'Young Women Secretary',
     ],
   },
   {
     org: 'Young Men',
     callings: [
       'Young Men President',
-      'First Counselor in Young Men',
-      'Second Counselor in Young Men',
     ],
   },
   {
     org: 'Sunday School',
     callings: [
       'Sunday School President',
-      'First Counselor in Sunday School',
-      'Second Counselor in Sunday School',
     ],
   },
   {
     org: 'Primary',
     callings: [
       'Primary President',
-      'First Counselor in Primary',
-      'Second Counselor in Primary',
-      'Primary Secretary',
     ],
   },
   {
@@ -97,6 +83,7 @@ export const CALLING_GROUPS: { org: string; callings: string[] }[] = [
       'Stake Executive Secretary',
       'Stake Clerk',
       'Assistant Stake Clerk',
+      'Stake Patriarch',
       'Stake Relief Society President',
       'First Counselor in Stake Relief Society',
       'Second Counselor in Stake Relief Society',
@@ -108,7 +95,6 @@ export const CALLING_GROUPS: { org: string; callings: string[] }[] = [
       'Second Counselor in Stake Primary',
       'Stake Young Men President',
       'Stake Sunday School President',
-      'Stake Patriarch',
       'Stake Auditor',
     ],
   },

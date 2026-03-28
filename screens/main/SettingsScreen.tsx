@@ -12,7 +12,7 @@ import { Button } from '../../components/ui/Button';
 import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme';
 import { ROLE_LABELS } from '../../constants/callings';
 
-export function SettingsScreen() {
+export function SettingsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { profile, signOut, isAdmin } = useAuth();
   const [pendingUsers, setPendingUsers] = useState<Profile[]>([]);
@@ -143,6 +143,20 @@ export function SettingsScreen() {
                 </View>
               ))
             )}
+          </View>
+        )}
+
+        {/* Admin: High Council */}
+        {isAdmin && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Administration</Text>
+            <Button
+              title="Manage High Council"
+              onPress={() => navigation.navigate('HCAdmin')}
+              variant="outline"
+              fullWidth
+              style={styles.actionBtn}
+            />
           </View>
         )}
 

@@ -35,8 +35,6 @@ export function NewCallingScreen({ navigation }: any) {
   const [customCallingName, setCustomCallingName] = useState('');
   const [ordinationType, setOrdinationType] = useState<'elder' | 'high_priest'>('elder');
   const [notes, setNotes] = useState('');
-  const [orgRecommended, setOrgRecommended] = useState(false);
-  const [bishopApproved, setBishopApproved] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -49,7 +47,7 @@ export function NewCallingScreen({ navigation }: any) {
     supabase
       .from('wards')
       .select('*')
-      .order('sort_order')
+      .order('name')
       .then(({ data }) => {
         if (data) setWards(data as Ward[]);
       });
@@ -76,8 +74,6 @@ export function NewCallingScreen({ navigation }: any) {
       ward_id: wardId,
       stage: 'ideas',
       rejected: false,
-      org_recommended: orgRecommended,
-      bishop_approved: bishopApproved,
       notes: notes.trim() || null,
       created_by: user?.id,
     };
@@ -116,8 +112,6 @@ export function NewCallingScreen({ navigation }: any) {
     setCallingName('');
     setCustomCallingName('');
     setNotes('');
-    setOrgRecommended(false);
-    setBishopApproved(false);
 
     if (Platform.OS === 'web') {
       // Navigate to HC board
@@ -235,30 +229,6 @@ export function NewCallingScreen({ navigation }: any) {
           multiline
           numberOfLines={3}
         />
-
-        {/* Checkboxes */}
-        <View style={styles.checkRow}>
-          <TouchableOpacity
-            style={styles.checkItem}
-            onPress={() => setOrgRecommended(!orgRecommended)}
-          >
-            <View style={[styles.checkbox, orgRecommended && styles.checkboxChecked]}>
-              {orgRecommended && <Text style={styles.checkMark}>✓</Text>}
-            </View>
-            <Text style={styles.checkLabel}>Org / Bishop Recommended</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.checkRow}>
-          <TouchableOpacity
-            style={styles.checkItem}
-            onPress={() => setBishopApproved(!bishopApproved)}
-          >
-            <View style={[styles.checkbox, bishopApproved && styles.checkboxChecked]}>
-              {bishopApproved && <Text style={styles.checkMark}>✓</Text>}
-            </View>
-            <Text style={styles.checkLabel}>Bishop Approved</Text>
-          </TouchableOpacity>
-        </View>
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
@@ -439,25 +409,6 @@ const styles = StyleSheet.create({
   pickerBtnText: { fontSize: FontSize.md, color: Colors.black },
   pickerBtnPlaceholder: { fontSize: FontSize.md, color: Colors.gray[400] },
   pickerArrow: { color: Colors.gray[400], fontSize: 12 },
-  checkRow: { marginBottom: Spacing.sm },
-  checkItem: { flexDirection: 'row', alignItems: 'center' },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
-    borderWidth: 2,
-    borderColor: Colors.gray[300],
-    marginRight: Spacing.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.white,
-  },
-  checkboxChecked: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  checkMark: { color: Colors.white, fontSize: 12, fontWeight: '800' },
-  checkLabel: { fontSize: FontSize.md, color: Colors.gray[700] },
   error: {
     color: Colors.error,
     fontSize: FontSize.sm,
