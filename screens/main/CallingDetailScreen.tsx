@@ -244,14 +244,15 @@ interface HCApprovalSectionProps {
   hcMembers: HCMember[];
   hcApprovals: HCApproval[];
   canToggle: boolean;
+  spOverride: boolean;
   onToggle: (memberId: string, current: boolean) => Promise<void>;
 }
 
-function HCApprovalSection({ hcMembers, hcApprovals, canToggle, onToggle }: HCApprovalSectionProps) {
+function HCApprovalSection({ hcMembers, hcApprovals, canToggle, spOverride, onToggle }: HCApprovalSectionProps) {
   const activeMembers = hcMembers.filter(m => m.active);
   const approvedCount = hcApprovals.filter(a => a.approved).length;
   const needed = Math.ceil(activeMembers.length / 2);
-  const isReady = activeMembers.length === 0 || approvedCount >= needed;
+  const isReady = spOverride || activeMembers.length === 0 || approvedCount >= needed;
 
   if (activeMembers.length === 0) {
     return (
@@ -264,7 +265,14 @@ function HCApprovalSection({ hcMembers, hcApprovals, canToggle, onToggle }: HCAp
 
   return (
     <View style={hcStyles.container}>
-      <Text style={hcStyles.title}>High Council Approval</Text>
+      <View style={hcStyles.titleRow}>
+        <Text style={hcStyles.title}>High Council Approval</Text>
+        {spOverride && (
+          <View style={hcStyles.overrideBadge}>
+            <Text style={hcStyles.overrideBadgeText}>SP Override</Text>
+          </View>
+        )}
+      </View>
       {activeMembers.map(member => {
         const rec = hcApprovals.find(a => a.hc_member_id === member.id);
         const isApproved = rec?.approved ?? false;
@@ -286,8 +294,9 @@ function HCApprovalSection({ hcMembers, hcApprovals, canToggle, onToggle }: HCAp
         );
       })}
       <Text style={[hcStyles.status, isReady && hcStyles.statusReady]}>
-        {approvedCount}/{activeMembers.length} approved — need {needed}
-        {isReady ? ' ✓' : ''}
+        {spOverride
+          ? 'Stake President override — HC threshold bypassed ✓'
+          : `${approvedCount}/${activeMembers.length} approved — need ${needed}${isReady ? ' ✓' : ''}`}
       </Text>
     </View>
   );
@@ -299,7 +308,13 @@ const hcStyles = StyleSheet.create({
     padding: Spacing.md, marginBottom: Spacing.md,
     borderWidth: 1, borderColor: Colors.gray[200],
   },
-  title: { fontSize: FontSize.md, fontWeight: '700', color: Colors.gray[800], marginBottom: Spacing.sm },
+  titleRow: { flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.sm, gap: Spacing.sm },
+  title: { fontSize: FontSize.md, fontWeight: '700', color: Colors.gray[800] },
+  overrideBadge: {
+    backgroundColor: Colors.primary + '15', borderRadius: Radius.full,
+    paddingHorizontal: Spacing.sm, paddingVertical: 2, borderWidth: 1, borderColor: Colors.primary + '40',
+  },
+  overrideBadgeText: { fontSize: FontSize.xs, fontWeight: '700', color: Colors.primary },
   empty: { fontSize: FontSize.sm, color: Colors.gray[400], fontStyle: 'italic' },
   row: { flexDirection: 'row', alignItems: 'center', paddingVertical: Spacing.xs },
   checkbox: {
@@ -405,6 +420,9 @@ export function CallingDetailScreen({ route, navigation }: any) {
       return presidentApproved || allApproved;
     }
     if (calling.stage === 'hc_approval') {
+      // Stake President can override HC threshold
+      const spOverride = spApprovals.find(a => a.role === 'stake_president')?.approved ?? false;
+      if (spOverride) return true;
       const activeCount = hcMembers.filter(m => m.active).length;
       if (activeCount === 0) return true;
       const approvedCount = hcApprovals.filter(a => a.approved).length;
@@ -503,7 +521,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
     calling.type === 'stake_calling' &&
     ['sustain', 'set_apart', 'record', 'complete'].includes(calling.stage);
 
-  const showSPApprovals = ['for_approval', 'stake_approved'].includes(calling.stage);
+  const showSPApprovals = ['for_approval', 'stake_approved', 'hc_approval'].includes(calling.stage);
   const showHCApprovals = ['hc_approval', 'issue_calling', 'ordained', 'sustain', 'set_apart', 'record', 'complete'].includes(calling.stage);
 
   const canToggleSP = !!(role && ['stake_president','first_counselor','second_counselor','stake_clerk','exec_secretary'].includes(role));
@@ -612,6 +630,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
             hcMembers={hcMembers}
             hcApprovals={hcApprovals}
             canToggle={canToggleHC && !isComplete}
+            spOverride={spApprovals.find(a => a.role === 'stake_president')?.approved ?? false}
             onToggle={toggleHCApproval}
           />
         )}
