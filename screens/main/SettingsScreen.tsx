@@ -146,19 +146,17 @@ export function SettingsScreen({ navigation }: any) {
           </View>
         )}
 
-        {/* Admin: High Council */}
-        {isAdmin && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Administration</Text>
-            <Button
-              title="Manage High Council"
-              onPress={() => navigation.navigate('HCAdmin')}
-              variant="outline"
-              fullWidth
-              style={styles.actionBtn}
-            />
-          </View>
-        )}
+        {/* High Council */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>High Council</Text>
+          <Button
+            title="Manage High Council Members"
+            onPress={() => navigation.navigate('HCAdmin')}
+            variant="outline"
+            fullWidth
+            style={styles.actionBtn}
+          />
+        </View>
 
         {/* App Actions */}
         <View style={styles.section}>
