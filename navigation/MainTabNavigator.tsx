@@ -78,10 +78,10 @@ export function MainTabNavigator() {
         tabBarStyle: { borderTopColor: Colors.gray[200] },
         tabBarIcon: ({ color, size, focused }) => {
           if (route.name === 'PresidencyBoard') {
-            return <Image source={TAB_ICONS.SP} style={{ width: size, height: size, opacity: focused ? 1 : 0.5, borderRadius: 4 }} />;
+            return <Image source={TAB_ICONS.SP} style={{ width: size + 6, height: size + 6, opacity: focused ? 1 : 0.5, borderRadius: 5 }} />;
           }
           if (route.name === 'HC') {
-            return <Image source={TAB_ICONS.HC} style={{ width: size, height: size, opacity: focused ? 1 : 0.5, borderRadius: 4 }} />;
+            return <Image source={TAB_ICONS.HC} style={{ width: size + 6, height: size + 6, opacity: focused ? 1 : 0.5, borderRadius: 5 }} />;
           }
           const icons: Record<string, keyof typeof Ionicons.glyphMap> = {
             New: 'add-circle',

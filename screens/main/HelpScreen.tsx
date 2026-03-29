@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme';
+import { DisclaimerFooter } from '../../components/ui/DisclaimerFooter';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -61,7 +62,7 @@ export function HelpScreen({ navigation }: any) {
           />
           <Item
             label="Executive Secretary"
-            description="Admin access to manage users and HC members. Can perform HC tasks (extend, sustain, set apart, record)."
+            description="Admin access to manage users and HC members. Can update HC tasks (extend, sustain, set apart, record)."
           />
         </Section>
 
@@ -70,8 +71,8 @@ export function HelpScreen({ navigation }: any) {
           <Item label="For Approval" description="Submitted to the Stake Presidency for review and approval." />
           <Item label="Stake Approved" description="Approved by the Stake Presidency. Ready for High Council action." />
           <Item label="HC Approval" description="High Councilors vote to approve. At least 50% must approve (or Stake President overrides)." />
-          <Item label="Extend Calling" description="An HC member or clerk extends the calling to the member." />
-          <Item label="Sustain" description="The member is presented and sustained in their ward." />
+          <Item label="Extend Calling" description="An HC member or stake presidency member extends the calling to the member." />
+          <Item label="Sustain" description="The member is presented and sustained in their ward. For stake callings the member is sustained in all wards." />
           <Item label="Set Apart" description="A blessing is performed to set the member apart in their calling." />
           <Item label="Record" description="The calling is recorded in Church records." />
           <Item label="Complete" description="The calling is fully processed and moved to Completed." />
@@ -79,13 +80,13 @@ export function HelpScreen({ navigation }: any) {
 
         <Section title="MP Ordination Workflow">
           <Text style={styles.body}>
-            Melchizedek Priesthood ordinations skip the SP Board and go directly to HC Approval after creation. They then follow the same HC stages (Extend → Sustain → Set Apart → Record → Complete).
+            Melchizedek Priesthood ordinations skip the SP Board and go directly to HC Approval after creation. They then follow the same HC stages (Sustain → Ordain → Record → Complete).
           </Text>
         </Section>
 
         <Section title="SP Board">
           <Text style={styles.body}>
-            Visible to Stake Presidency members and Stake Clerk. Displays callings in Ideas, For Approval, and Stake Approved columns. Use the type filter (All / Ward / Stake / MP) to narrow the view.
+            Visible to Stake Presidency members, Stake Clerk, and Stake Executive Secretary. Displays callings in Ideas, For Approval, and Stake Approved columns. Use the type filter (All / Ward / Stake / MP) to narrow the view.
           </Text>
           <Text style={[styles.body, { marginTop: Spacing.xs }]}>
             To advance a calling, open the card and tap the advance button. Presidency approval checkboxes must be completed before advancing from For Approval.
@@ -122,15 +123,16 @@ export function HelpScreen({ navigation }: any) {
           />
           <Item
             label="Can I undo a stage change?"
-            description="Stake Clerks can move a calling back one stage using the 'Move Back' button on the card detail screen."
+            description="Stake Clerk, Stake Executive Secretary, and Stake Presidency can move a calling back one stage using the 'Move Back' button on the card detail screen."
           />
           <Item
             label="How do I delete a calling?"
-            description="Only Stake Clerks can delete callings. Open the card detail and tap the Delete button at the bottom."
+            description="Stake Clerk, Stake Executive Secretary, and Stake Presidency can delete callings. Open the card detail and tap the Delete button at the bottom."
           />
         </Section>
 
         <Text style={styles.footer}>Magnify · Stake Callings Workflow</Text>
+        <DisclaimerFooter />
       </ScrollView>
     </View>
   );

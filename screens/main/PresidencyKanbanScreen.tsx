@@ -9,6 +9,7 @@ import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { Calling, CallingType } from '../../lib/database.types';
 import { KanbanColumn } from '../../components/kanban/KanbanColumn';
+import { DisclaimerFooter } from '../../components/ui/DisclaimerFooter';
 import { Colors, Spacing, FontSize, Radius } from '../../constants/theme';
 
 const ACTIVE_STAGES = ['ideas', 'for_approval', 'stake_approved'];
@@ -120,6 +121,7 @@ export function PresidencyKanbanScreen({ navigation }: any) {
           />
         )}
       </ScrollView>
+      <DisclaimerFooter />
     </View>
   );
 }

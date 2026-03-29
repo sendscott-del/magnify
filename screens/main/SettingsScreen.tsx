@@ -9,6 +9,7 @@ import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { Profile, UserRole } from '../../lib/database.types';
 import { Button } from '../../components/ui/Button';
+import { DisclaimerFooter } from '../../components/ui/DisclaimerFooter';
 import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme';
 import { ROLE_LABELS } from '../../constants/callings';
 import { notifyAccessApproved } from '../../lib/slack';
@@ -313,6 +314,7 @@ export function SettingsScreen({ navigation }: any) {
         </View>
 
         <Text style={styles.version}>Magnify v{CHANGELOG[0]?.version ?? '1.0.0'} · Stake Callings Workflow</Text>
+        <DisclaimerFooter />
       </ScrollView>
     </View>
   );

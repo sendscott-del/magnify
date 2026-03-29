@@ -12,6 +12,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Calling, CallingLogEntry, WardSustaining, Ward, Stage, Profile } from '../../lib/database.types';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
+import { DisclaimerFooter } from '../../components/ui/DisclaimerFooter';
 import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme';
 import { STAGE_LABELS } from '../../constants/callings';
 import {
@@ -55,28 +56,10 @@ function formatDateTime(d?: string | null) {
 }
 
 // ─── Ward Sustaining ─────────────────────────────────────────────────────────
-function WardSustainingSection({ callingId, wards, canToggle, userId }: {
-  callingId: string; wards: Ward[]; canToggle: boolean; userId?: string;
+function WardSustainingSection({ wards, sustainings, canToggle, onToggle }: {
+  wards: Ward[]; sustainings: WardSustaining[]; canToggle: boolean;
+  onToggle: (wardId: string, existing: WardSustaining | undefined) => Promise<void>;
 }) {
-  const [sustainings, setSustainingsList] = useState<WardSustaining[]>([]);
-  const fetch = useCallback(async () => {
-    const { data } = await supabase.from('ward_sustainings').select('*, wards(id,name,abbreviation)').eq('calling_id', callingId);
-    setSustainingsList((data as WardSustaining[]) ?? []);
-  }, [callingId]);
-  useFocusEffect(useCallback(() => { fetch(); }, [fetch]));
-
-  async function toggle(wardId: string) {
-    if (!canToggle) return;
-    const existing = sustainings.find(s => s.ward_id === wardId);
-    if (existing) {
-      const nv = !existing.sustained;
-      await supabase.from('ward_sustainings').update({ sustained: nv, sustained_at: nv ? new Date().toISOString() : null, sustained_by: userId }).eq('id', existing.id);
-    } else {
-      await supabase.from('ward_sustainings').insert({ calling_id: callingId, ward_id: wardId, sustained: true, sustained_at: new Date().toISOString(), sustained_by: userId });
-    }
-    fetch();
-  }
-
   return (
     <View style={wsStyles.container}>
       <Text style={wsStyles.title}>Ward Sustainings</Text>
@@ -85,7 +68,7 @@ function WardSustainingSection({ callingId, wards, canToggle, userId }: {
           const s = sustainings.find(sx => sx.ward_id === ward.id);
           const isSustained = s?.sustained ?? false;
           return (
-            <TouchableOpacity key={ward.id} style={[wsStyles.chip, isSustained && wsStyles.chipOn]} onPress={() => toggle(ward.id)} disabled={!canToggle}>
+            <TouchableOpacity key={ward.id} style={[wsStyles.chip, isSustained && wsStyles.chipOn]} onPress={() => onToggle(ward.id, s)} disabled={!canToggle}>
               <Text style={[wsStyles.chipLabel, isSustained && wsStyles.chipLabelOn]}>{ward.abbreviation}</Text>
               {isSustained && s?.sustained_at && <Text style={wsStyles.chipDate}>{format(new Date(s.sustained_at), 'M/d')}</Text>}
             </TouchableOpacity>
@@ -414,6 +397,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
   const [hcMembers, setHcMembers] = useState<HCMember[]>([]);
   const [spMembers, setSpMembers] = useState<{ id: string; name: string; role: string }[]>([]);
   const [allProfiles, setAllProfiles] = useState<Profile[]>([]);
+  const [wardSustainingsList, setWardSustainingsList] = useState<WardSustaining[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
@@ -423,7 +407,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    const [callingRes, logRes, wardsRes, spRes, hcMembersRes, hcApprovalsRes, profilesRes, spMembersRes] = await Promise.all([
+    const [callingRes, logRes, wardsRes, spRes, hcMembersRes, hcApprovalsRes, profilesRes, spMembersRes, wardSustRes] = await Promise.all([
       supabase.from('callings').select('*, wards(id,name,abbreviation), profiles!created_by(id,full_name,email,role,status,created_at)').eq('id', callingId).single(),
       supabase.from('calling_log').select('*, profiles!performed_by(id,full_name,email,role,status,created_at)').eq('calling_id', callingId).order('created_at', { ascending: false }),
       supabase.from('wards').select('*').order('name'),
@@ -432,6 +416,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
       supabase.from('hc_approvals').select('*').eq('calling_id', callingId),
       supabase.from('profiles').select('id,full_name,role,status,email,created_at').eq('status', 'approved').order('full_name'),
       supabase.from('sp_members').select('id,name,role').eq('active', true).order('sort_order'),
+      supabase.from('ward_sustainings').select('*').eq('calling_id', callingId),
     ]);
     if (callingRes.error) console.error('callingRes error:', JSON.stringify(callingRes.error));
     setCalling(callingRes.data as Calling ?? null);
@@ -442,6 +427,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
     setHcApprovals((hcApprovalsRes.data as HCApproval[]) ?? []);
     setAllProfiles((profilesRes.data as Profile[]) ?? []);
     setSpMembers((spMembersRes.data as any[]) ?? []);
+    setWardSustainingsList((wardSustRes.data as WardSustaining[]) ?? []);
     setLoading(false);
   }, [callingId]);
 
@@ -480,6 +466,18 @@ export function CallingDetailScreen({ route, navigation }: any) {
     setCalling(prev => prev ? { ...prev, [field]: name } : prev);
   }
 
+  async function handleWardSustainingToggle(wardId: string, existing: WardSustaining | undefined) {
+    if (!calling) return;
+    if (existing) {
+      const nv = !existing.sustained;
+      await supabase.from('ward_sustainings').update({ sustained: nv, sustained_at: nv ? new Date().toISOString() : null, sustained_by: profile?.id ?? null }).eq('id', existing.id);
+    } else {
+      await supabase.from('ward_sustainings').insert({ calling_id: calling.id, ward_id: wardId, sustained: true, sustained_at: new Date().toISOString(), sustained_by: profile?.id ?? null });
+    }
+    const { data } = await supabase.from('ward_sustainings').select('*').eq('calling_id', calling.id);
+    setWardSustainingsList((data as WardSustaining[]) ?? []);
+  }
+
   function approvalsReady(userRole: string): boolean {
     if (!calling) return false;
     if (calling.stage === 'for_approval') {
@@ -496,6 +494,12 @@ export function CallingDetailScreen({ route, navigation }: any) {
       if (activeCount === 0) return true;
       return hcApprovals.filter(a => a.approved).length >= Math.ceil(activeCount / 2);
     }
+    if (calling.stage === 'sustain' && calling.type === 'stake_calling') {
+      // SP, counselors, clerk, exec secretary can advance before all wards sustained
+      if (['stake_president', 'first_counselor', 'second_counselor', 'stake_clerk', 'exec_secretary'].includes(userRole)) return true;
+      // HC members must wait for all wards to be sustained
+      return allWards.every(w => wardSustainingsList.find(s => s.ward_id === w.id)?.sustained === true);
+    }
     return true;
   }
 
@@ -507,6 +511,8 @@ export function CallingDetailScreen({ route, navigation }: any) {
     if (!approvalsReady(profile.role)) {
       const msg = calling.stage === 'for_approval'
         ? 'All three Stake Presidency members must approve before advancing.'
+        : calling.stage === 'sustain' && calling.type === 'stake_calling'
+        ? 'All wards must be sustained before advancing. Stake Presidency, Clerk, or Executive Secretary can override.'
         : 'At least half of the High Council must approve before advancing.';
       if (Platform.OS === 'web') window.alert(msg);
       else Alert.alert('Approvals Needed', msg);
@@ -792,9 +798,10 @@ export function CallingDetailScreen({ route, navigation }: any) {
         {/* Ward Sustaining */}
         {showSustaining && allWards.length > 0 && (
           <WardSustainingSection
-            callingId={calling.id} wards={allWards}
-            canToggle={!!(role && ['high_councilor','stake_clerk','exec_secretary','stake_president'].includes(role))}
-            userId={profile?.id}
+            wards={allWards}
+            sustainings={wardSustainingsList}
+            canToggle={!!(role && ['high_councilor','stake_clerk','exec_secretary','stake_president','first_counselor','second_counselor'].includes(role))}
+            onToggle={handleWardSustainingToggle}
           />
         )}
 
@@ -859,6 +866,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
             ))
           )}
         </View>
+        <DisclaimerFooter />
       </ScrollView>
 
       {/* Decline Modal */}
@@ -893,7 +901,7 @@ const styles = StyleSheet.create({
   headerBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, backgroundColor: Colors.white, borderBottomWidth: 1, borderBottomColor: Colors.gray[100] },
   backBtn: { padding: Spacing.xs },
   headerBadges: { flexDirection: 'row', alignItems: 'center', flex: 1, justifyContent: 'center', gap: 6 },
-  typeIcon: { width: 22, height: 22, borderRadius: 5 },
+  typeIcon: { width: 28, height: 28, borderRadius: 6 },
   deleteHeaderBtn: { padding: Spacing.xs },
   scroll: { flex: 1 },
   scrollContent: { padding: Spacing.md },

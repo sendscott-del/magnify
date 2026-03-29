@@ -74,9 +74,9 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
   },
   typeIcon: {
-    width: 22,
-    height: 22,
-    borderRadius: 5,
+    width: 30,
+    height: 30,
+    borderRadius: 7,
     flexShrink: 0,
   },
   name: {

@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { Calling, CallingType, Ward } from '../../lib/database.types';
 import { KanbanColumn } from '../../components/kanban/KanbanColumn';
+import { DisclaimerFooter } from '../../components/ui/DisclaimerFooter';
 import { Colors, Spacing, FontSize, Radius } from '../../constants/theme';
 
 const HC_COLUMNS = [
@@ -236,6 +237,7 @@ export function HCKanbanScreen({ navigation }: any) {
           </View>
         </TouchableOpacity>
       </Modal>
+      <DisclaimerFooter />
     </View>
   );
 }

@@ -11,6 +11,7 @@ import { supabase } from '../../lib/supabase';
 import { Calling, Ward } from '../../lib/database.types';
 import { Badge } from '../../components/ui/Badge';
 import { EmptyState } from '../../components/ui/EmptyState';
+import { DisclaimerFooter } from '../../components/ui/DisclaimerFooter';
 import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme';
 
 const TYPE_LABELS: Record<string, string> = {
@@ -119,6 +120,7 @@ export function CompletedCallingsScreen({ navigation }: any) {
             subtitle="Completed callings will appear here"
           />
         }
+        ListFooterComponent={<DisclaimerFooter />}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.row}

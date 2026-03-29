@@ -9,6 +9,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Ward, CallingType } from '../../lib/database.types';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
+import { DisclaimerFooter } from '../../components/ui/DisclaimerFooter';
 import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme';
 import { CALLING_GROUPS } from '../../constants/callings';
 
@@ -285,6 +286,7 @@ export function NewCallingScreen({ navigation }: any) {
             />
           </>
         )}
+        <DisclaimerFooter />
       </ScrollView>
 
       {/* Ward Picker Modal */}

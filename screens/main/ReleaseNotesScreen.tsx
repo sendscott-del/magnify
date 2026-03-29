@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme';
 import { CHANGELOG } from '../../constants/changelog';
+import { DisclaimerFooter } from '../../components/ui/DisclaimerFooter';
 
 export function ReleaseNotesScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -52,6 +53,7 @@ export function ReleaseNotesScreen({ navigation }: any) {
         ))}
 
         <Text style={styles.footer}>Release notes are generated automatically on each deployment.</Text>
+        <DisclaimerFooter />
       </ScrollView>
     </View>
   );

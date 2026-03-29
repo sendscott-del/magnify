@@ -9,6 +9,7 @@ export interface PermittedAction {
 
 const PRESIDENCY: UserRole[] = ['stake_president', 'first_counselor', 'second_counselor'];
 const CLERK_GROUP: UserRole[] = ['stake_president', 'stake_clerk'];
+const ADMIN_GROUP: UserRole[] = ['stake_president', 'first_counselor', 'second_counselor', 'stake_clerk', 'exec_secretary'];
 const HC: UserRole[] = ['high_councilor'];
 const RECORD_GROUP: UserRole[] = ['stake_president', 'stake_clerk', 'exec_secretary'];
 const ALL_APPROVED: UserRole[] = ['stake_president', 'first_counselor', 'second_counselor', 'high_councilor', 'stake_clerk', 'exec_secretary'];
@@ -41,11 +42,11 @@ export function canReject(role: UserRole, stage: Stage): boolean {
 }
 
 export function canMoveback(role: UserRole): boolean {
-  return CLERK_GROUP.includes(role);
+  return ADMIN_GROUP.includes(role);
 }
 
 export function canDelete(role: UserRole): boolean {
-  return CLERK_GROUP.includes(role);
+  return ADMIN_GROUP.includes(role);
 }
 
 export function getNextStage(stage: Stage, type: CallingType): Stage | null {

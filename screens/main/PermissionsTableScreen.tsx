@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme';
+import { DisclaimerFooter } from '../../components/ui/DisclaimerFooter';
 
 const ROLES = [
   { key: 'stake_president', label: 'Stake President' },
@@ -96,10 +97,10 @@ const PERMISSIONS: Permission[] = [
     label: 'Delete Callings',
     values: {
       stake_president: true,
-      first_counselor: false,
-      second_counselor: false,
+      first_counselor: true,
+      second_counselor: true,
       stake_clerk: true,
-      exec_secretary: false,
+      exec_secretary: true,
       high_councilor: false,
     },
   },
@@ -107,10 +108,10 @@ const PERMISSIONS: Permission[] = [
     label: 'Move Back Stage',
     values: {
       stake_president: true,
-      first_counselor: false,
-      second_counselor: false,
+      first_counselor: true,
+      second_counselor: true,
       stake_clerk: true,
-      exec_secretary: false,
+      exec_secretary: true,
       high_councilor: false,
     },
   },
@@ -182,22 +183,24 @@ export function PermissionsTableScreen({ navigation }: any) {
           </View>
         ))}
 
+        <DisclaimerFooter />
+
         <View style={styles.legend}>
           <Text style={styles.legendTitle}>Legend</Text>
           <View style={styles.legendRow}>
-            <View style={[styles.cell, styles.cellYes, { marginRight: Spacing.sm }]}>
+            <View style={styles.legendCell}>
               <Ionicons name="checkmark" size={14} color={Colors.success} />
             </View>
             <Text style={styles.legendText}>Permitted</Text>
           </View>
           <View style={styles.legendRow}>
-            <View style={[styles.cell, styles.cellNo, { marginRight: Spacing.sm }]}>
+            <View style={[styles.legendCell, styles.cellNo]}>
               <Text style={styles.cellNoText}>—</Text>
             </View>
             <Text style={styles.legendText}>Not permitted</Text>
           </View>
           <View style={styles.legendRow}>
-            <View style={[styles.cell, styles.cellPartial, { marginRight: Spacing.sm }]}>
+            <View style={[styles.legendCell, styles.cellPartial]}>
               <Text style={styles.cellPartialText}>Cond.</Text>
             </View>
             <Text style={styles.legendText}>Permitted with conditions (see note)</Text>
@@ -301,8 +304,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: Spacing.xs,
   },
+  legendCell: {
+    width: 36,
+    height: 28,
+    borderRadius: Radius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: Spacing.sm,
+    backgroundColor: Colors.success + '18',
+    flexShrink: 0,
+  },
   legendText: {
     fontSize: FontSize.sm,
     color: Colors.gray[600],
+    flex: 1,
   },
 });

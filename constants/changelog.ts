@@ -9,6 +9,26 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.2.0',
+    date: '2026-03-29',
+    enhancements: [
+      'Idle session timeout: automatic sign-out after 15 minutes of inactivity with a 3-minute warning',
+      'Navigation state is now persisted — returning to the app after switching browser tabs restores your last page',
+      'Ward sustaining checkboxes for stake callings now gate advancement; SP, Counselors, Clerk, and Exec Secretary can override',
+      'Stake Presidency, Stake Clerk, and Executive Secretary can now move callings back one stage',
+      'Stake Presidency, Stake Clerk, and Executive Secretary can now delete callings',
+      'Disclaimer added to all pages: not an official Church app',
+      'Custom icons replaced with improved versions across all views',
+      'Access permissions table updated to reflect new Move Back and Delete permissions',
+      'Legend on permissions table no longer cuts off text',
+      'Icons on cards and tab bar increased in size for better visibility',
+    ],
+    bugFixes: [
+      'Fixed legend text being cut off on the Access Permissions screen',
+      'Ward sustaining section now refreshes correctly without a separate fetch cycle',
+    ],
+  },
+  {
     version: '1.1.0',
     date: '2026-03-29',
     enhancements: [
