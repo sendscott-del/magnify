@@ -252,11 +252,12 @@ function TaskAssignmentsSection({ calling, assignees, clerkName, canEdit, onAssi
   onAssign: (field: string, name: string | null) => Promise<void>;
 }) {
   const [pickerField, setPickerField] = useState<string | null>(null);
+  const visibleFields = TASK_FIELDS.filter(f => !(f.key === 'extend_by' && calling.type === 'mp_ordination'));
 
   return (
     <View style={taStyles.container}>
       <Text style={taStyles.title}>Task Assignments</Text>
-      {TASK_FIELDS.map(({ key, label, locked }) => {
+      {visibleFields.map(({ key, label, locked }) => {
         const assignedName = (calling as any)[key] as string | null;
         const isRecord = locked;
         const displayName = isRecord ? (clerkName ?? 'Stake Clerk') : assignedName;
