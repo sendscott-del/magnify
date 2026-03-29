@@ -11,6 +11,7 @@ import { CompletedCallingsScreen } from '../screens/main/CompletedCallingsScreen
 import { SettingsScreen } from '../screens/main/SettingsScreen';
 import { CallingDetailScreen } from '../screens/main/CallingDetailScreen';
 import { HCAdminScreen } from '../screens/main/HCAdminScreen';
+import { SPAdminScreen } from '../screens/main/SPAdminScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -47,6 +48,7 @@ function SettingsStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="SettingsMain" component={SettingsScreen} />
       <Stack.Screen name="HCAdmin" component={HCAdminScreen} />
+      <Stack.Screen name="SPAdmin" component={SPAdminScreen} />
     </Stack.Navigator>
   );
 }

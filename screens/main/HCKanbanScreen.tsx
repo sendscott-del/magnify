@@ -40,7 +40,7 @@ export function HCKanbanScreen({ navigation }: any) {
   const [showAssigneeFilter, setShowAssigneeFilter] = useState(false);
 
   const fetchData = useCallback(async () => {
-    const [callingsRes, wardsRes, profilesRes, hcMembersRes] = await Promise.all([
+    const [callingsRes, wardsRes, spMembersRes, hcMembersRes] = await Promise.all([
       supabase
         .from('callings')
         .select('*, wards(id,name,abbreviation)')
@@ -48,14 +48,13 @@ export function HCKanbanScreen({ navigation }: any) {
         .eq('rejected', false)
         .order('created_at', { ascending: false }),
       supabase.from('wards').select('*').order('name'),
-      supabase.from('profiles').select('id,full_name,role').eq('status', 'approved')
-        .in('role', ['stake_president', 'first_counselor', 'second_counselor']),
+      supabase.from('sp_members').select('id,name,role').eq('active', true).order('sort_order'),
       supabase.from('high_council_members').select('id,name,sort_order').eq('active', true).order('sort_order'),
     ]);
     setCallings((callingsRes.data as Calling[]) ?? []);
     setWards((wardsRes.data as Ward[]) ?? []);
     const spLabelMap: Record<string, string> = { stake_president: 'Stake President', first_counselor: 'Stake Presidency 1st Counselor', second_counselor: 'Stake Presidency 2nd Counselor' };
-    const spOptions = (profilesRes.data ?? []).map((p: any) => ({ name: p.full_name, subtitle: spLabelMap[p.role] ?? p.role }));
+    const spOptions = (spMembersRes.data ?? []).map((m: any) => ({ name: m.name, subtitle: spLabelMap[m.role] ?? m.role }));
     const hcOptions = (hcMembersRes.data ?? []).map((m: any) => ({ name: m.name, subtitle: 'High Councilor' }));
     setAssigneeOptions([...spOptions, ...hcOptions]);
   }, []);

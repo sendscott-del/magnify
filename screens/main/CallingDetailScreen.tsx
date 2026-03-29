@@ -407,6 +407,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
   const [spApprovals, setSpApprovals] = useState<SPApproval[]>([]);
   const [hcApprovals, setHcApprovals] = useState<HCApproval[]>([]);
   const [hcMembers, setHcMembers] = useState<HCMember[]>([]);
+  const [spMembers, setSpMembers] = useState<{ id: string; name: string; role: string }[]>([]);
   const [allProfiles, setAllProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -417,7 +418,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    const [callingRes, logRes, wardsRes, spRes, hcMembersRes, hcApprovalsRes, profilesRes] = await Promise.all([
+    const [callingRes, logRes, wardsRes, spRes, hcMembersRes, hcApprovalsRes, profilesRes, spMembersRes] = await Promise.all([
       supabase.from('callings').select('*, wards(id,name,abbreviation), profiles!created_by(id,full_name,email,role,status,created_at)').eq('id', callingId).single(),
       supabase.from('calling_log').select('*, profiles!performed_by(id,full_name,email,role,status,created_at)').eq('calling_id', callingId).order('created_at', { ascending: false }),
       supabase.from('wards').select('*').order('name'),
@@ -425,6 +426,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
       supabase.from('high_council_members').select('*').eq('active', true).order('sort_order'),
       supabase.from('hc_approvals').select('*').eq('calling_id', callingId),
       supabase.from('profiles').select('id,full_name,role,status,email,created_at').eq('status', 'approved').order('full_name'),
+      supabase.from('sp_members').select('id,name,role').eq('active', true).order('sort_order'),
     ]);
     if (callingRes.error) console.error('callingRes error:', JSON.stringify(callingRes.error));
     setCalling(callingRes.data as Calling ?? null);
@@ -434,6 +436,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
     setHcMembers((hcMembersRes.data as HCMember[]) ?? []);
     setHcApprovals((hcApprovalsRes.data as HCApproval[]) ?? []);
     setAllProfiles((profilesRes.data as Profile[]) ?? []);
+    setSpMembers((spMembersRes.data as any[]) ?? []);
     setLoading(false);
   }, [callingId]);
 
@@ -618,11 +621,8 @@ export function CallingDetailScreen({ route, navigation }: any) {
   const canDel = role ? canDelete(role) : false;
   const canAssign = !!(role && ['stake_president','first_counselor','second_counselor','stake_clerk','exec_secretary','high_councilor'].includes(role));
 
-  // Build list of assignable people: SP/counselors (from profiles) + active HC members
-  const SP_ASSIGNEE_ROLES = ['stake_president', 'first_counselor', 'second_counselor'];
-  const spAssignees: Assignee[] = allProfiles
-    .filter(p => SP_ASSIGNEE_ROLES.includes(p.role))
-    .map(p => ({ name: p.full_name, subtitle: SP_ROLE_LABELS[p.role] ?? p.role }));
+  // Build list of assignable people: SP members table + active HC members
+  const spAssignees: Assignee[] = spMembers.map(m => ({ name: m.name, subtitle: SP_ROLE_LABELS[m.role] ?? m.role }));
   const hcAssignees: Assignee[] = hcMembers.map(m => ({ name: m.name, subtitle: 'High Councilor' }));
   const taskAssignees: Assignee[] = [...spAssignees, ...hcAssignees];
 

@@ -146,9 +146,16 @@ export function SettingsScreen({ navigation }: any) {
           </View>
         )}
 
-        {/* High Council */}
+        {/* Leadership */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>High Council</Text>
+          <Text style={styles.sectionTitle}>Leadership</Text>
+          <Button
+            title="Manage Stake Presidency Members"
+            onPress={() => navigation.navigate('SPAdmin')}
+            variant="outline"
+            fullWidth
+            style={styles.actionBtn}
+          />
           <Button
             title="Manage High Council Members"
             onPress={() => navigation.navigate('HCAdmin')}
