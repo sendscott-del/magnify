@@ -13,7 +13,7 @@ const Stack = createNativeStackNavigator();
 
 const APP_URL = process.env.EXPO_PUBLIC_APP_URL ?? '';
 
-const linking = APP_URL ? {
+const linking = APP_URL ? ({
   prefixes: [APP_URL],
   config: {
     screens: {
@@ -29,7 +29,7 @@ const linking = APP_URL ? {
       },
     },
   },
-} : undefined;
+} as any) : undefined;
 
 export function AppNavigator() {
   const { session, profile, loading } = useAuth();
