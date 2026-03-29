@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Modal, TextInput, Alert, Platform, ActivityIndicator,
+  Modal, TextInput, Alert, Platform, ActivityIndicator, FlatList,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,246 +9,163 @@ import { format } from 'date-fns';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
-import { Calling, CallingLogEntry, WardSustaining, Ward, Stage } from '../../lib/database.types';
+import { Calling, CallingLogEntry, WardSustaining, Ward, Stage, Profile } from '../../lib/database.types';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme';
 import { STAGE_LABELS } from '../../constants/callings';
 import {
-  canAdvanceStage,
-  canReject,
-  getNextStage,
-  getAdvanceLabel,
+  canAdvanceStage, canReject, canMoveback, canDelete,
+  getNextStage, getPrevStage, getAdvanceLabel,
 } from '../../lib/permissions';
+import { notifyStageChange, notifyRejection } from '../../lib/slack';
 
 const TYPE_LABELS: Record<string, string> = {
   ward_calling: 'Ward Calling',
   stake_calling: 'Stake Calling',
   mp_ordination: 'MP Ordination',
 };
-
 const TYPE_COLORS: Record<string, string> = {
   ward_calling: Colors.info,
   stake_calling: '#8B5CF6',
   mp_ordination: Colors.success,
 };
 
-const SP_ROLES: { role: string; label: string }[] = [
-  { role: 'stake_president', label: 'Stake President' },
-  { role: 'first_counselor', label: 'First Counselor' },
-  { role: 'second_counselor', label: 'Second Counselor' },
+// SP roles in order — stake_clerk and exec_secretary are optional (informational only)
+const SP_ROLES = [
+  { role: 'stake_president', label: 'Stake President', required: true },
+  { role: 'first_counselor', label: 'First Counselor', required: true },
+  { role: 'second_counselor', label: 'Second Counselor', required: true },
+  { role: 'stake_clerk', label: 'Stake Clerk', required: false },
+  { role: 'exec_secretary', label: 'Exec. Secretary', required: false },
 ];
 
-function formatDate(dateStr?: string | null): string {
-  if (!dateStr) return '—';
-  try { return format(new Date(dateStr), 'MMM d, yyyy'); } catch { return dateStr; }
+function formatDate(d?: string | null) {
+  if (!d) return '—';
+  try { return format(new Date(d), 'MMM d, yyyy'); } catch { return d; }
 }
-
-function formatDateTime(dateStr?: string | null): string {
-  if (!dateStr) return '—';
-  try { return format(new Date(dateStr), 'MMM d, yyyy h:mm a'); } catch { return dateStr; }
+function formatDateTime(d?: string | null) {
+  if (!d) return '—';
+  try { return format(new Date(d), 'MMM d, yyyy h:mm a'); } catch { return d; }
 }
 
 // ─── Ward Sustaining ─────────────────────────────────────────────────────────
-
-interface WardSustainingProps {
-  callingId: string;
-  wards: Ward[];
-  canToggle: boolean;
-  userId?: string;
-}
-
-function WardSustainingSection({ callingId, wards, canToggle, userId }: WardSustainingProps) {
+function WardSustainingSection({ callingId, wards, canToggle, userId }: {
+  callingId: string; wards: Ward[]; canToggle: boolean; userId?: string;
+}) {
   const [sustainings, setSustainingsList] = useState<WardSustaining[]>([]);
-
   const fetch = useCallback(async () => {
-    const { data } = await supabase
-      .from('ward_sustainings')
-      .select('*, wards(id,name,abbreviation)')
-      .eq('calling_id', callingId);
+    const { data } = await supabase.from('ward_sustainings').select('*, wards(id,name,abbreviation)').eq('calling_id', callingId);
     setSustainingsList((data as WardSustaining[]) ?? []);
   }, [callingId]);
-
   useFocusEffect(useCallback(() => { fetch(); }, [fetch]));
 
   async function toggle(wardId: string) {
     if (!canToggle) return;
     const existing = sustainings.find(s => s.ward_id === wardId);
     if (existing) {
-      const newVal = !existing.sustained;
-      await supabase.from('ward_sustainings').update({
-        sustained: newVal,
-        sustained_at: newVal ? new Date().toISOString() : null,
-        sustained_by: userId,
-      }).eq('id', existing.id);
+      const nv = !existing.sustained;
+      await supabase.from('ward_sustainings').update({ sustained: nv, sustained_at: nv ? new Date().toISOString() : null, sustained_by: userId }).eq('id', existing.id);
     } else {
-      await supabase.from('ward_sustainings').insert({
-        calling_id: callingId, ward_id: wardId,
-        sustained: true, sustained_at: new Date().toISOString(), sustained_by: userId,
-      });
+      await supabase.from('ward_sustainings').insert({ calling_id: callingId, ward_id: wardId, sustained: true, sustained_at: new Date().toISOString(), sustained_by: userId });
     }
     fetch();
   }
 
   return (
-    <View style={sustainStyles.container}>
-      <Text style={sustainStyles.title}>Ward Sustainings</Text>
-      <View style={sustainStyles.grid}>
+    <View style={wsStyles.container}>
+      <Text style={wsStyles.title}>Ward Sustainings</Text>
+      <View style={wsStyles.grid}>
         {wards.map(ward => {
           const s = sustainings.find(sx => sx.ward_id === ward.id);
           const isSustained = s?.sustained ?? false;
           return (
-            <TouchableOpacity
-              key={ward.id}
-              style={[sustainStyles.chip, isSustained && sustainStyles.chipSustained]}
-              onPress={() => toggle(ward.id)}
-              disabled={!canToggle}
-            >
-              <Text style={[sustainStyles.chipLabel, isSustained && sustainStyles.chipLabelSustained]}>
-                {ward.abbreviation}
-              </Text>
-              {isSustained && s?.sustained_at && (
-                <Text style={sustainStyles.chipDate}>{format(new Date(s.sustained_at), 'M/d')}</Text>
-              )}
+            <TouchableOpacity key={ward.id} style={[wsStyles.chip, isSustained && wsStyles.chipOn]} onPress={() => toggle(ward.id)} disabled={!canToggle}>
+              <Text style={[wsStyles.chipLabel, isSustained && wsStyles.chipLabelOn]}>{ward.abbreviation}</Text>
+              {isSustained && s?.sustained_at && <Text style={wsStyles.chipDate}>{format(new Date(s.sustained_at), 'M/d')}</Text>}
             </TouchableOpacity>
           );
         })}
       </View>
-      <Text style={sustainStyles.hint}>
-        {sustainings.filter(s => s.sustained).length} / {wards.length} wards sustained
-      </Text>
+      <Text style={wsStyles.hint}>{sustainings.filter(s => s.sustained).length}/{wards.length} wards sustained</Text>
     </View>
   );
 }
-
-const sustainStyles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.white, borderRadius: Radius.md,
-    padding: Spacing.md, marginBottom: Spacing.md,
-    borderWidth: 1, borderColor: Colors.gray[200],
-  },
+const wsStyles = StyleSheet.create({
+  container: { backgroundColor: Colors.white, borderRadius: Radius.md, padding: Spacing.md, marginBottom: Spacing.md, borderWidth: 1, borderColor: Colors.gray[200] },
   title: { fontSize: FontSize.md, fontWeight: '700', color: Colors.gray[800], marginBottom: Spacing.sm },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.xs },
-  chip: {
-    paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs,
-    borderRadius: Radius.sm, borderWidth: 1.5, borderColor: Colors.gray[300],
-    backgroundColor: Colors.gray[50], alignItems: 'center', minWidth: 44,
-  },
-  chipSustained: { borderColor: Colors.success, backgroundColor: Colors.success + '15' },
+  chip: { paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: Radius.sm, borderWidth: 1.5, borderColor: Colors.gray[300], backgroundColor: Colors.gray[50], alignItems: 'center', minWidth: 44 },
+  chipOn: { borderColor: Colors.success, backgroundColor: Colors.success + '15' },
   chipLabel: { fontSize: FontSize.xs, fontWeight: '700', color: Colors.gray[600] },
-  chipLabelSustained: { color: Colors.success },
+  chipLabelOn: { color: Colors.success },
   chipDate: { fontSize: 9, color: Colors.success, fontWeight: '600', marginTop: 1 },
   hint: { fontSize: FontSize.xs, color: Colors.gray[400], marginTop: Spacing.xs },
 });
 
-// ─── Stake Presidency Approval ────────────────────────────────────────────────
+// ─── SP Approval ─────────────────────────────────────────────────────────────
+interface SPApproval { id: string; calling_id: string; role: string; approved: boolean; approved_at: string | null; approved_by: string | null; }
 
-interface SPApproval {
-  id: string;
-  calling_id: string;
-  role: string;
-  approved: boolean;
-  approved_at: string | null;
-  approved_by: string | null;
-}
-
-interface SPApprovalSectionProps {
-  callingId: string;
-  approvals: SPApproval[];
-  canToggle: boolean;
-  userRole?: string;
-  onToggle: (role: string, current: boolean) => Promise<void>;
-}
-
-function StakePresidencyApprovalSection({ callingId, approvals, canToggle, userRole, onToggle }: SPApprovalSectionProps) {
+function StakePresidencyApprovalSection({ callingId, approvals, canToggle, userRole, onToggle, showOverrideNote }: {
+  callingId: string; approvals: SPApproval[]; canToggle: boolean; userRole?: string; onToggle: (role: string, current: boolean) => Promise<void>; showOverrideNote?: boolean;
+}) {
   const presidentApproved = approvals.find(a => a.role === 'stake_president')?.approved ?? false;
-  const allApproved = SP_ROLES.every(r => approvals.find(a => a.role === r.role)?.approved ?? false);
-  const approvedCount = SP_ROLES.filter(r => approvals.find(a => a.role === r.role)?.approved).length;
+  const requiredApproved = SP_ROLES.filter(r => r.required).every(r => approvals.find(a => a.role === r.role)?.approved ?? false);
+  const approvedCount = SP_ROLES.filter(r => r.required && (approvals.find(a => a.role === r.role)?.approved ?? false)).length;
+  const isReady = presidentApproved || requiredApproved;
 
   return (
     <View style={spStyles.container}>
       <Text style={spStyles.title}>Stake Presidency Approval</Text>
-      {SP_ROLES.map(({ role, label }) => {
+      {SP_ROLES.map(({ role, label, required }) => {
         const rec = approvals.find(a => a.role === role);
         const isApproved = rec?.approved ?? false;
-        const canCheck = canToggle && (
-          userRole === role ||
-          userRole === 'stake_president' ||
-          userRole === 'stake_clerk' ||
-          userRole === 'exec_secretary'
-        );
+        const canCheck = canToggle && (userRole === role || userRole === 'stake_president' || userRole === 'stake_clerk' || userRole === 'exec_secretary');
         return (
-          <TouchableOpacity
-            key={role}
-            style={spStyles.row}
-            onPress={() => canCheck ? onToggle(role, isApproved) : undefined}
-            disabled={!canCheck}
-          >
+          <TouchableOpacity key={role} style={spStyles.row} onPress={() => canCheck ? onToggle(role, isApproved) : undefined} disabled={!canCheck}>
             <View style={[spStyles.checkbox, isApproved && spStyles.checkboxOn]}>
               {isApproved && <Text style={spStyles.checkMark}>✓</Text>}
             </View>
-            <Text style={spStyles.label}>{label}</Text>
-            {isApproved && rec?.approved_at && (
-              <Text style={spStyles.date}>{format(new Date(rec.approved_at), 'M/d')}</Text>
-            )}
+            <Text style={[spStyles.label, !required && spStyles.labelOptional]}>{label}{!required ? ' (optional)' : ''}</Text>
+            {isApproved && rec?.approved_at && <Text style={spStyles.date}>{format(new Date(rec.approved_at), 'M/d')}</Text>}
           </TouchableOpacity>
         );
       })}
-      <Text style={[spStyles.status, (presidentApproved || allApproved) && spStyles.statusReady]}>
+      <Text style={[spStyles.status, isReady && spStyles.statusReady]}>
         {approvedCount}/3 approved
-        {presidentApproved ? ' — Stake President approved ✓' : allApproved ? ' — All approved ✓' : ' — Awaiting approval'}
+        {presidentApproved ? ' — Stake President approved ✓' : requiredApproved ? ' — All approved ✓' : ' — Awaiting approval'}
       </Text>
+      {showOverrideNote && presidentApproved && (
+        <View style={spStyles.overrideBanner}>
+          <Text style={spStyles.overrideBannerText}>✓ Stake President override applied — HC threshold bypassed</Text>
+        </View>
+      )}
     </View>
   );
 }
-
 const spStyles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.white, borderRadius: Radius.md,
-    padding: Spacing.md, marginBottom: Spacing.md,
-    borderWidth: 1, borderColor: Colors.gray[200],
-  },
+  container: { backgroundColor: Colors.white, borderRadius: Radius.md, padding: Spacing.md, marginBottom: Spacing.md, borderWidth: 1, borderColor: Colors.gray[200] },
   title: { fontSize: FontSize.md, fontWeight: '700', color: Colors.gray[800], marginBottom: Spacing.sm },
   row: { flexDirection: 'row', alignItems: 'center', paddingVertical: Spacing.xs },
-  checkbox: {
-    width: 22, height: 22, borderRadius: 4, borderWidth: 2,
-    borderColor: Colors.gray[300], marginRight: Spacing.sm,
-    alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.white,
-  },
+  checkbox: { width: 22, height: 22, borderRadius: 4, borderWidth: 2, borderColor: Colors.gray[300], marginRight: Spacing.sm, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.white },
   checkboxOn: { backgroundColor: Colors.primary, borderColor: Colors.primary },
   checkMark: { color: Colors.white, fontSize: 13, fontWeight: '800' },
   label: { flex: 1, fontSize: FontSize.md, color: Colors.gray[700] },
+  labelOptional: { color: Colors.gray[500], fontStyle: 'italic' },
   date: { fontSize: FontSize.xs, color: Colors.gray[400] },
   status: { fontSize: FontSize.xs, color: Colors.gray[400], marginTop: Spacing.xs, fontStyle: 'italic' },
   statusReady: { color: Colors.success, fontWeight: '600', fontStyle: 'normal' },
+  overrideBanner: { marginTop: Spacing.sm, backgroundColor: Colors.success + '15', borderRadius: Radius.sm, padding: Spacing.sm, borderWidth: 1, borderColor: Colors.success + '40' },
+  overrideBannerText: { fontSize: FontSize.xs, color: Colors.success, fontWeight: '600' },
 });
 
 // ─── HC Approval ─────────────────────────────────────────────────────────────
+interface HCMember { id: string; name: string; sort_order: number; active: boolean; }
+interface HCApproval { id: string; calling_id: string; hc_member_id: string; approved: boolean; approved_at: string | null; }
 
-interface HCMember {
-  id: string;
-  name: string;
-  sort_order: number;
-  active: boolean;
-}
-
-interface HCApproval {
-  id: string;
-  calling_id: string;
-  hc_member_id: string;
-  approved: boolean;
-  approved_at: string | null;
-}
-
-interface HCApprovalSectionProps {
-  hcMembers: HCMember[];
-  hcApprovals: HCApproval[];
-  canToggle: boolean;
-  spOverride: boolean;
-  onToggle: (memberId: string, current: boolean) => Promise<void>;
-}
-
-function HCApprovalSection({ hcMembers, hcApprovals, canToggle, spOverride, onToggle }: HCApprovalSectionProps) {
+function HCApprovalSection({ hcMembers, hcApprovals, canToggle, spOverride, onToggle }: {
+  hcMembers: HCMember[]; hcApprovals: HCApproval[]; canToggle: boolean; spOverride: boolean; onToggle: (memberId: string, current: boolean) => Promise<void>;
+}) {
   const activeMembers = hcMembers.filter(m => m.active);
   const approvedCount = hcApprovals.filter(a => a.approved).length;
   const needed = Math.ceil(activeMembers.length / 2);
@@ -258,7 +175,7 @@ function HCApprovalSection({ hcMembers, hcApprovals, canToggle, spOverride, onTo
     return (
       <View style={hcStyles.container}>
         <Text style={hcStyles.title}>High Council Approval</Text>
-        <Text style={hcStyles.empty}>No HC members configured. Add them in Settings → Manage High Council.</Text>
+        <Text style={hcStyles.empty}>No HC members configured. Go to Settings → Manage High Council.</Text>
       </View>
     );
   }
@@ -267,29 +184,18 @@ function HCApprovalSection({ hcMembers, hcApprovals, canToggle, spOverride, onTo
     <View style={hcStyles.container}>
       <View style={hcStyles.titleRow}>
         <Text style={hcStyles.title}>High Council Approval</Text>
-        {spOverride && (
-          <View style={hcStyles.overrideBadge}>
-            <Text style={hcStyles.overrideBadgeText}>SP Override</Text>
-          </View>
-        )}
+        {spOverride && <View style={hcStyles.overrideBadge}><Text style={hcStyles.overrideBadgeText}>SP Override</Text></View>}
       </View>
       {activeMembers.map(member => {
         const rec = hcApprovals.find(a => a.hc_member_id === member.id);
         const isApproved = rec?.approved ?? false;
         return (
-          <TouchableOpacity
-            key={member.id}
-            style={hcStyles.row}
-            onPress={() => canToggle ? onToggle(member.id, isApproved) : undefined}
-            disabled={!canToggle}
-          >
+          <TouchableOpacity key={member.id} style={hcStyles.row} onPress={() => canToggle ? onToggle(member.id, isApproved) : undefined} disabled={!canToggle}>
             <View style={[hcStyles.checkbox, isApproved && hcStyles.checkboxOn]}>
               {isApproved && <Text style={hcStyles.checkMark}>✓</Text>}
             </View>
             <Text style={hcStyles.label}>{member.name}</Text>
-            {isApproved && rec?.approved_at && (
-              <Text style={hcStyles.date}>{format(new Date(rec.approved_at), 'M/d')}</Text>
-            )}
+            {isApproved && rec?.approved_at && <Text style={hcStyles.date}>{format(new Date(rec.approved_at), 'M/d')}</Text>}
           </TouchableOpacity>
         );
       })}
@@ -298,40 +204,119 @@ function HCApprovalSection({ hcMembers, hcApprovals, canToggle, spOverride, onTo
           ? 'Stake President override — HC threshold bypassed ✓'
           : `${approvedCount}/${activeMembers.length} approved — need ${needed}${isReady ? ' ✓' : ''}`}
       </Text>
+      {spOverride && (
+        <View style={hcStyles.overrideBanner}>
+          <Text style={hcStyles.overrideBannerText}>✓ Stake Presidency override applied — approved without full HC vote</Text>
+        </View>
+      )}
     </View>
   );
 }
-
 const hcStyles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.white, borderRadius: Radius.md,
-    padding: Spacing.md, marginBottom: Spacing.md,
-    borderWidth: 1, borderColor: Colors.gray[200],
-  },
+  container: { backgroundColor: Colors.white, borderRadius: Radius.md, padding: Spacing.md, marginBottom: Spacing.md, borderWidth: 1, borderColor: Colors.gray[200] },
   titleRow: { flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.sm, gap: Spacing.sm },
   title: { fontSize: FontSize.md, fontWeight: '700', color: Colors.gray[800] },
-  overrideBadge: {
-    backgroundColor: Colors.primary + '15', borderRadius: Radius.full,
-    paddingHorizontal: Spacing.sm, paddingVertical: 2, borderWidth: 1, borderColor: Colors.primary + '40',
-  },
+  overrideBadge: { backgroundColor: Colors.primary + '15', borderRadius: Radius.full, paddingHorizontal: Spacing.sm, paddingVertical: 2, borderWidth: 1, borderColor: Colors.primary + '40' },
   overrideBadgeText: { fontSize: FontSize.xs, fontWeight: '700', color: Colors.primary },
   empty: { fontSize: FontSize.sm, color: Colors.gray[400], fontStyle: 'italic' },
   row: { flexDirection: 'row', alignItems: 'center', paddingVertical: Spacing.xs },
-  checkbox: {
-    width: 22, height: 22, borderRadius: 4, borderWidth: 2,
-    borderColor: Colors.gray[300], marginRight: Spacing.sm,
-    alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.white,
-  },
+  checkbox: { width: 22, height: 22, borderRadius: 4, borderWidth: 2, borderColor: Colors.gray[300], marginRight: Spacing.sm, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.white },
   checkboxOn: { backgroundColor: Colors.accent, borderColor: Colors.accent },
   checkMark: { color: Colors.white, fontSize: 13, fontWeight: '800' },
   label: { flex: 1, fontSize: FontSize.md, color: Colors.gray[700] },
   date: { fontSize: FontSize.xs, color: Colors.gray[400] },
   status: { fontSize: FontSize.xs, color: Colors.gray[400], marginTop: Spacing.xs, fontStyle: 'italic' },
   statusReady: { color: Colors.success, fontWeight: '600', fontStyle: 'normal' },
+  overrideBanner: { marginTop: Spacing.sm, backgroundColor: Colors.success + '15', borderRadius: Radius.sm, padding: Spacing.sm, borderWidth: 1, borderColor: Colors.success + '40' },
+  overrideBannerText: { fontSize: FontSize.xs, color: Colors.success, fontWeight: '600' },
+});
+
+// ─── Task Assignments ─────────────────────────────────────────────────────────
+const TASK_FIELDS: { key: string; label: string }[] = [
+  { key: 'extend_by', label: 'Extend Calling' },
+  { key: 'sustain_by', label: 'Sustain' },
+  { key: 'set_apart_by', label: 'Set Apart / Ordain' },
+  { key: 'record_by', label: 'Record' },
+];
+
+function TaskAssignmentsSection({ calling, profiles, canEdit, onAssign }: {
+  calling: Calling; profiles: Profile[]; canEdit: boolean; onAssign: (field: string, profileId: string | null) => Promise<void>;
+}) {
+  const [pickerField, setPickerField] = useState<string | null>(null);
+
+  return (
+    <View style={taStyles.container}>
+      <Text style={taStyles.title}>Task Assignments</Text>
+      {TASK_FIELDS.map(({ key, label }) => {
+        const assignedId = (calling as any)[key] as string | null;
+        const assignedProfile = profiles.find(p => p.id === assignedId);
+        return (
+          <View key={key} style={taStyles.row}>
+            <Text style={taStyles.taskLabel}>{label}</Text>
+            <TouchableOpacity
+              style={[taStyles.assignBtn, assignedProfile && taStyles.assignBtnFilled]}
+              onPress={() => canEdit ? setPickerField(key) : undefined}
+              disabled={!canEdit}
+            >
+              <Text style={[taStyles.assignBtnText, assignedProfile && taStyles.assignBtnTextFilled]}>
+                {assignedProfile ? assignedProfile.full_name : 'Assign…'}
+              </Text>
+              {canEdit && <Text style={taStyles.assignArrow}>▼</Text>}
+            </TouchableOpacity>
+          </View>
+        );
+      })}
+
+      <Modal visible={!!pickerField} transparent animationType="slide" onRequestClose={() => setPickerField(null)}>
+        <TouchableOpacity style={taStyles.modalOverlay} activeOpacity={1} onPress={() => setPickerField(null)}>
+          <View style={taStyles.modalSheet} onStartShouldSetResponder={() => true}>
+            <Text style={taStyles.modalTitle}>Assign {TASK_FIELDS.find(f => f.key === pickerField)?.label}</Text>
+            <TouchableOpacity
+              style={taStyles.modalItem}
+              onPress={() => { if (pickerField) onAssign(pickerField, null); setPickerField(null); }}
+            >
+              <Text style={[taStyles.modalItemText, { color: Colors.gray[400] }]}>— Unassign —</Text>
+            </TouchableOpacity>
+            <FlatList
+              data={profiles}
+              keyExtractor={p => p.id}
+              renderItem={({ item: p }) => (
+                <TouchableOpacity
+                  style={[taStyles.modalItem, (calling as any)[pickerField!] === p.id && taStyles.modalItemSelected]}
+                  onPress={() => { if (pickerField) onAssign(pickerField, p.id); setPickerField(null); }}
+                >
+                  <Text style={[taStyles.modalItemText, (calling as any)[pickerField!] === p.id && taStyles.modalItemTextSelected]}>{p.full_name}</Text>
+                  <Text style={taStyles.modalItemSub}>{p.role.replace(/_/g, ' ')}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </View>
+  );
+}
+const taStyles = StyleSheet.create({
+  container: { backgroundColor: Colors.white, borderRadius: Radius.md, padding: Spacing.md, marginBottom: Spacing.md, borderWidth: 1, borderColor: Colors.gray[200] },
+  title: { fontSize: FontSize.md, fontWeight: '700', color: Colors.gray[800], marginBottom: Spacing.sm },
+  row: { flexDirection: 'row', alignItems: 'center', paddingVertical: Spacing.xs, gap: Spacing.sm },
+  taskLabel: { width: 110, fontSize: FontSize.sm, color: Colors.gray[600], fontWeight: '600' },
+  assignBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.sm, paddingVertical: 6, borderRadius: Radius.sm, borderWidth: 1, borderColor: Colors.gray[200], backgroundColor: Colors.gray[50] },
+  assignBtnFilled: { borderColor: Colors.primary + '60', backgroundColor: Colors.primaryFade },
+  assignBtnText: { fontSize: FontSize.sm, color: Colors.gray[400] },
+  assignBtnTextFilled: { color: Colors.primary, fontWeight: '600' },
+  assignArrow: { fontSize: 10, color: Colors.gray[400] },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  modalSheet: { backgroundColor: Colors.white, borderTopLeftRadius: Radius.xl, borderTopRightRadius: Radius.xl, maxHeight: '60%', paddingTop: Spacing.lg },
+  modalTitle: { fontSize: FontSize.lg, fontWeight: '700', color: Colors.gray[900], paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.gray[100] },
+  modalItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.gray[100] },
+  modalItemSelected: { backgroundColor: Colors.primaryFade },
+  modalItemText: { fontSize: FontSize.md, color: Colors.gray[800] },
+  modalItemTextSelected: { color: Colors.primary, fontWeight: '700' },
+  modalItemSub: { fontSize: FontSize.xs, color: Colors.gray[400], textTransform: 'capitalize' },
 });
 
 // ─── Main Screen ─────────────────────────────────────────────────────────────
-
 export function CallingDetailScreen({ route, navigation }: any) {
   const { callingId } = route.params;
   const insets = useSafeAreaInsets();
@@ -343,27 +328,24 @@ export function CallingDetailScreen({ route, navigation }: any) {
   const [spApprovals, setSpApprovals] = useState<SPApproval[]>([]);
   const [hcApprovals, setHcApprovals] = useState<HCApproval[]>([]);
   const [hcMembers, setHcMembers] = useState<HCMember[]>([]);
+  const [allProfiles, setAllProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
-
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectionNotes, setRejectionNotes] = useState('');
   const [rejectLoading, setRejectLoading] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    const [callingRes, logRes, wardsRes, spRes, hcMembersRes, hcApprovalsRes] = await Promise.all([
-      supabase.from('callings')
-        .select('*, wards(id,name,abbreviation,sort_order), profiles(id,full_name,email,role,status,created_at)')
-        .eq('id', callingId).single(),
-      supabase.from('calling_log')
-        .select('*, profiles(id,full_name,email,role,status,created_at)')
-        .eq('calling_id', callingId).order('created_at', { ascending: false }),
+    const [callingRes, logRes, wardsRes, spRes, hcMembersRes, hcApprovalsRes, profilesRes] = await Promise.all([
+      supabase.from('callings').select('*, wards(id,name,abbreviation,sort_order), profiles(id,full_name,email,role,status,created_at)').eq('id', callingId).single(),
+      supabase.from('calling_log').select('*, profiles(id,full_name,email,role,status,created_at)').eq('calling_id', callingId).order('created_at', { ascending: false }),
       supabase.from('wards').select('*').order('name'),
       supabase.from('stake_presidency_approvals').select('*').eq('calling_id', callingId),
       supabase.from('high_council_members').select('*').eq('active', true).order('sort_order'),
       supabase.from('hc_approvals').select('*').eq('calling_id', callingId),
+      supabase.from('profiles').select('id,full_name,role,status,email,created_at').eq('status', 'approved').order('full_name'),
     ]);
     setCalling(callingRes.data as Calling ?? null);
     setLog((logRes.data as CallingLogEntry[]) ?? []);
@@ -371,6 +353,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
     setSpApprovals((spRes.data as SPApproval[]) ?? []);
     setHcMembers((hcMembersRes.data as HCMember[]) ?? []);
     setHcApprovals((hcApprovalsRes.data as HCApproval[]) ?? []);
+    setAllProfiles((profilesRes.data as Profile[]) ?? []);
     setLoading(false);
   }, [callingId]);
 
@@ -379,17 +362,13 @@ export function CallingDetailScreen({ route, navigation }: any) {
   async function toggleSPApproval(role: string, current: boolean) {
     const newVal = !current;
     await supabase.from('stake_presidency_approvals').upsert({
-      calling_id: callingId,
-      role,
-      approved: newVal,
+      calling_id: callingId, role, approved: newVal,
       approved_at: newVal ? new Date().toISOString() : null,
       approved_by: profile?.id ?? null,
     }, { onConflict: 'calling_id,role' });
     setSpApprovals(prev => {
-      const existing = prev.find(a => a.role === role);
-      if (existing) {
-        return prev.map(a => a.role === role ? { ...a, approved: newVal, approved_at: newVal ? new Date().toISOString() : null } : a);
-      }
+      const exists = prev.find(a => a.role === role);
+      if (exists) return prev.map(a => a.role === role ? { ...a, approved: newVal, approved_at: newVal ? new Date().toISOString() : null } : a);
       return [...prev, { id: '', calling_id: callingId, role, approved: newVal, approved_at: newVal ? new Date().toISOString() : null, approved_by: profile?.id ?? null }];
     });
   }
@@ -397,36 +376,35 @@ export function CallingDetailScreen({ route, navigation }: any) {
   async function toggleHCApproval(memberId: string, current: boolean) {
     const newVal = !current;
     await supabase.from('hc_approvals').upsert({
-      calling_id: callingId,
-      hc_member_id: memberId,
-      approved: newVal,
+      calling_id: callingId, hc_member_id: memberId, approved: newVal,
       approved_at: newVal ? new Date().toISOString() : null,
     }, { onConflict: 'calling_id,hc_member_id' });
     setHcApprovals(prev => {
-      const existing = prev.find(a => a.hc_member_id === memberId);
-      if (existing) {
-        return prev.map(a => a.hc_member_id === memberId ? { ...a, approved: newVal, approved_at: newVal ? new Date().toISOString() : null } : a);
-      }
+      const exists = prev.find(a => a.hc_member_id === memberId);
+      if (exists) return prev.map(a => a.hc_member_id === memberId ? { ...a, approved: newVal, approved_at: newVal ? new Date().toISOString() : null } : a);
       return [...prev, { id: '', calling_id: callingId, hc_member_id: memberId, approved: newVal, approved_at: newVal ? new Date().toISOString() : null }];
     });
   }
 
-  // Check whether approval thresholds are met for stages that require them
+  async function handleAssign(field: string, profileId: string | null) {
+    if (!calling) return;
+    await supabase.from('callings').update({ [field]: profileId }).eq('id', calling.id);
+    setCalling(prev => prev ? { ...prev, [field]: profileId } : prev);
+  }
+
   function approvalsReady(): boolean {
     if (!calling) return false;
     if (calling.stage === 'for_approval') {
-      const presidentApproved = spApprovals.find(a => a.role === 'stake_president')?.approved ?? false;
-      const allApproved = SP_ROLES.every(r => spApprovals.find(a => a.role === r.role)?.approved ?? false);
-      return presidentApproved || allApproved;
+      const spPresidentApproved = spApprovals.find(a => a.role === 'stake_president')?.approved ?? false;
+      const allRequired = SP_ROLES.filter(r => r.required).every(r => spApprovals.find(a => a.role === r.role)?.approved ?? false);
+      return spPresidentApproved || allRequired;
     }
     if (calling.stage === 'hc_approval') {
-      // Stake President can override HC threshold
       const spOverride = spApprovals.find(a => a.role === 'stake_president')?.approved ?? false;
       if (spOverride) return true;
       const activeCount = hcMembers.filter(m => m.active).length;
       if (activeCount === 0) return true;
-      const approvedCount = hcApprovals.filter(a => a.approved).length;
-      return approvedCount >= Math.ceil(activeCount / 2);
+      return hcApprovals.filter(a => a.approved).length >= Math.ceil(activeCount / 2);
     }
     return true;
   }
@@ -438,13 +416,10 @@ export function CallingDetailScreen({ route, navigation }: any) {
 
     if (!approvalsReady()) {
       const msg = calling.stage === 'for_approval'
-        ? 'Stake Presidency approval is required. The Stake President must approve, or all three members must approve.'
-        : 'At least half of the High Council must approve before advancing.';
-      if (Platform.OS === 'web') {
-        window.alert(msg);
-      } else {
-        Alert.alert('Approvals Needed', msg);
-      }
+        ? 'The Stake President must approve, or all three presidency members must approve before advancing.'
+        : 'At least half of the High Council must approve, or the Stake President can override.';
+      if (Platform.OS === 'web') window.alert(msg);
+      else Alert.alert('Approvals Needed', msg);
       return;
     }
 
@@ -459,23 +434,75 @@ export function CallingDetailScreen({ route, navigation }: any) {
       from_stage: calling.stage, to_stage: next, performed_by: profile.id,
     });
 
+    // Slack notification
+    notifyStageChange({
+      memberName: calling.member_name, callingName: calling.calling_name,
+      wardName: calling.wards?.name, fromStage: STAGE_LABELS[calling.stage], toStage: STAGE_LABELS[next],
+      performedBy: profile.full_name,
+    }).catch(() => {});
+
     await fetchData();
     setSuccessMsg(`Moved to: ${STAGE_LABELS[next]}`);
     setTimeout(() => setSuccessMsg(''), 3000);
     setActionLoading(false);
   }
 
+  async function handleMoveBack() {
+    if (!calling || !profile) return;
+    const prev = getPrevStage(calling.stage, calling.type);
+    if (!prev) return;
+
+    const confirm = Platform.OS === 'web'
+      ? window.confirm(`Move back to "${STAGE_LABELS[prev]}"?`)
+      : await new Promise<boolean>(resolve =>
+          Alert.alert('Move Back', `Move this calling back to "${STAGE_LABELS[prev]}"?`, [
+            { text: 'Cancel', onPress: () => resolve(false) },
+            { text: 'Move Back', style: 'destructive', onPress: () => resolve(true) },
+          ])
+        );
+    if (!confirm) return;
+
+    setActionLoading(true);
+    await supabase.from('callings').update({ stage: prev, completed_at: null }).eq('id', calling.id);
+    await supabase.from('calling_log').insert({
+      calling_id: calling.id, action: `Moved back to ${STAGE_LABELS[prev]}`,
+      from_stage: calling.stage, to_stage: prev, performed_by: profile.id,
+    });
+    await fetchData();
+    setSuccessMsg(`Moved back to: ${STAGE_LABELS[prev]}`);
+    setTimeout(() => setSuccessMsg(''), 3000);
+    setActionLoading(false);
+  }
+
+  async function handleDelete() {
+    if (!calling || !profile) return;
+    const confirm = Platform.OS === 'web'
+      ? window.confirm(`Are you sure you want to delete this entry for ${calling.member_name}? This cannot be undone.`)
+      : await new Promise<boolean>(resolve =>
+          Alert.alert('Delete Entry', `Are you sure you want to delete this entry for ${calling.member_name}? This cannot be undone.`, [
+            { text: 'Cancel', onPress: () => resolve(false) },
+            { text: 'Delete', style: 'destructive', onPress: () => resolve(true) },
+          ])
+        );
+    if (!confirm) return;
+
+    setActionLoading(true);
+    await supabase.from('callings').delete().eq('id', calling.id);
+    navigation.goBack();
+  }
+
   async function handleReject() {
     if (!calling || !profile) return;
     setRejectLoading(true);
-    await supabase.from('callings')
-      .update({ rejected: true, rejection_notes: rejectionNotes })
-      .eq('id', calling.id);
+    await supabase.from('callings').update({ rejected: true, rejection_notes: rejectionNotes }).eq('id', calling.id);
     await supabase.from('calling_log').insert({
       calling_id: calling.id, action: 'Rejected',
-      from_stage: calling.stage, performed_by: profile.id,
-      notes: rejectionNotes || null,
+      from_stage: calling.stage, performed_by: profile.id, notes: rejectionNotes || null,
     });
+    notifyRejection({
+      memberName: calling.member_name, callingName: calling.calling_name,
+      wardName: calling.wards?.name, notes: rejectionNotes,
+    }).catch(() => {});
     setShowRejectModal(false);
     setRejectionNotes('');
     await fetchData();
@@ -486,50 +513,44 @@ export function CallingDetailScreen({ route, navigation }: any) {
     if (!calling || !profile) return;
     setActionLoading(true);
     await supabase.from('callings').update({ rejected: false, rejection_notes: null }).eq('id', calling.id);
-    await supabase.from('calling_log').insert({
-      calling_id: calling.id, action: 'Rejection cleared',
-      from_stage: calling.stage, performed_by: profile.id,
-    });
+    await supabase.from('calling_log').insert({ calling_id: calling.id, action: 'Rejection cleared', from_stage: calling.stage, performed_by: profile.id });
     await fetchData();
     setActionLoading(false);
   }
 
   if (loading) {
-    return (
-      <View style={[styles.loadingContainer, { paddingTop: insets.top }]}>
-        <ActivityIndicator color={Colors.primary} size="large" />
-      </View>
-    );
+    return <View style={[styles.loading, { paddingTop: insets.top }]}><ActivityIndicator color={Colors.primary} size="large" /></View>;
   }
-
   if (!calling) {
-    return (
-      <View style={[styles.loadingContainer, { paddingTop: insets.top }]}>
-        <Text style={styles.notFoundText}>Calling not found.</Text>
-        <Button title="Go Back" onPress={() => navigation.goBack()} variant="outline" />
-      </View>
-    );
+    return <View style={[styles.loading, { paddingTop: insets.top }]}><Text style={styles.notFound}>Calling not found.</Text><Button title="Go Back" onPress={() => navigation.goBack()} variant="outline" /></View>;
   }
 
   const role = profile?.role;
   const canAdvance = role ? canAdvanceStage(role, calling.stage, calling.type) : false;
   const canRejectCalling = role ? canReject(role, calling.stage) : false;
+  const canBack = role ? canMoveback(role) : false;
+  const canDel = role ? canDelete(role) : false;
+  const canAssign = !!(role && ['stake_president','first_counselor','second_counselor','stake_clerk','exec_secretary','high_councilor'].includes(role));
   const advanceLabel = getAdvanceLabel(calling.stage, calling.type);
+  const prevStage = getPrevStage(calling.stage, calling.type);
   const isComplete = calling.stage === 'complete';
 
-  const showSustaining =
-    calling.type === 'stake_calling' &&
-    ['sustain', 'set_apart', 'record', 'complete'].includes(calling.stage);
-
-  const showSPApprovals = ['for_approval', 'stake_approved', 'hc_approval'].includes(calling.stage);
-  const showHCApprovals = ['hc_approval', 'issue_calling', 'ordained', 'sustain', 'set_apart', 'record', 'complete'].includes(calling.stage);
+  const showSustaining = calling.type === 'stake_calling' && ['sustain','set_apart','record','complete'].includes(calling.stage);
+  const showSPApprovals = ['for_approval','stake_approved','hc_approval'].includes(calling.stage);
+  const showHCApprovals = ['hc_approval','issue_calling','ordained','sustain','set_apart','record','complete'].includes(calling.stage);
+  const spPresidentApproved = spApprovals.find(a => a.role === 'stake_president')?.approved ?? false;
 
   const canToggleSP = !!(role && ['stake_president','first_counselor','second_counselor','stake_clerk','exec_secretary'].includes(role));
   const canToggleHC = !!(role && ['stake_president','high_councilor','stake_clerk','exec_secretary'].includes(role));
+  const canSeeRejectionLog = !!(role && ['stake_president','first_counselor','second_counselor','stake_clerk','exec_secretary'].includes(role));
+
+  // Filter log entries: hide rejection entries from non-SP/clerk users
+  const visibleLog = canSeeRejectionLog
+    ? log
+    : log.filter(e => !e.action.toLowerCase().includes('reject'));
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* Header */}
       <View style={styles.headerBar}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Ionicons name="chevron-back" size={24} color={Colors.gray[700]} />
@@ -539,16 +560,19 @@ export function CallingDetailScreen({ route, navigation }: any) {
           <View style={{ width: Spacing.xs }} />
           <Badge label={STAGE_LABELS[calling.stage]} stage={calling.stage} />
         </View>
+        {canDel && (
+          <TouchableOpacity onPress={handleDelete} style={styles.deleteHeaderBtn} disabled={actionLoading}>
+            <Ionicons name="trash-outline" size={20} color={Colors.error} />
+          </TouchableOpacity>
+        )}
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        {/* Name & Calling */}
         <View style={styles.heroSection}>
           <Text style={styles.memberName}>{calling.member_name}</Text>
           <Text style={styles.callingNameText}>{calling.calling_name}</Text>
         </View>
 
-        {/* Rejection Banner */}
         {calling.rejected && (
           <View style={styles.rejectedBanner}>
             <View style={styles.rejectedRow}>
@@ -564,7 +588,6 @@ export function CallingDetailScreen({ route, navigation }: any) {
           </View>
         )}
 
-        {/* Success Message */}
         {successMsg ? (
           <View style={styles.successBanner}>
             <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
@@ -578,7 +601,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
           <View style={styles.infoGrid}>
             <View style={styles.infoItem}>
               <Text style={styles.infoLabel}>Ward</Text>
-              <Text style={styles.infoValue}>{calling.wards?.name ?? '—'}</Text>
+              <Text style={styles.infoValue}>{calling.wards?.name ?? 'TBD'}</Text>
             </View>
             <View style={styles.infoItem}>
               <Text style={styles.infoLabel}>Type</Text>
@@ -588,6 +611,12 @@ export function CallingDetailScreen({ route, navigation }: any) {
               <View style={styles.infoItem}>
                 <Text style={styles.infoLabel}>Ordination</Text>
                 <Text style={styles.infoValue}>{calling.ordination_type === 'elder' ? 'Elder' : 'High Priest'}</Text>
+              </View>
+            )}
+            {calling.bishop_approved && (
+              <View style={styles.infoItem}>
+                <Text style={styles.infoLabel}>Bishop</Text>
+                <Text style={[styles.infoValue, { color: Colors.success }]}>Approved ✓</Text>
               </View>
             )}
             <View style={styles.infoItem}>
@@ -613,7 +642,17 @@ export function CallingDetailScreen({ route, navigation }: any) {
           ) : null}
         </View>
 
-        {/* Stake Presidency Approvals */}
+        {/* Task Assignments */}
+        {!isComplete && (
+          <TaskAssignmentsSection
+            calling={calling}
+            profiles={allProfiles}
+            canEdit={canAssign}
+            onAssign={handleAssign}
+          />
+        )}
+
+        {/* SP Approvals */}
         {showSPApprovals && (
           <StakePresidencyApprovalSection
             callingId={callingId}
@@ -621,6 +660,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
             canToggle={canToggleSP && !isComplete}
             userRole={role}
             onToggle={toggleSPApproval}
+            showOverrideNote={calling.stage === 'hc_approval' && spPresidentApproved}
           />
         )}
 
@@ -630,74 +670,64 @@ export function CallingDetailScreen({ route, navigation }: any) {
             hcMembers={hcMembers}
             hcApprovals={hcApprovals}
             canToggle={canToggleHC && !isComplete}
-            spOverride={spApprovals.find(a => a.role === 'stake_president')?.approved ?? false}
+            spOverride={spPresidentApproved}
             onToggle={toggleHCApproval}
           />
         )}
 
-        {/* Ward Sustaining (stake callings only) */}
+        {/* Ward Sustaining */}
         {showSustaining && allWards.length > 0 && (
           <WardSustainingSection
-            callingId={calling.id}
-            wards={allWards}
+            callingId={calling.id} wards={allWards}
             canToggle={!!(role && ['high_councilor','stake_clerk','exec_secretary','stake_president'].includes(role))}
             userId={profile?.id}
           />
         )}
 
-        {/* Action Buttons */}
+        {/* Actions */}
         {!isComplete && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Actions</Text>
             {canAdvance && !calling.rejected && (
-              <Button
-                title={advanceLabel}
-                onPress={handleAdvance}
-                loading={actionLoading}
-                fullWidth
-                size="lg"
-                style={styles.advanceBtn}
-              />
+              <Button title={advanceLabel} onPress={handleAdvance} loading={actionLoading} fullWidth size="lg" style={styles.advanceBtn} />
             )}
             {canRejectCalling && !calling.rejected && (
+              <Button title="Reject" onPress={() => setShowRejectModal(true)} variant="danger" fullWidth style={styles.rejectBtn} />
+            )}
+            {canBack && prevStage && !calling.rejected && (
               <Button
-                title="Reject"
-                onPress={() => setShowRejectModal(true)}
-                variant="danger"
+                title={`← Move Back to ${STAGE_LABELS[prevStage]}`}
+                onPress={handleMoveBack}
+                variant="outline"
                 fullWidth
-                style={styles.rejectBtn}
+                style={styles.backStageBtn}
+                disabled={actionLoading}
               />
             )}
-            {!canAdvance && !canRejectCalling && (
-              <Text style={styles.noActionsText}>
-                You don't have permission to advance or reject this calling at its current stage.
-              </Text>
+            {!canAdvance && !canRejectCalling && !canBack && (
+              <Text style={styles.noActionsText}>No actions available at this stage for your role.</Text>
             )}
           </View>
         )}
 
-        {/* Timeline Log */}
+        {/* Activity Log */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Activity Log</Text>
-          {log.length === 0 ? (
+          {visibleLog.length === 0 ? (
             <Text style={styles.emptyLog}>No activity yet.</Text>
           ) : (
-            log.map((entry, index) => (
+            visibleLog.map((entry, index) => (
               <View key={entry.id} style={styles.logEntry}>
                 <View style={styles.logDot} />
-                {index < log.length - 1 && <View style={styles.logLine} />}
+                {index < visibleLog.length - 1 && <View style={styles.logLine} />}
                 <View style={styles.logContent}>
                   <View style={styles.logTopRow}>
                     <Text style={styles.logAction}>{entry.action}</Text>
                     <Text style={styles.logTime}>{formatDateTime(entry.created_at)}</Text>
                   </View>
-                  {entry.profiles && (
-                    <Text style={styles.logPerformer}>by {entry.profiles.full_name}</Text>
-                  )}
+                  {entry.profiles && <Text style={styles.logPerformer}>by {entry.profiles.full_name}</Text>}
                   {entry.from_stage && entry.to_stage && (
-                    <Text style={styles.logStageChange}>
-                      {STAGE_LABELS[entry.from_stage as Stage]} → {STAGE_LABELS[entry.to_stage as Stage]}
-                    </Text>
+                    <Text style={styles.logStageChange}>{STAGE_LABELS[entry.from_stage as Stage]} → {STAGE_LABELS[entry.to_stage as Stage]}</Text>
                   )}
                   {entry.notes && <Text style={styles.logNotes}>{entry.notes}</Text>}
                 </View>
@@ -708,32 +738,22 @@ export function CallingDetailScreen({ route, navigation }: any) {
       </ScrollView>
 
       {/* Reject Modal */}
-      <Modal
-        visible={showRejectModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowRejectModal(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowRejectModal(false)}
-        >
+      <Modal visible={showRejectModal} transparent animationType="slide" onRequestClose={() => setShowRejectModal(false)}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowRejectModal(false)}>
           <View style={styles.modalSheet} onStartShouldSetResponder={() => true}>
             <Text style={styles.modalTitle}>Reject Calling</Text>
-            <Text style={styles.modalSubtitle}>Optionally provide notes explaining the rejection.</Text>
+            <Text style={styles.modalSubtitle}>Optionally add notes explaining the rejection.</Text>
             <TextInput
-              style={styles.modalTextInput}
+              style={styles.modalInput}
               value={rejectionNotes}
               onChangeText={setRejectionNotes}
               placeholder="Rejection notes (optional)…"
               placeholderTextColor={Colors.gray[400]}
-              multiline
-              numberOfLines={4}
+              multiline numberOfLines={4}
             />
             <View style={styles.modalActions}>
-              <Button title="Cancel" onPress={() => setShowRejectModal(false)} variant="outline" style={styles.modalCancelBtn} />
-              <Button title="Confirm Reject" onPress={handleReject} variant="danger" loading={rejectLoading} style={styles.modalConfirmBtn} />
+              <Button title="Cancel" onPress={() => setShowRejectModal(false)} variant="outline" style={styles.modalBtn} />
+              <Button title="Confirm Reject" onPress={handleReject} variant="danger" loading={rejectLoading} style={styles.modalBtn} />
             </View>
           </View>
         </TouchableOpacity>
@@ -744,62 +764,36 @@ export function CallingDetailScreen({ route, navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.gray[50] },
-  loadingContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.white },
-  notFoundText: { fontSize: FontSize.lg, color: Colors.gray[500], marginBottom: Spacing.md },
-  headerBar: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm,
-    backgroundColor: Colors.white, borderBottomWidth: 1, borderBottomColor: Colors.gray[100],
-  },
+  loading: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.white },
+  notFound: { fontSize: FontSize.lg, color: Colors.gray[500], marginBottom: Spacing.md },
+  headerBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, backgroundColor: Colors.white, borderBottomWidth: 1, borderBottomColor: Colors.gray[100] },
   backBtn: { padding: Spacing.xs },
-  headerBadges: { flexDirection: 'row', alignItems: 'center' },
+  headerBadges: { flexDirection: 'row', alignItems: 'center', flex: 1, justifyContent: 'center' },
+  deleteHeaderBtn: { padding: Spacing.xs },
   scroll: { flex: 1 },
   scrollContent: { padding: Spacing.md },
-  heroSection: {
-    backgroundColor: Colors.white, borderRadius: Radius.md,
-    padding: Spacing.lg, marginBottom: Spacing.md,
-    borderWidth: 1, borderColor: Colors.gray[200], ...(Shadow as any),
-  },
+  heroSection: { backgroundColor: Colors.white, borderRadius: Radius.md, padding: Spacing.lg, marginBottom: Spacing.md, borderWidth: 1, borderColor: Colors.gray[200], ...(Shadow as any) },
   memberName: { fontSize: FontSize.xxl, fontWeight: '800', color: Colors.primary, marginBottom: 4 },
   callingNameText: { fontSize: FontSize.lg, color: Colors.gray[700], fontWeight: '500' },
-  rejectedBanner: {
-    backgroundColor: Colors.error + '10', borderRadius: Radius.md,
-    padding: Spacing.md, marginBottom: Spacing.md,
-    borderWidth: 1, borderColor: Colors.error + '40',
-  },
+  rejectedBanner: { backgroundColor: Colors.error + '10', borderRadius: Radius.md, padding: Spacing.md, marginBottom: Spacing.md, borderWidth: 1, borderColor: Colors.error + '40' },
   rejectedRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
   rejectedTitle: { fontSize: FontSize.md, fontWeight: '700', color: Colors.error, marginLeft: Spacing.xs },
   rejectedNotes: { fontSize: FontSize.sm, color: Colors.error, marginTop: 4 },
-  unrejectBtn: {
-    marginTop: Spacing.sm, alignSelf: 'flex-start',
-    paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs,
-    borderRadius: Radius.sm, borderWidth: 1, borderColor: Colors.error,
-  },
+  unrejectBtn: { marginTop: Spacing.sm, alignSelf: 'flex-start', paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: Radius.sm, borderWidth: 1, borderColor: Colors.error },
   unrejectBtnText: { fontSize: FontSize.xs, color: Colors.error, fontWeight: '600' },
-  successBanner: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: Colors.success + '15', borderRadius: Radius.md,
-    padding: Spacing.md, marginBottom: Spacing.md,
-    borderWidth: 1, borderColor: Colors.success + '40', gap: Spacing.xs,
-  },
+  successBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.success + '15', borderRadius: Radius.md, padding: Spacing.md, marginBottom: Spacing.md, borderWidth: 1, borderColor: Colors.success + '40', gap: Spacing.xs },
   successBannerText: { fontSize: FontSize.sm, color: Colors.success, fontWeight: '600' },
-  section: {
-    backgroundColor: Colors.white, borderRadius: Radius.md,
-    padding: Spacing.md, marginBottom: Spacing.md,
-    borderWidth: 1, borderColor: Colors.gray[200],
-  },
+  section: { backgroundColor: Colors.white, borderRadius: Radius.md, padding: Spacing.md, marginBottom: Spacing.md, borderWidth: 1, borderColor: Colors.gray[200] },
   sectionTitle: { fontSize: FontSize.md, fontWeight: '700', color: Colors.gray[800], marginBottom: Spacing.md },
   infoGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   infoItem: { minWidth: '45%', flex: 1 },
-  infoLabel: {
-    fontSize: FontSize.xs, color: Colors.gray[400], fontWeight: '600',
-    textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 2,
-  },
+  infoLabel: { fontSize: FontSize.xs, color: Colors.gray[400], fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 2 },
   infoValue: { fontSize: FontSize.md, color: Colors.gray[800], fontWeight: '500' },
   notesBox: { marginTop: Spacing.md, backgroundColor: Colors.gray[50], borderRadius: Radius.sm, padding: Spacing.sm },
   notesText: { fontSize: FontSize.md, color: Colors.gray[700], lineHeight: 22, marginTop: 4 },
   advanceBtn: { marginBottom: Spacing.sm },
-  rejectBtn: {},
+  rejectBtn: { marginBottom: Spacing.sm },
+  backStageBtn: { marginBottom: Spacing.sm },
   noActionsText: { fontSize: FontSize.sm, color: Colors.gray[400], fontStyle: 'italic', textAlign: 'center', padding: Spacing.sm },
   emptyLog: { fontSize: FontSize.sm, color: Colors.gray[400], fontStyle: 'italic' },
   logEntry: { flexDirection: 'row', marginBottom: Spacing.md, position: 'relative' },
@@ -816,12 +810,7 @@ const styles = StyleSheet.create({
   modalSheet: { backgroundColor: Colors.white, borderTopLeftRadius: Radius.xl, borderTopRightRadius: Radius.xl, padding: Spacing.lg },
   modalTitle: { fontSize: FontSize.xl, fontWeight: '800', color: Colors.gray[900], marginBottom: Spacing.xs },
   modalSubtitle: { fontSize: FontSize.sm, color: Colors.gray[500], marginBottom: Spacing.md },
-  modalTextInput: {
-    backgroundColor: Colors.gray[50], borderWidth: 1.5, borderColor: Colors.gray[200],
-    borderRadius: Radius.md, padding: Spacing.md, fontSize: FontSize.md, color: Colors.black,
-    minHeight: 100, textAlignVertical: 'top', marginBottom: Spacing.md,
-  },
+  modalInput: { backgroundColor: Colors.gray[50], borderWidth: 1.5, borderColor: Colors.gray[200], borderRadius: Radius.md, padding: Spacing.md, fontSize: FontSize.md, color: Colors.black, minHeight: 100, textAlignVertical: 'top', marginBottom: Spacing.md },
   modalActions: { flexDirection: 'row', gap: Spacing.sm, paddingBottom: Spacing.md },
-  modalCancelBtn: { flex: 1 },
-  modalConfirmBtn: { flex: 1 },
+  modalBtn: { flex: 1 },
 });

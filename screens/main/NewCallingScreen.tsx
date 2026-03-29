@@ -35,45 +35,52 @@ export function NewCallingScreen({ navigation }: any) {
   const [customCallingName, setCustomCallingName] = useState('');
   const [ordinationType, setOrdinationType] = useState<'elder' | 'high_priest'>('elder');
   const [notes, setNotes] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [bishopApproved, setBishopApproved] = useState(false);
+  const [loading, setLoading] = useState<'ideas' | 'approval' | null>(null);
   const [error, setError] = useState('');
 
   const [wards, setWards] = useState<Ward[]>([]);
   const [showWardPicker, setShowWardPicker] = useState(false);
   const [showCallingPicker, setShowCallingPicker] = useState(false);
-  const [selectedOrg, setSelectedOrg] = useState('');
 
   useEffect(() => {
-    supabase
-      .from('wards')
-      .select('*')
-      .order('name')
-      .then(({ data }) => {
-        if (data) setWards(data as Ward[]);
-      });
+    supabase.from('wards').select('*').order('name').then(({ data }) => {
+      if (data) setWards(data as Ward[]);
+    });
   }, []);
 
-  const isOther = callingName === 'Other' || callingName === '';
+  function resetForm() {
+    setMemberName('');
+    setWardId('');
+    setWardName('');
+    setCallingName('');
+    setCustomCallingName('');
+    setNotes('');
+    setBishopApproved(false);
+  }
 
-  async function handleSubmit() {
+  async function handleSave(targetStage: 'ideas' | 'for_approval') {
     const finalCallingName = type === 'mp_ordination'
       ? `Melchizedek Priesthood Ordination (${ordinationType === 'elder' ? 'Elder' : 'High Priest'})`
       : (callingName === 'Other' ? customCallingName : callingName);
 
     if (!memberName.trim()) { setError('Member name is required.'); return; }
-    if (!wardId) { setError('Please select a ward.'); return; }
     if (!finalCallingName.trim()) { setError('Please specify a calling or ordination.'); return; }
 
-    setLoading(true);
+    setLoading(targetStage === 'ideas' ? 'ideas' : 'approval');
     setError('');
+
+    // MP ordinations skip straight to HC Approval
+    const stage = type === 'mp_ordination' ? 'hc_approval' : targetStage;
 
     const payload: any = {
       type,
       member_name: memberName.trim(),
       calling_name: finalCallingName.trim(),
-      ward_id: wardId,
-      stage: 'ideas',
+      ward_id: wardId || null,
+      stage,
       rejected: false,
+      bishop_approved: type === 'ward_calling' ? bishopApproved : false,
       notes: notes.trim() || null,
       created_by: user?.id,
     };
@@ -90,40 +97,33 @@ export function NewCallingScreen({ navigation }: any) {
 
     if (insertErr) {
       setError(insertErr.message);
-      setLoading(false);
+      setLoading(null);
       return;
     }
 
-    // Log the creation
     await supabase.from('calling_log').insert({
       calling_id: newCalling.id,
-      action: 'Calling created',
-      to_stage: 'ideas',
+      action: stage === 'hc_approval'
+        ? 'MP Ordination created — sent directly to HC Approval'
+        : stage === 'for_approval'
+          ? 'Calling created and submitted for Stake Presidency approval'
+          : 'Calling created and added to Ideas',
+      to_stage: stage,
       performed_by: user?.id,
-      notes: 'New calling entered into system',
     });
 
-    setLoading(false);
+    setLoading(null);
+    resetForm();
 
-    // Reset form
-    setMemberName('');
-    setWardId('');
-    setWardName('');
-    setCallingName('');
-    setCustomCallingName('');
-    setNotes('');
-
+    const dest = type === 'mp_ordination' ? 'HC' : 'PresidencyBoard';
     if (Platform.OS === 'web') {
-      // Navigate to HC board
-      navigation.navigate('HC');
+      navigation.navigate(dest);
     } else {
-      Alert.alert('Success', 'Calling added successfully.', [
-        { text: 'OK', onPress: () => navigation.navigate('HC') },
+      Alert.alert('Success', 'Entry added successfully.', [
+        { text: 'OK', onPress: () => navigation.navigate(dest) },
       ]);
     }
   }
-
-  const allCallings = CALLING_GROUPS.flatMap(g => g.callings.map(c => ({ org: g.org, name: c })));
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -148,6 +148,7 @@ export function NewCallingScreen({ navigation }: any) {
                 setType(opt.value);
                 setCallingName('');
                 setCustomCallingName('');
+                setBishopApproved(false);
               }}
             >
               <Text style={styles.typeEmoji}>{opt.emoji}</Text>
@@ -158,6 +159,12 @@ export function NewCallingScreen({ navigation }: any) {
           ))}
         </View>
 
+        {type === 'mp_ordination' && (
+          <View style={styles.infoBox}>
+            <Text style={styles.infoText}>MP Ordinations are sent directly to HC Approval after the stake presidency interview.</Text>
+          </View>
+        )}
+
         {/* Member Name */}
         <Input
           label="Member Name"
@@ -167,8 +174,8 @@ export function NewCallingScreen({ navigation }: any) {
           leftIcon="person-outline"
         />
 
-        {/* Ward Picker */}
-        <Text style={styles.fieldLabel}>Ward</Text>
+        {/* Ward Picker (optional) */}
+        <Text style={styles.fieldLabel}>Ward <Text style={styles.optionalLabel}>(optional)</Text></Text>
         <TouchableOpacity
           style={styles.pickerBtn}
           onPress={() => setShowWardPicker(true)}
@@ -220,6 +227,19 @@ export function NewCallingScreen({ navigation }: any) {
           </>
         )}
 
+        {/* Bishop Approved (ward callings only) */}
+        {type === 'ward_calling' && (
+          <TouchableOpacity
+            style={styles.checkRow}
+            onPress={() => setBishopApproved(!bishopApproved)}
+          >
+            <View style={[styles.checkbox, bishopApproved && styles.checkboxOn]}>
+              {bishopApproved && <Text style={styles.checkMark}>✓</Text>}
+            </View>
+            <Text style={styles.checkLabel}>Bishop has approved this calling</Text>
+          </TouchableOpacity>
+        )}
+
         {/* Notes */}
         <Input
           label="Notes (optional)"
@@ -232,14 +252,39 @@ export function NewCallingScreen({ navigation }: any) {
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
-        <Button
-          title="Add to Ideas Board"
-          onPress={handleSubmit}
-          loading={loading}
-          fullWidth
-          size="lg"
-          style={styles.submitBtn}
-        />
+        {type === 'mp_ordination' ? (
+          <Button
+            title="Submit to HC Approval"
+            onPress={() => handleSave('for_approval')}
+            loading={loading === 'approval'}
+            disabled={loading !== null}
+            fullWidth
+            size="lg"
+            style={styles.submitBtn}
+          />
+        ) : (
+          <>
+            <Button
+              title="Add to Ideas"
+              onPress={() => handleSave('ideas')}
+              loading={loading === 'ideas'}
+              disabled={loading !== null}
+              variant="outline"
+              fullWidth
+              size="lg"
+              style={styles.submitBtn}
+            />
+            <Button
+              title="Submit for SP Approval"
+              onPress={() => handleSave('for_approval')}
+              loading={loading === 'approval'}
+              disabled={loading !== null}
+              fullWidth
+              size="lg"
+              style={styles.submitBtnSecondary}
+            />
+          </>
+        )}
       </ScrollView>
 
       {/* Ward Picker Modal */}
@@ -256,6 +301,14 @@ export function NewCallingScreen({ navigation }: any) {
         >
           <View style={styles.modalSheet} onStartShouldSetResponder={() => true}>
             <Text style={styles.modalTitle}>Select Ward</Text>
+            <TouchableOpacity
+              style={[styles.modalItem, !wardId && styles.modalItemSelected]}
+              onPress={() => { setWardId(''); setWardName(''); setShowWardPicker(false); }}
+            >
+              <Text style={[styles.modalItemText, !wardId && styles.modalItemTextSelected]}>
+                No ward / TBD
+              </Text>
+            </TouchableOpacity>
             <FlatList
               data={wards}
               keyExtractor={item => item.id}
@@ -319,10 +372,7 @@ export function NewCallingScreen({ navigation }: any) {
                       setShowCallingPicker(false);
                     }}
                   >
-                    <Text style={[
-                      styles.modalItemText,
-                      callingName === item.value && styles.modalItemTextSelected,
-                    ]}>
+                    <Text style={[styles.modalItemText, callingName === item.value && styles.modalItemTextSelected]}>
                       {item.label}
                     </Text>
                   </TouchableOpacity>
@@ -339,123 +389,80 @@ export function NewCallingScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.gray[50] },
   header: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    backgroundColor: Colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.gray[100],
+    paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md,
+    backgroundColor: Colors.white, borderBottomWidth: 1, borderBottomColor: Colors.gray[100],
   },
   title: { fontSize: FontSize.xxl, fontWeight: '800', color: Colors.primary },
   subtitle: { fontSize: FontSize.sm, color: Colors.gray[500], marginTop: 2 },
   scroll: { flex: 1 },
   scrollContent: { padding: Spacing.lg },
   sectionLabel: {
-    fontSize: FontSize.sm,
-    fontWeight: '700',
-    color: Colors.gray[700],
-    marginBottom: Spacing.sm,
-    marginTop: Spacing.xs,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    fontSize: FontSize.sm, fontWeight: '700', color: Colors.gray[700],
+    marginBottom: Spacing.sm, marginTop: Spacing.xs,
+    textTransform: 'uppercase', letterSpacing: 0.5,
   },
-  fieldLabel: {
-    fontSize: FontSize.sm,
-    fontWeight: '600',
-    color: Colors.gray[700],
-    marginBottom: Spacing.xs,
-  },
-  typeRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
-  },
+  fieldLabel: { fontSize: FontSize.sm, fontWeight: '600', color: Colors.gray[700], marginBottom: Spacing.xs },
+  optionalLabel: { fontWeight: '400', color: Colors.gray[400] },
+  typeRow: { flexDirection: 'row', gap: Spacing.sm, marginBottom: Spacing.md },
   typeBtn: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: Spacing.md,
-    borderRadius: Radius.md,
-    borderWidth: 1.5,
-    borderColor: Colors.gray[200],
-    backgroundColor: Colors.white,
-    ...(Shadow as any),
+    flex: 1, alignItems: 'center', justifyContent: 'center',
+    paddingVertical: Spacing.md, borderRadius: Radius.md,
+    borderWidth: 1.5, borderColor: Colors.gray[200],
+    backgroundColor: Colors.white, ...(Shadow as any),
   },
-  typeBtnActive: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.primaryFade,
-  },
+  typeBtnActive: { borderColor: Colors.primary, backgroundColor: Colors.primaryFade },
   typeEmoji: { fontSize: 20, marginBottom: 4 },
-  typeLabel: {
-    fontSize: FontSize.xs,
-    fontWeight: '600',
-    color: Colors.gray[600],
-    textAlign: 'center',
+  typeLabel: { fontSize: FontSize.xs, fontWeight: '600', color: Colors.gray[600], textAlign: 'center' },
+  typeLabelActive: { color: Colors.primary },
+  infoBox: {
+    backgroundColor: Colors.info + '15', borderRadius: Radius.md,
+    padding: Spacing.sm, marginBottom: Spacing.md,
+    borderWidth: 1, borderColor: Colors.info + '40',
   },
-  typeLabelActive: {
-    color: Colors.primary,
-  },
+  infoText: { fontSize: FontSize.sm, color: Colors.info, lineHeight: 20 },
   pickerBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: Colors.gray[50],
-    borderWidth: 1.5,
-    borderColor: Colors.gray[200],
-    borderRadius: Radius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm + 2,
-    marginBottom: Spacing.md,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: Colors.gray[50], borderWidth: 1.5, borderColor: Colors.gray[200],
+    borderRadius: Radius.md, paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm + 2, marginBottom: Spacing.md,
   },
   pickerBtnText: { fontSize: FontSize.md, color: Colors.black },
   pickerBtnPlaceholder: { fontSize: FontSize.md, color: Colors.gray[400] },
   pickerArrow: { color: Colors.gray[400], fontSize: 12 },
-  error: {
-    color: Colors.error,
-    fontSize: FontSize.sm,
-    marginBottom: Spacing.sm,
+  checkRow: {
+    flexDirection: 'row', alignItems: 'center',
+    marginBottom: Spacing.md, paddingVertical: Spacing.xs,
   },
+  checkbox: {
+    width: 22, height: 22, borderRadius: 4, borderWidth: 2,
+    borderColor: Colors.gray[300], marginRight: Spacing.sm,
+    alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.white,
+  },
+  checkboxOn: { backgroundColor: Colors.success, borderColor: Colors.success },
+  checkMark: { color: Colors.white, fontSize: 13, fontWeight: '800' },
+  checkLabel: { fontSize: FontSize.md, color: Colors.gray[700] },
+  error: { color: Colors.error, fontSize: FontSize.sm, marginBottom: Spacing.sm },
   submitBtn: { marginTop: Spacing.md },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'flex-end',
-  },
+  submitBtnSecondary: { marginTop: Spacing.sm },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
   modalSheet: {
-    backgroundColor: Colors.white,
-    borderTopLeftRadius: Radius.xl,
-    borderTopRightRadius: Radius.xl,
-    maxHeight: '70%',
-    paddingTop: Spacing.lg,
+    backgroundColor: Colors.white, borderTopLeftRadius: Radius.xl,
+    borderTopRightRadius: Radius.xl, maxHeight: '70%', paddingTop: Spacing.lg,
   },
   modalTitle: {
-    fontSize: FontSize.lg,
-    fontWeight: '700',
-    color: Colors.gray[900],
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.gray[100],
+    fontSize: FontSize.lg, fontWeight: '700', color: Colors.gray[900],
+    paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md,
+    borderBottomWidth: 1, borderBottomColor: Colors.gray[100],
   },
-  modalGroupHeader: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.xs,
-    backgroundColor: Colors.gray[50],
-  },
+  modalGroupHeader: { paddingHorizontal: Spacing.lg, paddingVertical: Spacing.xs, backgroundColor: Colors.gray[50] },
   modalGroupHeaderText: {
-    fontSize: FontSize.xs,
-    fontWeight: '800',
-    color: Colors.gray[500],
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    fontSize: FontSize.xs, fontWeight: '800', color: Colors.gray[500],
+    textTransform: 'uppercase', letterSpacing: 0.5,
   },
   modalItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.gray[100],
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md,
+    borderBottomWidth: 1, borderBottomColor: Colors.gray[100],
   },
   modalItemSelected: { backgroundColor: Colors.primaryFade },
   modalItemText: { fontSize: FontSize.md, color: Colors.gray[800] },

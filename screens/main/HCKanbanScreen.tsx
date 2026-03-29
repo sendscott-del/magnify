@@ -1,18 +1,18 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView,
-  RefreshControl, TouchableOpacity,
+  RefreshControl, TouchableOpacity, Modal, FlatList,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
-import { Calling, CallingType } from '../../lib/database.types';
+import { Calling, CallingType, Ward, Profile } from '../../lib/database.types';
 import { KanbanColumn } from '../../components/kanban/KanbanColumn';
 import { Colors, Spacing, FontSize, Radius } from '../../constants/theme';
 
 const HC_COLUMNS = [
   { stages: ['hc_approval'], label: 'HC Approval', color: Colors.stage.hc_approval },
-  { stages: ['issue_calling', 'ordained'], label: 'Issue / Ordain', color: Colors.stage.issue_calling },
+  { stages: ['issue_calling', 'ordained'], label: 'Extend Calling', color: Colors.stage.issue_calling },
   { stages: ['sustain'], label: 'Sustain', color: Colors.stage.sustain },
   { stages: ['set_apart'], label: 'Set Apart', color: Colors.stage.set_apart },
   { stages: ['record'], label: 'Record', color: Colors.stage.record },
@@ -28,55 +28,113 @@ const TYPE_FILTERS: { label: string; value: CallingType | 'all' }[] = [
 export function HCKanbanScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const [callings, setCallings] = useState<Calling[]>([]);
+  const [wards, setWards] = useState<Ward[]>([]);
+  const [hcProfiles, setHcProfiles] = useState<Profile[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+
   const [typeFilter, setTypeFilter] = useState<CallingType | 'all'>('all');
+  const [wardFilter, setWardFilter] = useState<string>('all');
+  const [assigneeFilter, setAssigneeFilter] = useState<string>('all');
 
-  const fetchCallings = useCallback(async () => {
-    let q = supabase
-      .from('callings')
-      .select('*, wards(id,name,abbreviation)')
-      .in('stage', ['hc_approval', 'issue_calling', 'ordained', 'sustain', 'set_apart', 'record'])
-      .order('created_at', { ascending: false });
-    if (typeFilter !== 'all') q = q.eq('type', typeFilter);
-    const { data } = await q;
-    setCallings((data as Calling[]) ?? []);
-  }, [typeFilter]);
+  const [showWardFilter, setShowWardFilter] = useState(false);
+  const [showAssigneeFilter, setShowAssigneeFilter] = useState(false);
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchCallings();
-    }, [fetchCallings])
-  );
+  const fetchData = useCallback(async () => {
+    const [callingsRes, wardsRes, profilesRes] = await Promise.all([
+      supabase
+        .from('callings')
+        .select('*, wards(id,name,abbreviation)')
+        .in('stage', ['hc_approval', 'issue_calling', 'ordained', 'sustain', 'set_apart', 'record'])
+        .eq('rejected', false)
+        .order('created_at', { ascending: false }),
+      supabase.from('wards').select('*').order('name'),
+      supabase.from('profiles').select('id,full_name,role').eq('status', 'approved')
+        .in('role', ['high_councilor', 'stake_president', 'first_counselor', 'second_counselor', 'stake_clerk', 'exec_secretary']),
+    ]);
+    setCallings((callingsRes.data as Calling[]) ?? []);
+    setWards((wardsRes.data as Ward[]) ?? []);
+    setHcProfiles((profilesRes.data as Profile[]) ?? []);
+  }, []);
+
+  useFocusEffect(useCallback(() => { fetchData(); }, [fetchData]));
 
   async function onRefresh() {
     setRefreshing(true);
-    await fetchCallings();
+    await fetchData();
     setRefreshing(false);
   }
+
+  function filteredCallings(stages: string[]) {
+    return callings.filter(c => {
+      if (!stages.includes(c.stage)) return false;
+      if (typeFilter !== 'all' && c.type !== typeFilter) return false;
+      if (wardFilter !== 'all' && c.ward_id !== wardFilter) return false;
+      if (assigneeFilter !== 'all') {
+        const assigned = [c.extend_by, c.sustain_by, c.set_apart_by, c.record_by];
+        if (!assigned.includes(assigneeFilter)) return false;
+      }
+      return true;
+    });
+  }
+
+  const activeWardFilter = wardFilter !== 'all' ? wards.find(w => w.id === wardFilter)?.abbreviation : null;
+  const activeAssigneeFilter = assigneeFilter !== 'all' ? hcProfiles.find(p => p.id === assigneeFilter)?.full_name : null;
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <Text style={styles.title}>High Council Board</Text>
       </View>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.filterRow}
-        contentContainerStyle={styles.filterContent}
-      >
-        {TYPE_FILTERS.map(f => (
+
+      {/* Filter rows */}
+      <View style={styles.filterBar}>
+        {/* Type filter */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
+          {TYPE_FILTERS.map(f => (
+            <TouchableOpacity
+              key={f.value}
+              style={[styles.filterChip, typeFilter === f.value && styles.filterChipActive]}
+              onPress={() => setTypeFilter(f.value)}
+            >
+              <Text style={[styles.filterChipText, typeFilter === f.value && styles.filterChipTextActive]}>
+                {f.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* Ward + Assignee filters */}
+        <View style={styles.filterRow2}>
           <TouchableOpacity
-            key={f.value}
-            style={[styles.filter, typeFilter === f.value && styles.filterActive]}
-            onPress={() => setTypeFilter(f.value)}
+            style={[styles.filterChip, wardFilter !== 'all' && styles.filterChipActive]}
+            onPress={() => setShowWardFilter(true)}
           >
-            <Text style={[styles.filterText, typeFilter === f.value && styles.filterTextActive]}>
-              {f.label}
+            <Text style={[styles.filterChipText, wardFilter !== 'all' && styles.filterChipTextActive]}>
+              {activeWardFilter ? `Ward: ${activeWardFilter}` : 'All Wards'}
             </Text>
           </TouchableOpacity>
-        ))}
-      </ScrollView>
+          {wardFilter !== 'all' && (
+            <TouchableOpacity style={styles.clearChip} onPress={() => setWardFilter('all')}>
+              <Text style={styles.clearChipText}>✕</Text>
+            </TouchableOpacity>
+          )}
+
+          <TouchableOpacity
+            style={[styles.filterChip, assigneeFilter !== 'all' && styles.filterChipActive]}
+            onPress={() => setShowAssigneeFilter(true)}
+          >
+            <Text style={[styles.filterChipText, assigneeFilter !== 'all' && styles.filterChipTextActive]}>
+              {activeAssigneeFilter ? `Assigned: ${activeAssigneeFilter.split(' ').pop()}` : 'All Assigned'}
+            </Text>
+          </TouchableOpacity>
+          {assigneeFilter !== 'all' && (
+            <TouchableOpacity style={styles.clearChip} onPress={() => setAssigneeFilter('all')}>
+              <Text style={styles.clearChipText}>✕</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -89,11 +147,67 @@ export function HCKanbanScreen({ navigation }: any) {
             key={col.label}
             title={col.label}
             color={col.color}
-            callings={callings.filter(c => col.stages.includes(c.stage))}
+            callings={filteredCallings(col.stages)}
             onCardPress={(c) => navigation.navigate('CallingDetail', { callingId: c.id })}
           />
         ))}
       </ScrollView>
+
+      {/* Ward Filter Modal */}
+      <Modal visible={showWardFilter} transparent animationType="slide" onRequestClose={() => setShowWardFilter(false)}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowWardFilter(false)}>
+          <View style={styles.modalSheet} onStartShouldSetResponder={() => true}>
+            <Text style={styles.modalTitle}>Filter by Ward</Text>
+            <TouchableOpacity
+              style={[styles.modalItem, wardFilter === 'all' && styles.modalItemSelected]}
+              onPress={() => { setWardFilter('all'); setShowWardFilter(false); }}
+            >
+              <Text style={[styles.modalItemText, wardFilter === 'all' && styles.modalItemTextSelected]}>All Wards</Text>
+            </TouchableOpacity>
+            <FlatList
+              data={wards}
+              keyExtractor={w => w.id}
+              renderItem={({ item: w }) => (
+                <TouchableOpacity
+                  style={[styles.modalItem, wardFilter === w.id && styles.modalItemSelected]}
+                  onPress={() => { setWardFilter(w.id); setShowWardFilter(false); }}
+                >
+                  <Text style={[styles.modalItemText, wardFilter === w.id && styles.modalItemTextSelected]}>{w.name}</Text>
+                  <Text style={styles.modalItemSub}>{w.abbreviation}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Assignee Filter Modal */}
+      <Modal visible={showAssigneeFilter} transparent animationType="slide" onRequestClose={() => setShowAssigneeFilter(false)}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowAssigneeFilter(false)}>
+          <View style={styles.modalSheet} onStartShouldSetResponder={() => true}>
+            <Text style={styles.modalTitle}>Filter by Assignee</Text>
+            <TouchableOpacity
+              style={[styles.modalItem, assigneeFilter === 'all' && styles.modalItemSelected]}
+              onPress={() => { setAssigneeFilter('all'); setShowAssigneeFilter(false); }}
+            >
+              <Text style={[styles.modalItemText, assigneeFilter === 'all' && styles.modalItemTextSelected]}>All</Text>
+            </TouchableOpacity>
+            <FlatList
+              data={hcProfiles}
+              keyExtractor={p => p.id}
+              renderItem={({ item: p }) => (
+                <TouchableOpacity
+                  style={[styles.modalItem, assigneeFilter === p.id && styles.modalItemSelected]}
+                  onPress={() => { setAssigneeFilter(p.id); setShowAssigneeFilter(false); }}
+                >
+                  <Text style={[styles.modalItemText, assigneeFilter === p.id && styles.modalItemTextSelected]}>{p.full_name}</Text>
+                  <Text style={styles.modalItemSub}>{p.role.replace('_', ' ')}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -101,43 +215,45 @@ export function HCKanbanScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.gray[50] },
   header: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    backgroundColor: Colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.gray[100],
+    paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md,
+    backgroundColor: Colors.white, borderBottomWidth: 1, borderBottomColor: Colors.gray[100],
   },
   title: { fontSize: FontSize.xxl, fontWeight: '800', color: Colors.primary },
-  filterRow: {
-    maxHeight: 44,
-    backgroundColor: Colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.gray[100],
-  },
-  filterContent: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    gap: Spacing.xs,
-    flexDirection: 'row',
-  },
-  filter: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    borderRadius: Radius.full,
-    borderWidth: 1.5,
-    borderColor: Colors.gray[300],
+  filterBar: { backgroundColor: Colors.white, borderBottomWidth: 1, borderBottomColor: Colors.gray[100] },
+  filterRow: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs, flexDirection: 'row', gap: Spacing.xs },
+  filterRow2: { flexDirection: 'row', paddingHorizontal: Spacing.md, paddingBottom: Spacing.xs, gap: Spacing.xs, flexWrap: 'wrap' },
+  filterChip: {
+    paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs,
+    borderRadius: Radius.full, borderWidth: 1.5, borderColor: Colors.gray[300],
     backgroundColor: Colors.white,
   },
-  filterActive: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.primaryFade,
+  filterChipActive: { borderColor: Colors.primary, backgroundColor: Colors.primaryFade },
+  filterChipText: { fontSize: FontSize.sm, color: Colors.gray[600] },
+  filterChipTextActive: { color: Colors.primary, fontWeight: '700' },
+  clearChip: {
+    paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs,
+    borderRadius: Radius.full, backgroundColor: Colors.gray[200],
   },
-  filterText: { fontSize: FontSize.sm, color: Colors.gray[600] },
-  filterTextActive: { color: Colors.primary, fontWeight: '700' },
+  clearChipText: { fontSize: FontSize.xs, color: Colors.gray[600], fontWeight: '700' },
   board: { flex: 1 },
-  boardContent: {
-    padding: Spacing.md,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+  boardContent: { padding: Spacing.md, flexDirection: 'row', alignItems: 'flex-start' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  modalSheet: {
+    backgroundColor: Colors.white, borderTopLeftRadius: Radius.xl,
+    borderTopRightRadius: Radius.xl, maxHeight: '60%', paddingTop: Spacing.lg,
   },
+  modalTitle: {
+    fontSize: FontSize.lg, fontWeight: '700', color: Colors.gray[900],
+    paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md,
+    borderBottomWidth: 1, borderBottomColor: Colors.gray[100],
+  },
+  modalItem: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md,
+    borderBottomWidth: 1, borderBottomColor: Colors.gray[100],
+  },
+  modalItemSelected: { backgroundColor: Colors.primaryFade },
+  modalItemText: { fontSize: FontSize.md, color: Colors.gray[800] },
+  modalItemTextSelected: { color: Colors.primary, fontWeight: '700' },
+  modalItemSub: { fontSize: FontSize.sm, color: Colors.gray[400] },
 });

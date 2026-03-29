@@ -7,8 +7,8 @@ export const STAGE_LABELS: Record<Stage, string> = {
   for_approval: 'For Approval',
   stake_approved: 'Stake Approved',
   hc_approval: 'HC Approval',
-  issue_calling: 'Issue Calling',
-  ordained: 'Ordained',
+  issue_calling: 'Extend Calling',
+  ordained: 'Extend Calling',
   sustain: 'Sustain',
   set_apart: 'Set Apart',
   record: 'Record',
@@ -44,36 +44,8 @@ export const CALLING_GROUPS: { org: string; callings: string[] }[] = [
     org: 'Elders Quorum',
     callings: [
       'Elders Quorum President',
-    ],
-  },
-  {
-    org: 'Relief Society',
-    callings: [
-      'Relief Society President',
-    ],
-  },
-  {
-    org: 'Young Women',
-    callings: [
-      'Young Women President',
-    ],
-  },
-  {
-    org: 'Young Men',
-    callings: [
-      'Young Men President',
-    ],
-  },
-  {
-    org: 'Sunday School',
-    callings: [
-      'Sunday School President',
-    ],
-  },
-  {
-    org: 'Primary',
-    callings: [
-      'Primary President',
+      'First Counselor in Elders Quorum Presidency',
+      'Second Counselor in Elders Quorum Presidency',
     ],
   },
   {
@@ -83,7 +55,6 @@ export const CALLING_GROUPS: { org: string; callings: string[] }[] = [
       'Stake Executive Secretary',
       'Stake Clerk',
       'Assistant Stake Clerk',
-      'Stake Patriarch',
       'Stake Relief Society President',
       'First Counselor in Stake Relief Society',
       'Second Counselor in Stake Relief Society',
@@ -94,8 +65,9 @@ export const CALLING_GROUPS: { org: string; callings: string[] }[] = [
       'First Counselor in Stake Primary',
       'Second Counselor in Stake Primary',
       'Stake Young Men President',
+      'First Counselor in Stake Young Men Presidency',
+      'Second Counselor in Stake Young Men Presidency',
       'Stake Sunday School President',
-      'Stake Auditor',
     ],
   },
   { org: 'Other', callings: [] },

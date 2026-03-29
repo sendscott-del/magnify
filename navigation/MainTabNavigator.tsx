@@ -1,6 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { CommonActions } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/theme';
 import { useAuth } from '../context/AuthContext';
@@ -77,15 +78,29 @@ export function MainTabNavigator() {
     >
       {showPresidencyBoard && (
         <Tab.Screen
-          name="Presidency"
+          name="PresidencyBoard"
           component={PresidencyStack}
           options={{ tabBarLabel: 'SP Board' }}
+          listeners={({ navigation }) => ({
+            tabPress: () => {
+              navigation.dispatch(
+                CommonActions.reset({ index: 0, routes: [{ name: 'PresidencyBoard' }] })
+              );
+            },
+          })}
         />
       )}
       <Tab.Screen
         name="HC"
         component={HCStack}
         options={{ tabBarLabel: 'HC Board' }}
+        listeners={({ navigation }) => ({
+          tabPress: () => {
+            navigation.dispatch(
+              CommonActions.reset({ index: 0, routes: [{ name: 'HC' }] })
+            );
+          },
+        })}
       />
       <Tab.Screen
         name="New"

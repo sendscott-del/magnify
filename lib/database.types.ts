@@ -25,13 +25,16 @@ export interface Calling {
   member_name: string;
   calling_name: string;
   ordination_type?: 'elder' | 'high_priest';
-  ward_id: string;
+  ward_id?: string | null;
   stage: Stage;
   rejected: boolean;
   rejection_notes?: string;
-  org_recommended?: boolean;
   bishop_approved?: boolean;
   notes?: string;
+  extend_by?: string | null;
+  sustain_by?: string | null;
+  set_apart_by?: string | null;
+  record_by?: string | null;
   created_by: string;
   created_at: string;
   completed_at?: string;
