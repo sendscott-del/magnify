@@ -4,4 +4,4 @@
 
 alter table callings add column if not exists release_member_name text;
 alter table callings add column if not exists release_current_calling text;
-alter table callings add column if not exists release_ward_id uuid references wards(id) on delete set null;
+alter table callings add column if not exists release_ward_id uuid;

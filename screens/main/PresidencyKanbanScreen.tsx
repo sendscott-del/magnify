@@ -42,7 +42,7 @@ export function PresidencyKanbanScreen({ navigation }: any) {
   const fetchCallings = useCallback(async () => {
     let q = supabase
       .from('callings')
-      .select('*, wards(id,name,abbreviation)')
+      .select('*, wards!callings_ward_id_fkey(id,name,abbreviation)')
       .in('stage', ACTIVE_STAGES)
       .eq('rejected', false)
       .order('created_at', { ascending: false });
@@ -53,7 +53,7 @@ export function PresidencyKanbanScreen({ navigation }: any) {
     if (canSeeRejected) {
       let rq = supabase
         .from('callings')
-        .select('*, wards(id,name,abbreviation)')
+        .select('*, wards!callings_ward_id_fkey(id,name,abbreviation)')
         .eq('rejected', true)
         .neq('stage', 'complete')
         .order('created_at', { ascending: false });

@@ -41,7 +41,7 @@ export function CompletedCallingsScreen({ navigation }: any) {
   const fetchCallings = useCallback(async () => {
     const { data } = await supabase
       .from('callings')
-      .select('*, wards(id,name,abbreviation,sort_order)')
+      .select('*, wards!callings_ward_id_fkey(id,name,abbreviation,sort_order)')
       .eq('stage', 'complete')
       .order('completed_at', { ascending: false });
     setCallings((data as Calling[]) ?? []);

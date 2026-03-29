@@ -52,7 +52,7 @@ export function HCKanbanScreen({ navigation }: any) {
     const [callingsRes, wardsRes, spMembersRes, hcMembersRes, hcApprovalsRes] = await Promise.all([
       supabase
         .from('callings')
-        .select('*, wards(id,name,abbreviation)')
+        .select('*, wards!callings_ward_id_fkey(id,name,abbreviation)')
         .in('stage', ['hc_approval', 'issue_calling', 'ordained', 'sustain', 'set_apart', 'record'])
         .eq('rejected', false)
         .order('created_at', { ascending: false }),
