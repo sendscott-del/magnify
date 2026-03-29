@@ -12,26 +12,26 @@ export async function postToWebhook(webhookUrl: string, text: string): Promise<v
   }
 }
 
+const SP_STAGES = ['ideas', 'for_approval', 'stake_approved'];
+
 export async function notifyStageChange({
-  memberName,
-  callingName,
-  wardName,
-  fromStage,
-  toStage,
-  performedBy,
+  memberName, callingName, wardName, fromStage, toStage, toStageKey, performedBy,
 }: {
   memberName: string;
   callingName: string;
   wardName?: string | null;
   fromStage: string;
   toStage: string;
+  toStageKey: string;
   performedBy?: string | null;
 }): Promise<void> {
+  const eventType = SP_STAGES.includes(toStageKey) ? 'sp_stage_change' : 'hc_stage_change';
+
   const { data: settings } = await supabase
     .from('slack_settings')
     .select('webhook_url')
     .eq('active', true)
-    .eq('event_type', 'stage_change');
+    .eq('event_type', eventType);
 
   if (!settings || settings.length === 0) return;
 
@@ -44,10 +44,7 @@ export async function notifyStageChange({
 }
 
 export async function notifyRejection({
-  memberName,
-  callingName,
-  wardName,
-  notes,
+  memberName, callingName, wardName, notes,
 }: {
   memberName: string;
   callingName: string;

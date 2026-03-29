@@ -193,7 +193,8 @@ export function SettingsScreen({ navigation }: any) {
             <Text style={styles.sectionTitle}>Slack Notifications</Text>
             <Text style={styles.slackHint}>Paste an Incoming Webhook URL to send notifications to a Slack channel.</Text>
             {[
-              { key: 'stage_change', label: 'Stage Changes', placeholder: 'https://hooks.slack.com/services/…' },
+              { key: 'sp_stage_change', label: 'SP Board Updates', placeholder: 'https://hooks.slack.com/services/…' },
+              { key: 'hc_stage_change', label: 'HC Board Updates', placeholder: 'https://hooks.slack.com/services/…' },
               { key: 'rejection', label: 'Rejections', placeholder: 'https://hooks.slack.com/services/…' },
             ].map(({ key, label, placeholder }) => {
               const active = slackSettings.find(s => s.event_type === key)?.active;

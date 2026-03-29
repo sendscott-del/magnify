@@ -521,7 +521,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
     notifyStageChange({
       memberName: calling.member_name, callingName: calling.calling_name,
       wardName: calling.wards?.name, fromStage: STAGE_LABELS[calling.stage], toStage: STAGE_LABELS[next],
-      performedBy: profile.full_name,
+      toStageKey: next, performedBy: profile.full_name,
     }).catch(() => {});
 
     await fetchData();
