@@ -6,7 +6,7 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
-import { Calling, CallingType, Ward, Profile } from '../../lib/database.types';
+import { Calling, CallingType, Ward } from '../../lib/database.types';
 import { KanbanColumn } from '../../components/kanban/KanbanColumn';
 import { Colors, Spacing, FontSize, Radius } from '../../constants/theme';
 
@@ -29,7 +29,7 @@ export function HCKanbanScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const [callings, setCallings] = useState<Calling[]>([]);
   const [wards, setWards] = useState<Ward[]>([]);
-  const [hcProfiles, setHcProfiles] = useState<Profile[]>([]);
+  const [assigneeOptions, setAssigneeOptions] = useState<{ name: string; subtitle: string }[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
   const [typeFilter, setTypeFilter] = useState<CallingType | 'all'>('all');
@@ -40,7 +40,7 @@ export function HCKanbanScreen({ navigation }: any) {
   const [showAssigneeFilter, setShowAssigneeFilter] = useState(false);
 
   const fetchData = useCallback(async () => {
-    const [callingsRes, wardsRes, profilesRes] = await Promise.all([
+    const [callingsRes, wardsRes, profilesRes, hcMembersRes] = await Promise.all([
       supabase
         .from('callings')
         .select('*, wards(id,name,abbreviation)')
@@ -49,11 +49,15 @@ export function HCKanbanScreen({ navigation }: any) {
         .order('created_at', { ascending: false }),
       supabase.from('wards').select('*').order('name'),
       supabase.from('profiles').select('id,full_name,role').eq('status', 'approved')
-        .in('role', ['high_councilor', 'stake_president', 'first_counselor', 'second_counselor', 'stake_clerk', 'exec_secretary']),
+        .in('role', ['stake_president', 'first_counselor', 'second_counselor']),
+      supabase.from('high_council_members').select('id,name,sort_order').eq('active', true).order('sort_order'),
     ]);
     setCallings((callingsRes.data as Calling[]) ?? []);
     setWards((wardsRes.data as Ward[]) ?? []);
-    setHcProfiles((profilesRes.data as Profile[]) ?? []);
+    const spLabelMap: Record<string, string> = { stake_president: 'Stake President', first_counselor: '1st Counselor', second_counselor: '2nd Counselor' };
+    const spOptions = (profilesRes.data ?? []).map((p: any) => ({ name: p.full_name, subtitle: spLabelMap[p.role] ?? p.role }));
+    const hcOptions = (hcMembersRes.data ?? []).map((m: any) => ({ name: m.name, subtitle: 'High Councilor' }));
+    setAssigneeOptions([...spOptions, ...hcOptions]);
   }, []);
 
   useFocusEffect(useCallback(() => { fetchData(); }, [fetchData]));
@@ -78,7 +82,7 @@ export function HCKanbanScreen({ navigation }: any) {
   }
 
   const activeWardFilter = wardFilter !== 'all' ? wards.find(w => w.id === wardFilter)?.abbreviation : null;
-  const activeAssigneeFilter = assigneeFilter !== 'all' ? hcProfiles.find(p => p.id === assigneeFilter)?.full_name : null;
+  const activeAssigneeFilter = assigneeFilter !== 'all' ? assigneeFilter : null;
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -124,7 +128,7 @@ export function HCKanbanScreen({ navigation }: any) {
             onPress={() => setShowAssigneeFilter(true)}
           >
             <Text style={[styles.filterChipText, assigneeFilter !== 'all' && styles.filterChipTextActive]}>
-              {activeAssigneeFilter ? `Assigned: ${activeAssigneeFilter.split(' ').pop()}` : 'All Assigned'}
+              {activeAssigneeFilter ? `Assigned: ${activeAssigneeFilter.split(' ').pop()}` : 'All Assigned'  }
             </Text>
           </TouchableOpacity>
           {assigneeFilter !== 'all' && (
@@ -193,15 +197,15 @@ export function HCKanbanScreen({ navigation }: any) {
               <Text style={[styles.modalItemText, assigneeFilter === 'all' && styles.modalItemTextSelected]}>All</Text>
             </TouchableOpacity>
             <FlatList
-              data={hcProfiles}
-              keyExtractor={p => p.id}
-              renderItem={({ item: p }) => (
+              data={assigneeOptions}
+              keyExtractor={a => a.name}
+              renderItem={({ item: a }) => (
                 <TouchableOpacity
-                  style={[styles.modalItem, assigneeFilter === p.id && styles.modalItemSelected]}
-                  onPress={() => { setAssigneeFilter(p.id); setShowAssigneeFilter(false); }}
+                  style={[styles.modalItem, assigneeFilter === a.name && styles.modalItemSelected]}
+                  onPress={() => { setAssigneeFilter(a.name); setShowAssigneeFilter(false); }}
                 >
-                  <Text style={[styles.modalItemText, assigneeFilter === p.id && styles.modalItemTextSelected]}>{p.full_name}</Text>
-                  <Text style={styles.modalItemSub}>{p.role.replace('_', ' ')}</Text>
+                  <Text style={[styles.modalItemText, assigneeFilter === a.name && styles.modalItemTextSelected]}>{a.name}</Text>
+                  <Text style={styles.modalItemSub}>{a.subtitle}</Text>
                 </TouchableOpacity>
               )}
             />

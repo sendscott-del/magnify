@@ -232,36 +232,48 @@ const hcStyles = StyleSheet.create({
 });
 
 // ─── Task Assignments ─────────────────────────────────────────────────────────
-const TASK_FIELDS: { key: string; label: string }[] = [
+interface Assignee { name: string; subtitle: string; }
+
+const TASK_FIELDS: { key: string; label: string; locked?: boolean }[] = [
   { key: 'extend_by', label: 'Extend Calling' },
   { key: 'sustain_by', label: 'Sustain' },
   { key: 'set_apart_by', label: 'Set Apart / Ordain' },
-  { key: 'record_by', label: 'Record' },
+  { key: 'record_by', label: 'Record', locked: true },
 ];
 
-function TaskAssignmentsSection({ calling, profiles, canEdit, onAssign }: {
-  calling: Calling; profiles: Profile[]; canEdit: boolean; onAssign: (field: string, profileId: string | null) => Promise<void>;
+const SP_ROLE_LABELS: Record<string, string> = {
+  stake_president: 'Stake President',
+  first_counselor: '1st Counselor',
+  second_counselor: '2nd Counselor',
+};
+
+function TaskAssignmentsSection({ calling, assignees, clerkName, canEdit, onAssign }: {
+  calling: Calling; assignees: Assignee[]; clerkName: string | null; canEdit: boolean;
+  onAssign: (field: string, name: string | null) => Promise<void>;
 }) {
   const [pickerField, setPickerField] = useState<string | null>(null);
 
   return (
     <View style={taStyles.container}>
       <Text style={taStyles.title}>Task Assignments</Text>
-      {TASK_FIELDS.map(({ key, label }) => {
-        const assignedId = (calling as any)[key] as string | null;
-        const assignedProfile = profiles.find(p => p.id === assignedId);
+      {TASK_FIELDS.map(({ key, label, locked }) => {
+        const assignedName = (calling as any)[key] as string | null;
+        const isRecord = locked;
+        const displayName = isRecord ? (clerkName ?? 'Stake Clerk') : assignedName;
+        const isFilled = !!displayName && (!isRecord || !!clerkName);
         return (
           <View key={key} style={taStyles.row}>
             <Text style={taStyles.taskLabel}>{label}</Text>
             <TouchableOpacity
-              style={[taStyles.assignBtn, assignedProfile && taStyles.assignBtnFilled]}
-              onPress={() => canEdit ? setPickerField(key) : undefined}
-              disabled={!canEdit}
+              style={[taStyles.assignBtn, isFilled && taStyles.assignBtnFilled]}
+              onPress={() => (!isRecord && canEdit) ? setPickerField(key) : undefined}
+              disabled={isRecord || !canEdit}
             >
-              <Text style={[taStyles.assignBtnText, assignedProfile && taStyles.assignBtnTextFilled]}>
-                {assignedProfile ? assignedProfile.full_name : 'Assign…'}
+              <Text style={[taStyles.assignBtnText, isFilled && taStyles.assignBtnTextFilled]}>
+                {displayName ?? 'Assign…'}
               </Text>
-              {canEdit && <Text style={taStyles.assignArrow}>▼</Text>}
+              {!isRecord && canEdit && <Text style={taStyles.assignArrow}>▼</Text>}
+              {isRecord && <Text style={taStyles.lockedIcon}>🔒</Text>}
             </TouchableOpacity>
           </View>
         );
@@ -278,15 +290,15 @@ function TaskAssignmentsSection({ calling, profiles, canEdit, onAssign }: {
               <Text style={[taStyles.modalItemText, { color: Colors.gray[400] }]}>— Unassign —</Text>
             </TouchableOpacity>
             <FlatList
-              data={profiles}
-              keyExtractor={p => p.id}
-              renderItem={({ item: p }) => (
+              data={assignees}
+              keyExtractor={a => a.name}
+              renderItem={({ item: a }) => (
                 <TouchableOpacity
-                  style={[taStyles.modalItem, (calling as any)[pickerField!] === p.id && taStyles.modalItemSelected]}
-                  onPress={() => { if (pickerField) onAssign(pickerField, p.id); setPickerField(null); }}
+                  style={[taStyles.modalItem, (calling as any)[pickerField!] === a.name && taStyles.modalItemSelected]}
+                  onPress={() => { if (pickerField) onAssign(pickerField, a.name); setPickerField(null); }}
                 >
-                  <Text style={[taStyles.modalItemText, (calling as any)[pickerField!] === p.id && taStyles.modalItemTextSelected]}>{p.full_name}</Text>
-                  <Text style={taStyles.modalItemSub}>{p.role.replace(/_/g, ' ')}</Text>
+                  <Text style={[taStyles.modalItemText, (calling as any)[pickerField!] === a.name && taStyles.modalItemTextSelected]}>{a.name}</Text>
+                  <Text style={taStyles.modalItemSub}>{a.subtitle}</Text>
                 </TouchableOpacity>
               )}
             />
@@ -306,6 +318,7 @@ const taStyles = StyleSheet.create({
   assignBtnText: { fontSize: FontSize.sm, color: Colors.gray[400] },
   assignBtnTextFilled: { color: Colors.primary, fontWeight: '600' },
   assignArrow: { fontSize: 10, color: Colors.gray[400] },
+  lockedIcon: { fontSize: 10, color: Colors.gray[400] },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
   modalSheet: { backgroundColor: Colors.white, borderTopLeftRadius: Radius.xl, borderTopRightRadius: Radius.xl, maxHeight: '60%', paddingTop: Spacing.lg },
   modalTitle: { fontSize: FontSize.lg, fontWeight: '700', color: Colors.gray[900], paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.gray[100] },
@@ -387,10 +400,10 @@ export function CallingDetailScreen({ route, navigation }: any) {
     });
   }
 
-  async function handleAssign(field: string, profileId: string | null) {
+  async function handleAssign(field: string, name: string | null) {
     if (!calling) return;
-    await supabase.from('callings').update({ [field]: profileId }).eq('id', calling.id);
-    setCalling(prev => prev ? { ...prev, [field]: profileId } : prev);
+    await supabase.from('callings').update({ [field]: name }).eq('id', calling.id);
+    setCalling(prev => prev ? { ...prev, [field]: name } : prev);
   }
 
   function approvalsReady(): boolean {
@@ -532,6 +545,15 @@ export function CallingDetailScreen({ route, navigation }: any) {
   const canBack = role ? canMoveback(role) : false;
   const canDel = role ? canDelete(role) : false;
   const canAssign = !!(role && ['stake_president','first_counselor','second_counselor','stake_clerk','exec_secretary','high_councilor'].includes(role));
+
+  // Build list of assignable people: SP/counselors (from profiles) + active HC members
+  const spAssignees: Assignee[] = allProfiles
+    .filter(p => p.role in SP_ROLE_LABELS)
+    .map(p => ({ name: p.full_name, subtitle: SP_ROLE_LABELS[p.role] }));
+  const hcAssignees: Assignee[] = hcMembers.map(m => ({ name: m.name, subtitle: 'High Councilor' }));
+  const taskAssignees: Assignee[] = [...spAssignees, ...hcAssignees];
+
+  const clerkName = allProfiles.find(p => p.role === 'stake_clerk')?.full_name ?? null;
   const advanceLabel = getAdvanceLabel(calling.stage, calling.type);
   const prevStage = getPrevStage(calling.stage, calling.type);
   const isComplete = calling.stage === 'complete';
@@ -647,7 +669,8 @@ export function CallingDetailScreen({ route, navigation }: any) {
         {!isComplete && (
           <TaskAssignmentsSection
             calling={calling}
-            profiles={allProfiles}
+            assignees={taskAssignees}
+            clerkName={clerkName}
             canEdit={canAssign}
             onAssign={handleAssign}
           />
