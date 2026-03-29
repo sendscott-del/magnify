@@ -11,9 +11,10 @@ interface Props {
   callings: Calling[];
   onCardPress: (calling: Calling) => void;
   color?: string;
+  headerAction?: React.ReactNode;
 }
 
-export function KanbanColumn({ title, callings, onCardPress, color = Colors.primary }: Props) {
+export function KanbanColumn({ title, callings, onCardPress, color = Colors.primary, headerAction }: Props) {
   const { t } = useLanguage();
   return (
     <View style={styles.column}>
@@ -23,6 +24,7 @@ export function KanbanColumn({ title, callings, onCardPress, color = Colors.prim
           <Text style={styles.badgeText}>{callings.length}</Text>
         </View>
       </View>
+      {headerAction && <View style={styles.headerActionRow}>{headerAction}</View>}
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false} nestedScrollEnabled>
         {callings.length === 0 ? (
           <EmptyState icon="list-outline" title={t('hcBoard.nothingHere')} />
@@ -67,6 +69,9 @@ const styles = StyleSheet.create({
     color: Colors.white,
     fontSize: FontSize.xs,
     fontWeight: '800',
+  },
+  headerActionRow: {
+    marginBottom: Spacing.sm,
   },
   scroll: {
     flex: 1,

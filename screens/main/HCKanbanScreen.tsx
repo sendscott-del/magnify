@@ -1,8 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView,
-  RefreshControl, TouchableOpacity, Modal, FlatList,
+  RefreshControl, TouchableOpacity, Modal, FlatList, Platform, Share,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
@@ -43,6 +44,9 @@ export function HCKanbanScreen({ navigation }: any) {
 
   const [showWardFilter, setShowWardFilter] = useState(false);
   const [showAssigneeFilter, setShowAssigneeFilter] = useState(false);
+  const [showScriptModal, setShowScriptModal] = useState(false);
+  const [scriptWard, setScriptWard] = useState<Ward | null>(null);
+  const [scriptCopied, setScriptCopied] = useState(false);
 
   const fetchData = useCallback(async () => {
     const [callingsRes, wardsRes, spMembersRes, hcMembersRes, hcApprovalsRes] = await Promise.all([
@@ -106,6 +110,57 @@ export function HCKanbanScreen({ navigation }: any) {
       }
       return true;
     });
+  }
+
+  function generateScript(ward: Ward): string {
+    const sustaining = callings.filter(c => c.stage === 'sustain' && c.ward_id === ward.id);
+    const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    let lines: string[] = [];
+    lines.push(`SUSTAINING SCRIPT — ${ward.name.toUpperCase()}`);
+    lines.push(date);
+    lines.push('');
+
+    const releases = sustaining.filter(c => c.release_member_name);
+    if (releases.length > 0) {
+      lines.push('─── RELEASES ───────────────────────────────────');
+      lines.push('');
+      for (const c of releases) {
+        lines.push(`It is proposed to release ${c.release_member_name} as ${c.release_current_calling || '[calling]'}.`);
+        lines.push('Those in favor may manifest it.');
+        lines.push('Those opposed, if any, may manifest it.');
+        lines.push('');
+      }
+    }
+
+    if (sustaining.length > 0) {
+      lines.push('─── SUSTAININGS ─────────────────────────────────');
+      lines.push('');
+      for (const c of sustaining) {
+        lines.push(`It is proposed to sustain ${c.member_name} as ${c.calling_name}.`);
+        lines.push('Those in favor may manifest it.');
+        lines.push('Those opposed, if any, may manifest it.');
+        lines.push('');
+      }
+    }
+
+    if (sustaining.length === 0) {
+      lines.push('No callings currently in the Sustain stage for this ward.');
+    }
+
+    return lines.join('\n').trim();
+  }
+
+  async function handleCopyScript(text: string) {
+    if (Platform.OS === 'web') {
+      try {
+        await (navigator as any).clipboard.writeText(text);
+        setScriptCopied(true);
+        setTimeout(() => setScriptCopied(false), 2500);
+      } catch {}
+    } else {
+      await Share.share({ message: text });
+    }
   }
 
   const activeWardFilter = wardFilter !== 'all' ? wards.find(w => w.id === wardFilter)?.abbreviation : null;
@@ -180,6 +235,15 @@ export function HCKanbanScreen({ navigation }: any) {
             color={col.color}
             callings={filteredCallings(col.stages)}
             onCardPress={(c) => navigation.navigate('CallingDetail', { callingId: c.id })}
+            headerAction={col.stages.includes('sustain') ? (
+              <TouchableOpacity
+                style={styles.scriptBtn}
+                onPress={() => { setScriptWard(null); setScriptCopied(false); setShowScriptModal(true); }}
+              >
+                <Ionicons name="document-text-outline" size={13} color={Colors.primary} />
+                <Text style={styles.scriptBtnText}>Sustaining Script</Text>
+              </TouchableOpacity>
+            ) : undefined}
           />
         ))}
       </ScrollView>
@@ -239,6 +303,64 @@ export function HCKanbanScreen({ navigation }: any) {
           </View>
         </TouchableOpacity>
       </Modal>
+      {/* Sustaining Script Modal */}
+      <Modal visible={showScriptModal} transparent animationType="slide" onRequestClose={() => { setShowScriptModal(false); setScriptWard(null); }}>
+        <View style={styles.scriptModalOverlay}>
+          <View style={styles.scriptModalSheet}>
+            {/* Header */}
+            <View style={styles.scriptModalHeader}>
+              <TouchableOpacity onPress={() => { if (scriptWard) { setScriptWard(null); } else { setShowScriptModal(false); } }}>
+                <Ionicons name={scriptWard ? 'chevron-back' : 'close'} size={22} color={Colors.gray[700]} />
+              </TouchableOpacity>
+              <Text style={styles.scriptModalTitle}>
+                {scriptWard ? `Script — ${scriptWard.name}` : 'Sustaining Script'}
+              </Text>
+              {scriptWard ? (
+                <TouchableOpacity onPress={() => handleCopyScript(generateScript(scriptWard))}>
+                  <View style={[styles.copyBtn, scriptCopied && styles.copyBtnDone]}>
+                    <Ionicons name={scriptCopied ? 'checkmark' : 'copy-outline'} size={15} color={scriptCopied ? Colors.success : Colors.primary} />
+                    <Text style={[styles.copyBtnText, scriptCopied && styles.copyBtnTextDone]}>
+                      {scriptCopied ? 'Copied!' : 'Copy'}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ) : <View style={{ width: 60 }} />}
+            </View>
+
+            {!scriptWard ? (
+              /* Ward picker */
+              <>
+                <Text style={styles.scriptPickerHint}>Select a ward to generate the sustaining script for their sacrament meeting.</Text>
+                <FlatList
+                  data={wards}
+                  keyExtractor={w => w.id}
+                  renderItem={({ item: w }) => {
+                    const count = callings.filter(c => c.stage === 'sustain' && c.ward_id === w.id).length;
+                    return (
+                      <TouchableOpacity
+                        style={styles.scriptWardItem}
+                        onPress={() => { setScriptWard(w); setScriptCopied(false); }}
+                      >
+                        <View>
+                          <Text style={styles.scriptWardName}>{w.name}</Text>
+                          <Text style={styles.scriptWardCount}>{count} calling{count !== 1 ? 's' : ''} in sustain</Text>
+                        </View>
+                        <Ionicons name="chevron-forward" size={18} color={Colors.gray[400]} />
+                      </TouchableOpacity>
+                    );
+                  }}
+                />
+              </>
+            ) : (
+              /* Script display */
+              <ScrollView style={styles.scriptScroll} contentContainerStyle={styles.scriptScrollContent}>
+                <Text style={styles.scriptText}>{generateScript(scriptWard)}</Text>
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
+
       <DisclaimerFooter />
     </View>
   );
@@ -288,4 +410,45 @@ const styles = StyleSheet.create({
   modalItemText: { fontSize: FontSize.md, color: Colors.gray[800] },
   modalItemTextSelected: { color: Colors.primary, fontWeight: '700' },
   modalItemSub: { fontSize: FontSize.sm, color: Colors.gray[400] },
+  scriptBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    paddingHorizontal: Spacing.sm, paddingVertical: 5,
+    borderRadius: Radius.sm, borderWidth: 1, borderColor: Colors.primary + '60',
+    backgroundColor: Colors.primaryFade, alignSelf: 'flex-start',
+  },
+  scriptBtnText: { fontSize: FontSize.xs, color: Colors.primary, fontWeight: '700' },
+  scriptModalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  scriptModalSheet: {
+    backgroundColor: Colors.white, borderTopLeftRadius: Radius.xl,
+    borderTopRightRadius: Radius.xl, maxHeight: '85%', paddingBottom: Spacing.lg,
+  },
+  scriptModalHeader: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md,
+    borderBottomWidth: 1, borderBottomColor: Colors.gray[100],
+  },
+  scriptModalTitle: { fontSize: FontSize.lg, fontWeight: '700', color: Colors.gray[900], flex: 1, textAlign: 'center' },
+  copyBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs,
+    borderRadius: Radius.sm, borderWidth: 1, borderColor: Colors.primary + '60',
+    backgroundColor: Colors.primaryFade,
+  },
+  copyBtnDone: { borderColor: Colors.success + '60', backgroundColor: Colors.success + '10' },
+  copyBtnText: { fontSize: FontSize.sm, color: Colors.primary, fontWeight: '600' },
+  copyBtnTextDone: { color: Colors.success },
+  scriptPickerHint: {
+    fontSize: FontSize.sm, color: Colors.gray[500], paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.gray[100],
+  },
+  scriptWardItem: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md,
+    borderBottomWidth: 1, borderBottomColor: Colors.gray[100],
+  },
+  scriptWardName: { fontSize: FontSize.md, fontWeight: '600', color: Colors.gray[800] },
+  scriptWardCount: { fontSize: FontSize.xs, color: Colors.gray[400], marginTop: 2 },
+  scriptScroll: { flex: 1 },
+  scriptScrollContent: { padding: Spacing.lg },
+  scriptText: { fontSize: FontSize.sm, color: Colors.gray[800], lineHeight: 22, fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace' },
 });

@@ -293,6 +293,154 @@ const notesStyles = StyleSheet.create({
   saveText: { fontSize: FontSize.sm, color: Colors.white, fontWeight: '600' },
 });
 
+// ─── Release Member ──────────────────────────────────────────────────────────
+function ReleaseMemberSection({ calling, wards, canEdit, onSave }: {
+  calling: Calling; wards: Ward[]; canEdit: boolean;
+  onSave: (name: string, currentCalling: string, wardId: string) => Promise<void>;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(calling.release_member_name ?? '');
+  const [currentCalling, setCurrentCalling] = useState(calling.release_current_calling ?? '');
+  const [wardId, setWardId] = useState(calling.release_ward_id ?? '');
+  const [wardName, setWardName] = useState(wards.find(w => w.id === (calling.release_ward_id ?? ''))?.name ?? '');
+  const [showWardPicker, setShowWardPicker] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const hasData = !!(calling.release_member_name || calling.release_current_calling);
+
+  async function save() {
+    setSaving(true);
+    await onSave(name, currentCalling, wardId);
+    setSaving(false);
+    setEditing(false);
+  }
+
+  function cancel() {
+    setName(calling.release_member_name ?? '');
+    setCurrentCalling(calling.release_current_calling ?? '');
+    setWardId(calling.release_ward_id ?? '');
+    setWardName(wards.find(w => w.id === (calling.release_ward_id ?? ''))?.name ?? '');
+    setEditing(false);
+  }
+
+  return (
+    <View style={rmStyles.container}>
+      <View style={rmStyles.header}>
+        <View style={rmStyles.titleRow}>
+          <Ionicons name="person-remove-outline" size={16} color={Colors.warning} style={{ marginRight: 6 }} />
+          <Text style={rmStyles.title}>Member to be Released</Text>
+          {!hasData && !editing && <Text style={rmStyles.optionalTag}>Optional</Text>}
+        </View>
+        {canEdit && !editing && (
+          <TouchableOpacity onPress={() => setEditing(true)}>
+            <Text style={rmStyles.editBtn}>{hasData ? 'Edit' : 'Add'}</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {editing ? (
+        <>
+          <TextInput
+            style={rmStyles.input}
+            value={name}
+            onChangeText={setName}
+            placeholder="Member name"
+            autoFocus
+          />
+          <TextInput
+            style={rmStyles.input}
+            value={currentCalling}
+            onChangeText={setCurrentCalling}
+            placeholder="Current calling (e.g. Primary President)"
+          />
+          <TouchableOpacity style={rmStyles.wardBtn} onPress={() => setShowWardPicker(true)}>
+            <Text style={wardId ? rmStyles.wardBtnText : rmStyles.wardBtnPlaceholder}>
+              {wardId ? wardName : 'Select ward (optional)'}
+            </Text>
+            <Text style={rmStyles.wardArrow}>▼</Text>
+          </TouchableOpacity>
+          <View style={rmStyles.btnRow}>
+            <TouchableOpacity style={rmStyles.cancelBtn} onPress={cancel}>
+              <Text style={rmStyles.cancelText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={rmStyles.saveBtn} onPress={save} disabled={saving}>
+              <Text style={rmStyles.saveText}>{saving ? 'Saving…' : 'Save'}</Text>
+            </TouchableOpacity>
+          </View>
+
+          <Modal visible={showWardPicker} transparent animationType="slide" onRequestClose={() => setShowWardPicker(false)}>
+            <TouchableOpacity style={rmStyles.modalOverlay} activeOpacity={1} onPress={() => setShowWardPicker(false)}>
+              <View style={rmStyles.modalSheet} onStartShouldSetResponder={() => true}>
+                <Text style={rmStyles.modalTitle}>Select Ward (Release)</Text>
+                <TouchableOpacity
+                  style={[rmStyles.modalItem, !wardId && rmStyles.modalItemSelected]}
+                  onPress={() => { setWardId(''); setWardName(''); setShowWardPicker(false); }}
+                >
+                  <Text style={[rmStyles.modalItemText, !wardId && rmStyles.modalItemTextSelected]}>No ward / not applicable</Text>
+                </TouchableOpacity>
+                <FlatList
+                  data={wards}
+                  keyExtractor={w => w.id}
+                  renderItem={({ item: w }) => (
+                    <TouchableOpacity
+                      style={[rmStyles.modalItem, wardId === w.id && rmStyles.modalItemSelected]}
+                      onPress={() => { setWardId(w.id); setWardName(w.name); setShowWardPicker(false); }}
+                    >
+                      <Text style={[rmStyles.modalItemText, wardId === w.id && rmStyles.modalItemTextSelected]}>{w.name}</Text>
+                      <Text style={rmStyles.modalItemSub}>{w.abbreviation}</Text>
+                    </TouchableOpacity>
+                  )}
+                />
+              </View>
+            </TouchableOpacity>
+          </Modal>
+        </>
+      ) : hasData ? (
+        <View style={rmStyles.dataView}>
+          <Text style={rmStyles.dataName}>{calling.release_member_name}</Text>
+          {calling.release_current_calling ? <Text style={rmStyles.dataCalling}>{calling.release_current_calling}</Text> : null}
+          {calling.release_ward_id ? (
+            <Text style={rmStyles.dataWard}>{wards.find(w => w.id === calling.release_ward_id)?.name ?? ''}</Text>
+          ) : null}
+        </View>
+      ) : (
+        <Text style={rmStyles.placeholder}>{canEdit ? 'No release member entered. Tap Add to add one.' : 'No release required.'}</Text>
+      )}
+    </View>
+  );
+}
+const rmStyles = StyleSheet.create({
+  container: { backgroundColor: Colors.white, borderRadius: Radius.md, padding: Spacing.md, marginBottom: Spacing.md, borderWidth: 1, borderColor: Colors.warning + '50' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.xs },
+  titleRow: { flexDirection: 'row', alignItems: 'center' },
+  title: { fontSize: FontSize.md, fontWeight: '700', color: Colors.gray[800] },
+  optionalTag: { marginLeft: Spacing.sm, fontSize: FontSize.xs, color: Colors.gray[400], fontStyle: 'italic' },
+  editBtn: { fontSize: FontSize.sm, color: Colors.primary, fontWeight: '600' },
+  dataView: { gap: 2 },
+  dataName: { fontSize: FontSize.md, fontWeight: '700', color: Colors.gray[800] },
+  dataCalling: { fontSize: FontSize.sm, color: Colors.gray[600] },
+  dataWard: { fontSize: FontSize.sm, color: Colors.gray[400], marginTop: 2 },
+  placeholder: { fontSize: FontSize.sm, color: Colors.gray[400], fontStyle: 'italic' },
+  input: { fontSize: FontSize.sm, color: Colors.gray[800], borderWidth: 1, borderColor: Colors.gray[300], borderRadius: Radius.sm, padding: Spacing.sm, marginBottom: Spacing.sm },
+  wardBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: Colors.gray[300], borderRadius: Radius.sm, padding: Spacing.sm, marginBottom: Spacing.sm, backgroundColor: Colors.gray[50] },
+  wardBtnText: { fontSize: FontSize.sm, color: Colors.gray[800] },
+  wardBtnPlaceholder: { fontSize: FontSize.sm, color: Colors.gray[400] },
+  wardArrow: { fontSize: 10, color: Colors.gray[400] },
+  btnRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: Spacing.sm, marginTop: Spacing.xs },
+  cancelBtn: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs, borderRadius: Radius.sm, borderWidth: 1, borderColor: Colors.gray[300] },
+  cancelText: { fontSize: FontSize.sm, color: Colors.gray[600] },
+  saveBtn: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs, borderRadius: Radius.sm, backgroundColor: Colors.primary },
+  saveText: { fontSize: FontSize.sm, color: Colors.white, fontWeight: '600' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  modalSheet: { backgroundColor: Colors.white, borderTopLeftRadius: Radius.xl, borderTopRightRadius: Radius.xl, maxHeight: '60%', paddingTop: Spacing.lg },
+  modalTitle: { fontSize: FontSize.lg, fontWeight: '700', color: Colors.gray[900], paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.gray[100] },
+  modalItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.gray[100] },
+  modalItemSelected: { backgroundColor: Colors.primaryFade },
+  modalItemText: { fontSize: FontSize.md, color: Colors.gray[800] },
+  modalItemTextSelected: { color: Colors.primary, fontWeight: '700' },
+  modalItemSub: { fontSize: FontSize.sm, color: Colors.gray[400] },
+});
+
 // ─── Task Assignments ─────────────────────────────────────────────────────────
 interface Assignee { name: string; subtitle: string; }
 
@@ -776,6 +924,21 @@ export function CallingDetailScreen({ route, navigation }: any) {
             )}
           </View>
         </View>
+
+        {/* Release Member */}
+        <ReleaseMemberSection
+          calling={calling}
+          wards={allWards}
+          canEdit={canAssign}
+          onSave={async (name, currentCalling, wardId) => {
+            await supabase.from('callings').update({
+              release_member_name: name || null,
+              release_current_calling: currentCalling || null,
+              release_ward_id: wardId || null,
+            }).eq('id', calling.id);
+            setCalling(prev => prev ? { ...prev, release_member_name: name || null, release_current_calling: currentCalling || null, release_ward_id: wardId || null } : prev);
+          }}
+        />
 
         {/* Task Assignments */}
         {!isComplete && (

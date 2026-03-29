@@ -39,6 +39,11 @@ export function NewCallingScreen({ navigation }: any) {
   const [ordinationType, setOrdinationType] = useState<'elder' | 'high_priest'>('elder');
   const [notes, setNotes] = useState('');
   const [bishopApproved, setBishopApproved] = useState(false);
+  const [releaseMemberName, setReleaseMemberName] = useState('');
+  const [releaseCurrentCalling, setReleaseCurrentCalling] = useState('');
+  const [releaseWardId, setReleaseWardId] = useState('');
+  const [releaseWardName, setReleaseWardName] = useState('');
+  const [showReleaseWardPicker, setShowReleaseWardPicker] = useState(false);
   const [loading, setLoading] = useState<'ideas' | 'approval' | null>(null);
   const [error, setError] = useState('');
 
@@ -60,6 +65,10 @@ export function NewCallingScreen({ navigation }: any) {
     setCustomCallingName('');
     setNotes('');
     setBishopApproved(false);
+    setReleaseMemberName('');
+    setReleaseCurrentCalling('');
+    setReleaseWardId('');
+    setReleaseWardName('');
   }
 
   async function handleSave(targetStage: 'ideas' | 'for_approval') {
@@ -85,6 +94,9 @@ export function NewCallingScreen({ navigation }: any) {
       rejected: false,
       bishop_approved: type === 'ward_calling' ? bishopApproved : false,
       notes: notes.trim() || null,
+      release_member_name: releaseMemberName.trim() || null,
+      release_current_calling: releaseCurrentCalling.trim() || null,
+      release_ward_id: releaseWardId || null,
       created_by: user?.id,
     };
 
@@ -243,6 +255,35 @@ export function NewCallingScreen({ navigation }: any) {
           </TouchableOpacity>
         )}
 
+        {/* Member to be Released */}
+        <View style={styles.releaseSection}>
+          <Text style={styles.sectionLabel}>Member to be Released <Text style={styles.optionalLabel}>(Optional)</Text></Text>
+          <Text style={styles.releaseHint}>Enter the person currently holding this calling who will need to be released.</Text>
+          <Input
+            label="Member Name"
+            value={releaseMemberName}
+            onChangeText={setReleaseMemberName}
+            placeholder="Full name"
+            leftIcon="person-remove-outline"
+          />
+          <Input
+            label="Current Calling"
+            value={releaseCurrentCalling}
+            onChangeText={setReleaseCurrentCalling}
+            placeholder="e.g. Primary President"
+          />
+          <Text style={styles.fieldLabel}>Ward <Text style={styles.optionalLabel}>(Optional)</Text></Text>
+          <TouchableOpacity
+            style={styles.pickerBtn}
+            onPress={() => setShowReleaseWardPicker(true)}
+          >
+            <Text style={releaseWardId ? styles.pickerBtnText : styles.pickerBtnPlaceholder}>
+              {releaseWardId ? releaseWardName : 'Select ward'}
+            </Text>
+            <Text style={styles.pickerArrow}>▼</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Notes */}
         <Input
           label={t('new.notes')}
@@ -326,6 +367,51 @@ export function NewCallingScreen({ navigation }: any) {
                   }}
                 >
                   <Text style={[styles.modalItemText, wardId === item.id && styles.modalItemTextSelected]}>
+                    {item.name}
+                  </Text>
+                  <Text style={styles.modalItemAbbr}>{item.abbreviation}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Release Ward Picker Modal */}
+      <Modal
+        visible={showReleaseWardPicker}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowReleaseWardPicker(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowReleaseWardPicker(false)}
+        >
+          <View style={styles.modalSheet} onStartShouldSetResponder={() => true}>
+            <Text style={styles.modalTitle}>Select Ward (Release)</Text>
+            <TouchableOpacity
+              style={[styles.modalItem, !releaseWardId && styles.modalItemSelected]}
+              onPress={() => { setReleaseWardId(''); setReleaseWardName(''); setShowReleaseWardPicker(false); }}
+            >
+              <Text style={[styles.modalItemText, !releaseWardId && styles.modalItemTextSelected]}>
+                No ward / not applicable
+              </Text>
+            </TouchableOpacity>
+            <FlatList
+              data={wards}
+              keyExtractor={item => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[styles.modalItem, releaseWardId === item.id && styles.modalItemSelected]}
+                  onPress={() => {
+                    setReleaseWardId(item.id);
+                    setReleaseWardName(item.name);
+                    setShowReleaseWardPicker(false);
+                  }}
+                >
+                  <Text style={[styles.modalItemText, releaseWardId === item.id && styles.modalItemTextSelected]}>
                     {item.name}
                   </Text>
                   <Text style={styles.modalItemAbbr}>{item.abbreviation}</Text>
@@ -445,6 +531,15 @@ const styles = StyleSheet.create({
   checkboxOn: { backgroundColor: Colors.success, borderColor: Colors.success },
   checkMark: { color: Colors.white, fontSize: 13, fontWeight: '800' },
   checkLabel: { fontSize: FontSize.md, color: Colors.gray[700] },
+  releaseSection: {
+    backgroundColor: Colors.warning + '0D',
+    borderWidth: 1,
+    borderColor: Colors.warning + '40',
+    borderRadius: Radius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+  },
+  releaseHint: { fontSize: FontSize.xs, color: Colors.gray[500], marginBottom: Spacing.sm, lineHeight: 18 },
   error: { color: Colors.error, fontSize: FontSize.sm, marginBottom: Spacing.sm },
   submitBtn: { marginTop: Spacing.md },
   submitBtnSecondary: { marginTop: Spacing.sm },

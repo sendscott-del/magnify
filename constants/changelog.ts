@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.4.0',
+    date: '2026-03-29',
+    enhancements: [
+      'Member to be Released section on calling cards — capture name, current calling, and ward from card creation through all stages',
+      'Sustaining Script generator on the HC Board — tap the button at the top of the Sustain column, select a ward, and get a GHB 30.3-formatted script ready to read from the pulpit',
+      'Sustaining script includes releases first (for any calling with a release member attached), then all sustainings for that ward',
+      'Copy-to-clipboard button on the sustaining script for easy transfer to phone or notes',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '1.3.0',
     date: '2026-03-29',
     enhancements: [

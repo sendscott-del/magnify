@@ -35,10 +35,14 @@ export interface Calling {
   sustain_by?: string | null;
   set_apart_by?: string | null;
   record_by?: string | null;
+  release_member_name?: string | null;
+  release_current_calling?: string | null;
+  release_ward_id?: string | null;
   created_by: string;
   created_at: string;
   completed_at?: string;
   wards?: Ward;
+  release_wards?: Ward;
   profiles?: Profile;
 }
 
