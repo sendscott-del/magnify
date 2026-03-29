@@ -14,6 +14,7 @@ import { HCAdminScreen } from '../screens/main/HCAdminScreen';
 import { SPAdminScreen } from '../screens/main/SPAdminScreen';
 import { HelpScreen } from '../screens/main/HelpScreen';
 import { ReleaseNotesScreen } from '../screens/main/ReleaseNotesScreen';
+import { PermissionsTableScreen } from '../screens/main/PermissionsTableScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -53,6 +54,7 @@ function SettingsStack() {
       <Stack.Screen name="SPAdmin" component={SPAdminScreen} />
       <Stack.Screen name="Help" component={HelpScreen} />
       <Stack.Screen name="ReleaseNotes" component={ReleaseNotesScreen} />
+      <Stack.Screen name="Permissions" component={PermissionsTableScreen} />
     </Stack.Navigator>
   );
 }

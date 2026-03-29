@@ -13,12 +13,18 @@ const HC: UserRole[] = ['high_councilor'];
 const RECORD_GROUP: UserRole[] = ['stake_president', 'stake_clerk', 'exec_secretary'];
 const ALL_APPROVED: UserRole[] = ['stake_president', 'first_counselor', 'second_counselor', 'high_councilor', 'stake_clerk', 'exec_secretary'];
 
+// Roles that can advance from for_approval (SP president unilateral; others need all 3 approvals)
+const FOR_APPROVAL_GROUP: UserRole[] = ['stake_president', 'first_counselor', 'second_counselor', 'stake_clerk'];
+
+// Roles that can advance from hc_approval (SP/counselors/clerk anytime; HC needs >50%)
+const HC_APPROVAL_ADVANCE: UserRole[] = ['stake_president', 'first_counselor', 'second_counselor', 'stake_clerk', 'high_councilor'];
+
 export function canAdvanceStage(role: UserRole, stage: Stage, type: CallingType): boolean {
   switch (stage) {
     case 'ideas': return ALL_APPROVED.includes(role);
-    case 'for_approval': return PRESIDENCY.includes(role);
+    case 'for_approval': return FOR_APPROVAL_GROUP.includes(role);
     case 'stake_approved': return CLERK_GROUP.includes(role);
-    case 'hc_approval': return HC.includes(role) || CLERK_GROUP.includes(role);
+    case 'hc_approval': return HC_APPROVAL_ADVANCE.includes(role);
     case 'issue_calling': return HC.includes(role) || CLERK_GROUP.includes(role);
     case 'ordained': return HC.includes(role) || CLERK_GROUP.includes(role);
     case 'sustain': return HC.includes(role) || CLERK_GROUP.includes(role);
@@ -28,9 +34,10 @@ export function canAdvanceStage(role: UserRole, stage: Stage, type: CallingType)
   }
 }
 
+// All users can decline a calling (except at ideas or complete stage)
 export function canReject(role: UserRole, stage: Stage): boolean {
   if (stage === 'ideas' || stage === 'complete') return false;
-  return PRESIDENCY.includes(role) || CLERK_GROUP.includes(role);
+  return ALL_APPROVED.includes(role);
 }
 
 export function canMoveback(role: UserRole): boolean {

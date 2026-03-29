@@ -475,16 +475,18 @@ export function CallingDetailScreen({ route, navigation }: any) {
     setCalling(prev => prev ? { ...prev, [field]: name } : prev);
   }
 
-  function approvalsReady(): boolean {
+  function approvalsReady(userRole: string): boolean {
     if (!calling) return false;
     if (calling.stage === 'for_approval') {
-      const spPresidentApproved = spApprovals.find(a => a.role === 'stake_president')?.approved ?? false;
-      const allRequired = SP_ROLES.filter(r => r.required).every(r => spApprovals.find(a => a.role === r.role)?.approved ?? false);
-      return spPresidentApproved || allRequired;
+      // Stake President can advance unilaterally
+      if (userRole === 'stake_president') return true;
+      // All others (1st/2nd counselor, stake clerk) need all three required SP members to have approved
+      return SP_ROLES.filter(r => r.required).every(r => spApprovals.find(a => a.role === r.role)?.approved ?? false);
     }
     if (calling.stage === 'hc_approval') {
-      const spOverride = spApprovals.find(a => a.role === 'stake_president')?.approved ?? false;
-      if (spOverride) return true;
+      // SP, counselors, and stake clerk can advance at any time
+      if (['stake_president', 'first_counselor', 'second_counselor', 'stake_clerk'].includes(userRole)) return true;
+      // HC and others need more than 50% approval
       const activeCount = hcMembers.filter(m => m.active).length;
       if (activeCount === 0) return true;
       return hcApprovals.filter(a => a.approved).length >= Math.ceil(activeCount / 2);
@@ -497,10 +499,10 @@ export function CallingDetailScreen({ route, navigation }: any) {
     const next = getNextStage(calling.stage, calling.type);
     if (!next) return;
 
-    if (!approvalsReady()) {
+    if (!approvalsReady(profile.role)) {
       const msg = calling.stage === 'for_approval'
-        ? 'The Stake President must approve, or all three presidency members must approve before advancing.'
-        : 'At least half of the High Council must approve, or the Stake President can override.';
+        ? 'All three Stake Presidency members must approve before advancing.'
+        : 'At least half of the High Council must approve before advancing.';
       if (Platform.OS === 'web') window.alert(msg);
       else Alert.alert('Approvals Needed', msg);
       return;
@@ -582,10 +584,24 @@ export function CallingDetailScreen({ route, navigation }: any) {
 
   async function handleReject() {
     if (!calling || !profile) return;
+
+    // If no notes, ask the user if they want to add some before proceeding
+    if (!rejectionNotes.trim()) {
+      const proceed = Platform.OS === 'web'
+        ? window.confirm('No notes added. Decline this calling without a reason?')
+        : await new Promise<boolean>(resolve =>
+            Alert.alert('No Notes Added', 'Would you like to add a reason for declining?', [
+              { text: 'Add Notes', style: 'cancel', onPress: () => resolve(false) },
+              { text: 'Decline Anyway', style: 'destructive', onPress: () => resolve(true) },
+            ])
+          );
+      if (!proceed) return;
+    }
+
     setRejectLoading(true);
-    await supabase.from('callings').update({ rejected: true, rejection_notes: rejectionNotes }).eq('id', calling.id);
+    await supabase.from('callings').update({ rejected: true, rejection_notes: rejectionNotes || null }).eq('id', calling.id);
     await supabase.from('calling_log').insert({
-      calling_id: calling.id, action: 'Rejected',
+      calling_id: calling.id, action: 'Declined',
       from_stage: calling.stage, performed_by: profile.id, notes: rejectionNotes || null,
     });
     notifyRejection({
@@ -644,7 +660,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
   // Filter log entries: hide rejection entries from non-SP/clerk users
   const visibleLog = canSeeRejectionLog
     ? log
-    : log.filter(e => !e.action.toLowerCase().includes('reject'));
+    : log.filter(e => !e.action.toLowerCase().includes('declin') && !e.action.toLowerCase().includes('reject'));
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -674,12 +690,12 @@ export function CallingDetailScreen({ route, navigation }: any) {
           <View style={styles.rejectedBanner}>
             <View style={styles.rejectedRow}>
               <Ionicons name="close-circle" size={20} color={Colors.error} />
-              <Text style={styles.rejectedTitle}>Rejected</Text>
+              <Text style={styles.rejectedTitle}>Declined</Text>
             </View>
             {calling.rejection_notes ? <Text style={styles.rejectedNotes}>{calling.rejection_notes}</Text> : null}
-            {canAdvance && (
+            {(role === 'stake_president' || role === 'stake_clerk') && (
               <TouchableOpacity onPress={handleUnreject} style={styles.unrejectBtn}>
-                <Text style={styles.unrejectBtnText}>Clear Rejection</Text>
+                <Text style={styles.unrejectBtnText}>Clear Decline</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -794,7 +810,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
               <Button title={advanceLabel} onPress={handleAdvance} loading={actionLoading} fullWidth size="lg" style={styles.advanceBtn} />
             )}
             {canRejectCalling && !calling.rejected && (
-              <Button title="Reject" onPress={() => setShowRejectModal(true)} variant="danger" fullWidth style={styles.rejectBtn} />
+              <Button title="Decline" onPress={() => setShowRejectModal(true)} variant="danger" fullWidth style={styles.rejectBtn} />
             )}
             {canBack && prevStage && !calling.rejected && (
               <Button
@@ -839,23 +855,23 @@ export function CallingDetailScreen({ route, navigation }: any) {
         </View>
       </ScrollView>
 
-      {/* Reject Modal */}
+      {/* Decline Modal */}
       <Modal visible={showRejectModal} transparent animationType="slide" onRequestClose={() => setShowRejectModal(false)}>
         <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowRejectModal(false)}>
           <View style={styles.modalSheet} onStartShouldSetResponder={() => true}>
-            <Text style={styles.modalTitle}>Reject Calling</Text>
-            <Text style={styles.modalSubtitle}>Optionally add notes explaining the rejection.</Text>
+            <Text style={styles.modalTitle}>Decline Calling</Text>
+            <Text style={styles.modalSubtitle}>Add a reason for declining this calling (recommended).</Text>
             <TextInput
               style={styles.modalInput}
               value={rejectionNotes}
               onChangeText={setRejectionNotes}
-              placeholder="Rejection notes (optional)…"
+              placeholder="Reason for declining…"
               placeholderTextColor={Colors.gray[400]}
               multiline numberOfLines={4}
             />
             <View style={styles.modalActions}>
-              <Button title="Cancel" onPress={() => setShowRejectModal(false)} variant="outline" style={styles.modalBtn} />
-              <Button title="Confirm Reject" onPress={handleReject} variant="danger" loading={rejectLoading} style={styles.modalBtn} />
+              <Button title="Cancel" onPress={() => { setShowRejectModal(false); setRejectionNotes(''); }} variant="outline" style={styles.modalBtn} />
+              <Button title="Confirm Decline" onPress={handleReject} variant="danger" loading={rejectLoading} style={styles.modalBtn} />
             </View>
           </View>
         </TouchableOpacity>

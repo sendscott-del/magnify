@@ -34,7 +34,7 @@ export function PresidencyKanbanScreen({ navigation }: any) {
   const [refreshing, setRefreshing] = useState(false);
   const [typeFilter, setTypeFilter] = useState<CallingType | 'all'>('all');
 
-  const canSeeRejected = !!(profile?.role && ['stake_president','first_counselor','second_counselor','stake_clerk','exec_secretary'].includes(profile.role));
+  const canSeeRejected = profile?.role === 'stake_president';
 
   const fetchCallings = useCallback(async () => {
     let q = supabase
@@ -113,7 +113,7 @@ export function PresidencyKanbanScreen({ navigation }: any) {
         ))}
         {canSeeRejected && (
           <KanbanColumn
-            title="Rejected"
+            title="Declined"
             color={Colors.error}
             callings={rejectedCallings}
             onCardPress={(c) => navigation.navigate('CallingDetail', { callingId: c.id })}

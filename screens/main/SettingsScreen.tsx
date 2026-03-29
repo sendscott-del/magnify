@@ -12,6 +12,7 @@ import { Button } from '../../components/ui/Button';
 import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme';
 import { ROLE_LABELS } from '../../constants/callings';
 import { notifyAccessApproved } from '../../lib/slack';
+import { CHANGELOG } from '../../constants/changelog';
 
 interface SlackSetting { id: string; event_type: string; webhook_url: string; active: boolean; }
 
@@ -228,6 +229,15 @@ export function SettingsScreen({ navigation }: any) {
             fullWidth
             style={styles.actionBtn}
           />
+          {profile?.role === 'stake_president' && (
+            <Button
+              title="Access Permissions"
+              onPress={() => navigation.navigate('Permissions')}
+              variant="outline"
+              fullWidth
+              style={styles.actionBtn}
+            />
+          )}
         </View>
 
         {/* Slack */}
@@ -302,7 +312,7 @@ export function SettingsScreen({ navigation }: any) {
           />
         </View>
 
-        <Text style={styles.version}>Magnify v1.0.0 · Stake Callings Workflow</Text>
+        <Text style={styles.version}>Magnify v{CHANGELOG[0]?.version ?? '1.0.0'} · Stake Callings Workflow</Text>
       </ScrollView>
     </View>
   );
