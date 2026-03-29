@@ -501,6 +501,12 @@ export function CallingDetailScreen({ route, navigation }: any) {
     if (!confirm) return;
 
     setActionLoading(true);
+    await Promise.all([
+      supabase.from('calling_log').delete().eq('calling_id', calling.id),
+      supabase.from('stake_presidency_approvals').delete().eq('calling_id', calling.id),
+      supabase.from('hc_approvals').delete().eq('calling_id', calling.id),
+      supabase.from('ward_sustainings').delete().eq('calling_id', calling.id),
+    ]);
     await supabase.from('callings').delete().eq('id', calling.id);
     navigation.goBack();
   }
