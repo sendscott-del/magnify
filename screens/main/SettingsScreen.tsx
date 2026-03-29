@@ -11,6 +11,7 @@ import { Profile, UserRole } from '../../lib/database.types';
 import { Button } from '../../components/ui/Button';
 import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme';
 import { ROLE_LABELS } from '../../constants/callings';
+import { notifyAccessApproved } from '../../lib/slack';
 
 interface SlackSetting { id: string; event_type: string; webhook_url: string; active: boolean; }
 
@@ -78,7 +79,11 @@ export function SettingsScreen({ navigation }: any) {
 
   async function handleApprove(userId: string) {
     setApproving(prev => ({ ...prev, [userId]: true }));
+    const user = pendingUsers.find(u => u.id === userId);
     await supabase.from('profiles').update({ status: 'approved' }).eq('id', userId);
+    if (user) {
+      notifyAccessApproved({ name: user.full_name, email: user.email, role: ROLE_LABELS[user.role as UserRole] }).catch(() => {});
+    }
     setPendingUsers(prev => prev.filter(u => u.id !== userId));
     setApproving(prev => ({ ...prev, [userId]: false }));
   }
@@ -206,6 +211,25 @@ export function SettingsScreen({ navigation }: any) {
           />
         </View>
 
+        {/* Help & Info */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Help & Information</Text>
+          <Button
+            title="Help & Documentation"
+            onPress={() => navigation.navigate('Help')}
+            variant="outline"
+            fullWidth
+            style={styles.actionBtn}
+          />
+          <Button
+            title="Release Notes"
+            onPress={() => navigation.navigate('ReleaseNotes')}
+            variant="outline"
+            fullWidth
+            style={styles.actionBtn}
+          />
+        </View>
+
         {/* Slack */}
         {isAdmin && (
           <View style={styles.section}>
@@ -215,6 +239,7 @@ export function SettingsScreen({ navigation }: any) {
               { key: 'sp_stage_change', label: 'SP Board Updates', placeholder: 'https://hooks.slack.com/services/…' },
               { key: 'hc_stage_change', label: 'HC Board Updates', placeholder: 'https://hooks.slack.com/services/…' },
               { key: 'rejection', label: 'Rejections', placeholder: 'https://hooks.slack.com/services/…' },
+              { key: 'user_access', label: 'User Access Requests & Approvals', placeholder: 'https://hooks.slack.com/services/…' },
             ].map(({ key, label, placeholder }) => {
               const active = slackSettings.find(s => s.event_type === key)?.active;
               return (

@@ -11,6 +11,26 @@ import { Colors } from '../constants/theme';
 
 const Stack = createNativeStackNavigator();
 
+const APP_URL = process.env.EXPO_PUBLIC_APP_URL ?? '';
+
+const linking = APP_URL ? {
+  prefixes: [APP_URL],
+  config: {
+    screens: {
+      Main: {
+        screens: {
+          HC: {
+            screens: {
+              HCMain: '',
+              CallingDetail: 'calling/:callingId',
+            },
+          },
+        },
+      },
+    },
+  },
+} : undefined;
+
 export function AppNavigator() {
   const { session, profile, loading } = useAuth();
 
@@ -23,7 +43,7 @@ export function AppNavigator() {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer linking={linking}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!session ? (
           <>

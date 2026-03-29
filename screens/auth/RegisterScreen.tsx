@@ -9,6 +9,7 @@ import { Input } from '../../components/ui/Input';
 import { Colors, FontSize, Spacing, Radius } from '../../constants/theme';
 import { UserRole } from '../../lib/database.types';
 import { ROLE_LABELS } from '../../constants/callings';
+import { notifyAccessRequest } from '../../lib/slack';
 
 export function RegisterScreen({ navigation }: any) {
   const { signUp } = useAuth();
@@ -42,6 +43,7 @@ export function RegisterScreen({ navigation }: any) {
       setError(err.message);
       return;
     }
+    notifyAccessRequest({ name: fullName, email, role: ROLE_LABELS[role] }).catch(() => {});
     setSuccess(true);
   }
 

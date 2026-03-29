@@ -521,7 +521,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
     notifyStageChange({
       memberName: calling.member_name, callingName: calling.calling_name,
       wardName: calling.wards?.name, fromStage: STAGE_LABELS[calling.stage], toStage: STAGE_LABELS[next],
-      toStageKey: next, performedBy: profile.full_name,
+      toStageKey: next, performedBy: profile.full_name, callingId: calling.id,
     }).catch(() => {});
 
     await fetchData();
@@ -591,6 +591,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
     notifyRejection({
       memberName: calling.member_name, callingName: calling.calling_name,
       wardName: calling.wards?.name, notes: rejectionNotes,
+      performedBy: profile.full_name, callingId: calling.id,
     }).catch(() => {});
     setShowRejectModal(false);
     setRejectionNotes('');

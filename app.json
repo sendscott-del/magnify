@@ -24,7 +24,14 @@
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "bundler": "metro"
+      "bundler": "metro",
+      "name": "Magnify",
+      "shortName": "Magnify",
+      "description": "Stake Callings Workflow",
+      "themeColor": "#1B3A6B",
+      "backgroundColor": "#1B3A6B",
+      "display": "standalone",
+      "orientation": "portrait"
     },
     "plugins": []
   }

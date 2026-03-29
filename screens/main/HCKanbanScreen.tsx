@@ -31,6 +31,8 @@ export function HCKanbanScreen({ navigation }: any) {
   const [wards, setWards] = useState<Ward[]>([]);
   const [assigneeOptions, setAssigneeOptions] = useState<{ name: string; subtitle: string }[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [hcApprovalMap, setHcApprovalMap] = useState<Record<string, boolean>>({});
+  const [hcMemberIdMap, setHcMemberIdMap] = useState<Record<string, string>>({});
 
   const [typeFilter, setTypeFilter] = useState<CallingType | 'all'>('all');
   const [wardFilter, setWardFilter] = useState<string>('all');
@@ -40,7 +42,7 @@ export function HCKanbanScreen({ navigation }: any) {
   const [showAssigneeFilter, setShowAssigneeFilter] = useState(false);
 
   const fetchData = useCallback(async () => {
-    const [callingsRes, wardsRes, spMembersRes, hcMembersRes] = await Promise.all([
+    const [callingsRes, wardsRes, spMembersRes, hcMembersRes, hcApprovalsRes] = await Promise.all([
       supabase
         .from('callings')
         .select('*, wards(id,name,abbreviation)')
@@ -50,6 +52,7 @@ export function HCKanbanScreen({ navigation }: any) {
       supabase.from('wards').select('*').order('name'),
       supabase.from('sp_members').select('id,name,role').eq('active', true).order('sort_order'),
       supabase.from('high_council_members').select('id,name,sort_order').eq('active', true).order('sort_order'),
+      supabase.from('hc_approvals').select('calling_id,hc_member_id,approved'),
     ]);
     setCallings((callingsRes.data as Calling[]) ?? []);
     setWards((wardsRes.data as Ward[]) ?? []);
@@ -57,6 +60,18 @@ export function HCKanbanScreen({ navigation }: any) {
     const spOptions = (spMembersRes.data ?? []).map((m: any) => ({ name: m.name, subtitle: spLabelMap[m.role] ?? m.role }));
     const hcOptions = (hcMembersRes.data ?? []).map((m: any) => ({ name: m.name, subtitle: 'High Councilor' }));
     setAssigneeOptions([...spOptions, ...hcOptions]);
+
+    // Build HC member name→id map
+    const nameToId: Record<string, string> = {};
+    (hcMembersRes.data ?? []).forEach((m: any) => { nameToId[m.name] = m.id; });
+    setHcMemberIdMap(nameToId);
+
+    // Build approval map: "callingId:hcMemberId" → approved boolean
+    const approvalMap: Record<string, boolean> = {};
+    (hcApprovalsRes.data ?? []).forEach((a: any) => {
+      approvalMap[`${a.calling_id}:${a.hc_member_id}`] = a.approved;
+    });
+    setHcApprovalMap(approvalMap);
   }, []);
 
   useFocusEffect(useCallback(() => { fetchData(); }, [fetchData]));
@@ -74,7 +89,17 @@ export function HCKanbanScreen({ navigation }: any) {
       if (wardFilter !== 'all' && c.ward_id !== wardFilter) return false;
       if (assigneeFilter !== 'all') {
         const assigned = [c.extend_by, c.sustain_by, c.set_apart_by, c.record_by];
-        if (!assigned.includes(assigneeFilter)) return false;
+        if (assigned.includes(assigneeFilter)) return true;
+        // For hc_approval stage, include cards where the HC member hasn't approved yet
+        if (c.stage === 'hc_approval') {
+          const hcMemberId = hcMemberIdMap[assigneeFilter];
+          if (hcMemberId) {
+            const key = `${c.id}:${hcMemberId}`;
+            const approved = hcApprovalMap[key];
+            if (approved === undefined || approved === false) return true;
+          }
+        }
+        return false;
       }
       return true;
     });

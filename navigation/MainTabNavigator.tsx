@@ -12,6 +12,8 @@ import { SettingsScreen } from '../screens/main/SettingsScreen';
 import { CallingDetailScreen } from '../screens/main/CallingDetailScreen';
 import { HCAdminScreen } from '../screens/main/HCAdminScreen';
 import { SPAdminScreen } from '../screens/main/SPAdminScreen';
+import { HelpScreen } from '../screens/main/HelpScreen';
+import { ReleaseNotesScreen } from '../screens/main/ReleaseNotesScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -49,6 +51,8 @@ function SettingsStack() {
       <Stack.Screen name="SettingsMain" component={SettingsScreen} />
       <Stack.Screen name="HCAdmin" component={HCAdminScreen} />
       <Stack.Screen name="SPAdmin" component={SPAdminScreen} />
+      <Stack.Screen name="Help" component={HelpScreen} />
+      <Stack.Screen name="ReleaseNotes" component={ReleaseNotesScreen} />
     </Stack.Navigator>
   );
 }
@@ -77,6 +81,11 @@ export function MainTabNavigator() {
         },
       })}
     >
+      <Tab.Screen
+        name="New"
+        component={NewCallingScreen}
+        options={{ tabBarLabel: 'New' }}
+      />
       {showPresidencyBoard && (
         <Tab.Screen
           name="PresidencyBoard"
@@ -100,11 +109,6 @@ export function MainTabNavigator() {
             navigation.navigate('HC', { screen: 'HCMain' });
           },
         })}
-      />
-      <Tab.Screen
-        name="New"
-        component={NewCallingScreen}
-        options={{ tabBarLabel: 'New' }}
       />
       <Tab.Screen
         name="Completed"
