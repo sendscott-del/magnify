@@ -52,7 +52,6 @@ export function SettingsScreen({ navigation }: any) {
     try {
       await fetch(url, {
         method: 'POST', mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: '✅ *Magnify test* — Slack integration is working!' }),
       });
       if (Platform.OS === 'web') window.alert('Test message sent! Check your Slack channel.');

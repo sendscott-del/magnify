@@ -5,7 +5,6 @@ export async function postToWebhook(webhookUrl: string, text: string): Promise<v
     await fetch(webhookUrl, {
       method: 'POST',
       mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text }),
     });
   } catch (e) {
