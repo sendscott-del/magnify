@@ -339,7 +339,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
   const fetchData = useCallback(async () => {
     setLoading(true);
     const [callingRes, logRes, wardsRes, spRes, hcMembersRes, hcApprovalsRes, profilesRes] = await Promise.all([
-      supabase.from('callings').select('*, wards(id,name,abbreviation,sort_order), profiles(id,full_name,email,role,status,created_at)').eq('id', callingId).single(),
+      supabase.from('callings').select('*, wards(id,name,abbreviation), profiles(id,full_name,email,role,status,created_at)').eq('id', callingId).single(),
       supabase.from('calling_log').select('*, profiles(id,full_name,email,role,status,created_at)').eq('calling_id', callingId).order('created_at', { ascending: false }),
       supabase.from('wards').select('*').order('name'),
       supabase.from('stake_presidency_approvals').select('*').eq('calling_id', callingId),
