@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Modal, TextInput, Alert, Platform, ActivityIndicator, FlatList,
+  Modal, TextInput, Alert, Platform, ActivityIndicator, FlatList, Image,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -29,6 +29,11 @@ const TYPE_COLORS: Record<string, string> = {
   ward_calling: Colors.info,
   stake_calling: '#8B5CF6',
   mp_ordination: Colors.success,
+};
+const TYPE_ICONS: Record<string, any> = {
+  ward_calling: require('../../assets/icon_ward.png'),
+  stake_calling: require('../../assets/icon_stake.png'),
+  mp_ordination: require('../../assets/icon_mp.png'),
 };
 
 // SP roles in order — stake_clerk and exec_secretary are optional (informational only)
@@ -669,6 +674,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
           <Ionicons name="chevron-back" size={24} color={Colors.gray[700]} />
         </TouchableOpacity>
         <View style={styles.headerBadges}>
+          <Image source={TYPE_ICONS[calling.type]} style={styles.typeIcon} />
           <Badge label={TYPE_LABELS[calling.type]} color={TYPE_COLORS[calling.type]} />
           <View style={{ width: Spacing.xs }} />
           <Badge label={STAGE_LABELS[calling.stage]} stage={calling.stage} />
@@ -886,7 +892,8 @@ const styles = StyleSheet.create({
   notFound: { fontSize: FontSize.lg, color: Colors.gray[500], marginBottom: Spacing.md },
   headerBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, backgroundColor: Colors.white, borderBottomWidth: 1, borderBottomColor: Colors.gray[100] },
   backBtn: { padding: Spacing.xs },
-  headerBadges: { flexDirection: 'row', alignItems: 'center', flex: 1, justifyContent: 'center' },
+  headerBadges: { flexDirection: 'row', alignItems: 'center', flex: 1, justifyContent: 'center', gap: 6 },
+  typeIcon: { width: 22, height: 22, borderRadius: 5 },
   deleteHeaderBtn: { padding: Spacing.xs },
   scroll: { flex: 1 },
   scrollContent: { padding: Spacing.md },

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Colors, Spacing, Radius, FontSize, Shadow } from '../../constants/theme';
 import { Badge } from '../ui/Badge';
 import { Calling } from '../../lib/database.types';
@@ -17,6 +17,12 @@ const TYPE_COLORS: Record<string, string> = {
   mp_ordination: Colors.success,
 };
 
+const TYPE_ICONS: Record<string, any> = {
+  ward_calling: require('../../assets/icon_ward.png'),
+  stake_calling: require('../../assets/icon_stake.png'),
+  mp_ordination: require('../../assets/icon_mp.png'),
+};
+
 interface Props {
   calling: Calling;
   onPress: () => void;
@@ -30,8 +36,8 @@ export function CallingCard({ calling, onPress }: Props) {
       activeOpacity={0.8}
     >
       <View style={styles.row}>
+        <Image source={TYPE_ICONS[calling.type]} style={styles.typeIcon} />
         <Text style={styles.name} numberOfLines={1}>{calling.member_name}</Text>
-        <Badge label={TYPE_LABELS[calling.type]} color={TYPE_COLORS[calling.type]} />
       </View>
       <Text style={styles.callingName} numberOfLines={1}>{calling.calling_name}</Text>
       <View style={styles.footer}>
@@ -40,7 +46,7 @@ export function CallingCard({ calling, onPress }: Props) {
       </View>
       {calling.rejected && (
         <View style={styles.rejectedBanner}>
-          <Text style={styles.rejectedText}>REJECTED</Text>
+          <Text style={styles.rejectedText}>DECLINED</Text>
         </View>
       )}
     </TouchableOpacity>
@@ -63,16 +69,21 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 4,
+    gap: Spacing.xs,
+  },
+  typeIcon: {
+    width: 22,
+    height: 22,
+    borderRadius: 5,
+    flexShrink: 0,
   },
   name: {
     fontSize: FontSize.md,
     fontWeight: '700',
     color: Colors.gray[900],
     flex: 1,
-    marginRight: Spacing.xs,
   },
   callingName: {
     fontSize: FontSize.sm,

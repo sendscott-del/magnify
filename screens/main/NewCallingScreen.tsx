@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Modal, FlatList, Platform, Alert,
+  Modal, FlatList, Platform, Alert, Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
@@ -12,10 +12,10 @@ import { Button } from '../../components/ui/Button';
 import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme';
 import { CALLING_GROUPS } from '../../constants/callings';
 
-const TYPE_OPTIONS: { label: string; value: CallingType; emoji: string }[] = [
-  { label: 'Ward Calling', value: 'ward_calling', emoji: '🏠' },
-  { label: 'Stake Calling', value: 'stake_calling', emoji: '⭐' },
-  { label: 'MP Ordination', value: 'mp_ordination', emoji: '🙏' },
+const TYPE_OPTIONS: { label: string; value: CallingType; icon: any }[] = [
+  { label: 'Ward Calling', value: 'ward_calling', icon: require('../../assets/icon_ward.png') },
+  { label: 'Stake Calling', value: 'stake_calling', icon: require('../../assets/icon_stake.png') },
+  { label: 'MP Ordination', value: 'mp_ordination', icon: require('../../assets/icon_mp.png') },
 ];
 
 const ORDINATION_OPTIONS = [
@@ -151,7 +151,7 @@ export function NewCallingScreen({ navigation }: any) {
                 setBishopApproved(false);
               }}
             >
-              <Text style={styles.typeEmoji}>{opt.emoji}</Text>
+              <Image source={opt.icon} style={styles.typeIconImg} />
               <Text style={[styles.typeLabel, type === opt.value && styles.typeLabelActive]}>
                 {opt.label}
               </Text>
@@ -411,7 +411,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white, ...(Shadow as any),
   },
   typeBtnActive: { borderColor: Colors.primary, backgroundColor: Colors.primaryFade },
-  typeEmoji: { fontSize: 20, marginBottom: 4 },
+  typeIconImg: { width: 48, height: 48, borderRadius: 10, marginBottom: 6 },
   typeLabel: { fontSize: FontSize.xs, fontWeight: '600', color: Colors.gray[600], textAlign: 'center' },
   typeLabelActive: { color: Colors.primary },
   infoBox: {

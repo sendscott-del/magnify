@@ -1,8 +1,14 @@
 import React from 'react';
+import { Image } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/theme';
+
+const TAB_ICONS = {
+  SP: require('../assets/icon_sp_board.png'),
+  HC: require('../assets/icon_hc_board.png'),
+};
 import { useAuth } from '../context/AuthContext';
 import { PresidencyKanbanScreen } from '../screens/main/PresidencyKanbanScreen';
 import { HCKanbanScreen } from '../screens/main/HCKanbanScreen';
@@ -70,10 +76,14 @@ export function MainTabNavigator() {
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: Colors.gray[400],
         tabBarStyle: { borderTopColor: Colors.gray[200] },
-        tabBarIcon: ({ color, size }) => {
+        tabBarIcon: ({ color, size, focused }) => {
+          if (route.name === 'PresidencyBoard') {
+            return <Image source={TAB_ICONS.SP} style={{ width: size, height: size, opacity: focused ? 1 : 0.5, borderRadius: 4 }} />;
+          }
+          if (route.name === 'HC') {
+            return <Image source={TAB_ICONS.HC} style={{ width: size, height: size, opacity: focused ? 1 : 0.5, borderRadius: 4 }} />;
+          }
           const icons: Record<string, keyof typeof Ionicons.glyphMap> = {
-            Presidency: 'podium',
-            HC: 'git-branch-outline',
             New: 'add-circle',
             Completed: 'checkmark-done',
             Settings: 'settings-outline',
