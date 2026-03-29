@@ -619,9 +619,10 @@ export function CallingDetailScreen({ route, navigation }: any) {
   const canAssign = !!(role && ['stake_president','first_counselor','second_counselor','stake_clerk','exec_secretary','high_councilor'].includes(role));
 
   // Build list of assignable people: SP/counselors (from profiles) + active HC members
+  const SP_ASSIGNEE_ROLES = ['stake_president', 'first_counselor', 'second_counselor'];
   const spAssignees: Assignee[] = allProfiles
-    .filter(p => p.role in SP_ROLE_LABELS)
-    .map(p => ({ name: p.full_name, subtitle: SP_ROLE_LABELS[p.role] }));
+    .filter(p => SP_ASSIGNEE_ROLES.includes(p.role))
+    .map(p => ({ name: p.full_name, subtitle: SP_ROLE_LABELS[p.role] ?? p.role }));
   const hcAssignees: Assignee[] = hcMembers.map(m => ({ name: m.name, subtitle: 'High Councilor' }));
   const taskAssignees: Assignee[] = [...spAssignees, ...hcAssignees];
 
