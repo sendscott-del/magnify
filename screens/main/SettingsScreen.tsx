@@ -23,6 +23,7 @@ export function SettingsScreen({ navigation }: any) {
   const [slackSettings, setSlackSettings] = useState<SlackSetting[]>([]);
   const [slackDraft, setSlackDraft] = useState<Record<string, string>>({});
   const [slackSaving, setSlackSaving] = useState<Record<string, boolean>>({});
+  const [slackTesting, setSlackTesting] = useState<Record<string, boolean>>({});
 
   const fetchPendingUsers = useCallback(async () => {
     if (!isAdmin) return;
@@ -43,6 +44,25 @@ export function SettingsScreen({ navigation }: any) {
     fetchPendingUsers();
     fetchSlackSettings();
   }, [fetchPendingUsers, fetchSlackSettings]));
+
+  async function testSlackWebhook(eventType: string) {
+    const url = slackSettings.find(s => s.event_type === eventType)?.webhook_url;
+    if (!url) return;
+    setSlackTesting(prev => ({ ...prev, [eventType]: true }));
+    try {
+      await fetch(url, {
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: '✅ *Magnify test* — Slack integration is working!' }),
+      });
+      if (Platform.OS === 'web') window.alert('Test message sent! Check your Slack channel.');
+      else Alert.alert('Sent', 'Test message sent! Check your Slack channel.');
+    } catch {
+      if (Platform.OS === 'web') window.alert('Failed to send. Check the webhook URL.');
+      else Alert.alert('Error', 'Failed to send. Check the webhook URL.');
+    }
+    setSlackTesting(prev => ({ ...prev, [eventType]: false }));
+  }
 
   async function saveSlackWebhook(eventType: string) {
     const url = (slackDraft[eventType] ?? '').trim();
@@ -221,6 +241,15 @@ export function SettingsScreen({ navigation }: any) {
                     >
                       <Text style={styles.slackSaveBtnText}>{slackSaving[key] ? '…' : 'Save'}</Text>
                     </TouchableOpacity>
+                    {active && (
+                      <TouchableOpacity
+                        style={[styles.slackTestBtn, slackTesting[key] && styles.btnDisabled]}
+                        onPress={() => testSlackWebhook(key)}
+                        disabled={slackTesting[key]}
+                      >
+                        <Text style={styles.slackTestBtnText}>{slackTesting[key] ? '…' : 'Test'}</Text>
+                      </TouchableOpacity>
+                    )}
                   </View>
                 </View>
               );
@@ -401,6 +430,11 @@ const styles = StyleSheet.create({
     borderRadius: Radius.sm, backgroundColor: Colors.primary,
   },
   slackSaveBtnText: { color: Colors.white, fontSize: FontSize.sm, fontWeight: '700' },
+  slackTestBtn: {
+    paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs,
+    borderRadius: Radius.sm, borderWidth: 1, borderColor: Colors.success,
+  },
+  slackTestBtnText: { color: Colors.success, fontSize: FontSize.sm, fontWeight: '700' },
   version: {
     fontSize: FontSize.xs,
     color: Colors.gray[400],
