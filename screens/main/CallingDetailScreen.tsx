@@ -786,7 +786,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
         />
 
         {/* Actions */}
-        {!isComplete && (
+        {(!isComplete || (canBack && prevStage)) && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Actions</Text>
             {canAdvance && !calling.rejected && (
