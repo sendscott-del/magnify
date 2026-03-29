@@ -5,12 +5,14 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { Colors, FontSize, Spacing, Radius } from '../../constants/theme';
 
 export function LoginScreen({ navigation }: any) {
   const { signIn } = useAuth();
+  const { t } = useLanguage();
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -19,7 +21,7 @@ export function LoginScreen({ navigation }: any) {
 
   async function handleLogin() {
     if (!email || !password) {
-      setError('Please fill in all fields.');
+      setError(t('login.fillAllFields'));
       return;
     }
     setLoading(true);
@@ -45,34 +47,34 @@ export function LoginScreen({ navigation }: any) {
             <Text style={styles.logoEmoji}>⛪</Text>
           </View>
           <Text style={styles.appName}>Magnify</Text>
-          <Text style={styles.tagline}>Stake Callings Workflow</Text>
+          <Text style={styles.tagline}>{t('app.tagline')}</Text>
         </View>
 
         {/* Form */}
         <View style={styles.form}>
-          <Text style={styles.heading}>Welcome back</Text>
+          <Text style={styles.heading}>{t('login.welcomeBack')}</Text>
           {error ? <Text style={styles.errorBanner}>{error}</Text> : null}
 
           <Input
-            label="Email"
+            label={t('login.email')}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
             leftIcon="mail-outline"
-            placeholder="you@example.com"
+            placeholder={t('login.emailPlaceholder')}
           />
           <Input
-            label="Password"
+            label={t('login.password')}
             value={password}
             onChangeText={setPassword}
             isPassword
             leftIcon="lock-closed-outline"
-            placeholder="••••••••"
+            placeholder={t('login.passwordPlaceholder')}
           />
 
           <Button
-            title="Sign In"
+            title={t('login.signIn')}
             onPress={handleLogin}
             loading={loading}
             fullWidth
@@ -85,8 +87,8 @@ export function LoginScreen({ navigation }: any) {
             style={styles.switchRow}
           >
             <Text style={styles.switchText}>
-              Don't have an account?{' '}
-              <Text style={styles.switchLink}>Create Account</Text>
+              {t('login.noAccount')}{' '}
+              <Text style={styles.switchLink}>{t('login.createAccount')}</Text>
             </Text>
           </TouchableOpacity>
         </View>

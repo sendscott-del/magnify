@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { Button } from '../../components/ui/Button';
 import { Colors, FontSize, Spacing } from '../../constants/theme';
 import { ROLE_LABELS } from '../../constants/callings';
@@ -8,34 +9,32 @@ import { UserRole } from '../../lib/database.types';
 
 export function PendingApprovalScreen() {
   const { profile, signOut, refreshProfile } = useAuth();
+  const { t } = useLanguage();
 
   return (
     <View style={styles.container}>
       <Text style={styles.icon}>⏳</Text>
-      <Text style={styles.title}>Awaiting Approval</Text>
-      <Text style={styles.desc}>
-        Your account has been created and is pending approval by the Stake Clerk or Stake
-        Presidency.
-      </Text>
+      <Text style={styles.title}>{t('pending.title')}</Text>
+      <Text style={styles.desc}>{t('pending.desc')}</Text>
       {profile && (
         <View style={styles.infoBox}>
-          <Text style={styles.infoLabel}>Name</Text>
+          <Text style={styles.infoLabel}>{t('pending.name')}</Text>
           <Text style={styles.infoValue}>{profile.full_name}</Text>
-          <Text style={styles.infoLabel}>Email</Text>
+          <Text style={styles.infoLabel}>{t('pending.email')}</Text>
           <Text style={styles.infoValue}>{profile.email}</Text>
-          <Text style={styles.infoLabel}>Requested Role</Text>
+          <Text style={styles.infoLabel}>{t('pending.requestedRole')}</Text>
           <Text style={styles.infoValue}>{ROLE_LABELS[profile.role as UserRole]}</Text>
         </View>
       )}
       <Button
-        title="Refresh Status"
+        title={t('pending.refreshStatus')}
         onPress={refreshProfile}
         variant="outline"
         fullWidth
         style={styles.btn}
       />
       <Button
-        title="Sign Out"
+        title={t('pending.signOut')}
         onPress={signOut}
         variant="ghost"
         fullWidth

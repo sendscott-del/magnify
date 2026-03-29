@@ -13,12 +13,7 @@ import { Badge } from '../../components/ui/Badge';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { DisclaimerFooter } from '../../components/ui/DisclaimerFooter';
 import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme';
-
-const TYPE_LABELS: Record<string, string> = {
-  ward_calling: 'Ward',
-  stake_calling: 'Stake',
-  mp_ordination: 'MP',
-};
+import { useLanguage } from '../../context/LanguageContext';
 
 const TYPE_COLORS: Record<string, string> = {
   ward_calling: Colors.info,
@@ -28,6 +23,14 @@ const TYPE_COLORS: Record<string, string> = {
 
 export function CompletedCallingsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const { t } = useLanguage();
+
+  const TYPE_LABELS: Record<string, string> = {
+    ward_calling: t('type.ward_calling_short'),
+    stake_calling: t('type.stake_calling_short'),
+    mp_ordination: t('type.mp_ordination_short'),
+  };
+
   const [callings, setCallings] = useState<Calling[]>([]);
   const [search, setSearch] = useState('');
   const [wardFilter, setWardFilter] = useState('');
@@ -77,8 +80,8 @@ export function CompletedCallingsScreen({ navigation }: any) {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Completed</Text>
-        <Text style={styles.subtitle}>{filtered.length} callings</Text>
+        <Text style={styles.title}>{t('completed.title')}</Text>
+        <Text style={styles.subtitle}>{filtered.length} {t('completed.callings')}</Text>
       </View>
 
       {/* Search + Filter */}
@@ -89,7 +92,7 @@ export function CompletedCallingsScreen({ navigation }: any) {
             style={styles.searchInput}
             value={search}
             onChangeText={setSearch}
-            placeholder="Search member or calling…"
+            placeholder={t('completed.searchPlaceholder')}
             placeholderTextColor={Colors.gray[400]}
           />
           {search.length > 0 && (
@@ -103,7 +106,7 @@ export function CompletedCallingsScreen({ navigation }: any) {
           onPress={() => setShowWardPicker(true)}
         >
           <Text style={styles.wardFilterText} numberOfLines={1}>
-            {wardFilterName || 'All Wards'}
+            {wardFilterName || t('completed.filterAll')}
           </Text>
           <Ionicons name="chevron-down" size={14} color={Colors.gray[500]} />
         </TouchableOpacity>
@@ -116,8 +119,8 @@ export function CompletedCallingsScreen({ navigation }: any) {
         ListEmptyComponent={
           <EmptyState
             icon="checkmark-done-outline"
-            title="No completed callings"
-            subtitle="Completed callings will appear here"
+            title={t('completed.empty')}
+            subtitle={t('completed.emptySubtitle')}
           />
         }
         ListFooterComponent={<DisclaimerFooter />}
@@ -155,7 +158,7 @@ export function CompletedCallingsScreen({ navigation }: any) {
           onPress={() => setShowWardPicker(false)}
         >
           <View style={styles.modalSheet} onStartShouldSetResponder={() => true}>
-            <Text style={styles.modalTitle}>Filter by Ward</Text>
+            <Text style={styles.modalTitle}>{t('completed.filterByWard')}</Text>
             <TouchableOpacity
               style={[styles.modalItem, !wardFilter && styles.modalItemSelected]}
               onPress={() => {
@@ -165,7 +168,7 @@ export function CompletedCallingsScreen({ navigation }: any) {
               }}
             >
               <Text style={[styles.modalItemText, !wardFilter && styles.modalItemTextSelected]}>
-                All Wards
+                {t('completed.filterAll')}
               </Text>
             </TouchableOpacity>
             {wards.map(ward => (

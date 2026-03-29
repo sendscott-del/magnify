@@ -12,21 +12,23 @@ import { Button } from '../../components/ui/Button';
 import { DisclaimerFooter } from '../../components/ui/DisclaimerFooter';
 import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme';
 import { CALLING_GROUPS } from '../../constants/callings';
-
-const TYPE_OPTIONS: { label: string; value: CallingType; icon: any }[] = [
-  { label: 'Ward Calling', value: 'ward_calling', icon: require('../../assets/icon_ward.png') },
-  { label: 'Stake Calling', value: 'stake_calling', icon: require('../../assets/icon_stake.png') },
-  { label: 'MP Ordination', value: 'mp_ordination', icon: require('../../assets/icon_mp.png') },
-];
-
-const ORDINATION_OPTIONS = [
-  { label: 'Elder', value: 'elder' },
-  { label: 'High Priest', value: 'high_priest' },
-];
+import { useLanguage } from '../../context/LanguageContext';
 
 export function NewCallingScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
+  const { t } = useLanguage();
+
+  const TYPE_OPTIONS: { label: string; value: CallingType; icon: any }[] = [
+    { label: t('type.ward_calling'), value: 'ward_calling', icon: require('../../assets/icon_ward.png') },
+    { label: t('type.stake_calling'), value: 'stake_calling', icon: require('../../assets/icon_stake.png') },
+    { label: t('type.mp_ordination'), value: 'mp_ordination', icon: require('../../assets/icon_mp.png') },
+  ];
+
+  const ORDINATION_OPTIONS = [
+    { label: 'Elder', value: 'elder' },
+    { label: 'High Priest', value: 'high_priest' },
+  ];
 
   const [type, setType] = useState<CallingType>('ward_calling');
   const [memberName, setMemberName] = useState('');
@@ -129,8 +131,8 @@ export function NewCallingScreen({ navigation }: any) {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>New Entry</Text>
-        <Text style={styles.subtitle}>Add a calling or ordination</Text>
+        <Text style={styles.title}>{t('new.title')}</Text>
+        <Text style={styles.subtitle}>{t('new.subtitle')}</Text>
       </View>
 
       <ScrollView
@@ -139,7 +141,7 @@ export function NewCallingScreen({ navigation }: any) {
         keyboardShouldPersistTaps="handled"
       >
         {/* Type Selector */}
-        <Text style={styles.sectionLabel}>Type</Text>
+        <Text style={styles.sectionLabel}>{t('new.typeLabel')}</Text>
         <View style={styles.typeRow}>
           {TYPE_OPTIONS.map(opt => (
             <TouchableOpacity
@@ -162,27 +164,27 @@ export function NewCallingScreen({ navigation }: any) {
 
         {type === 'mp_ordination' && (
           <View style={styles.infoBox}>
-            <Text style={styles.infoText}>MP Ordinations are sent directly to HC Approval after the stake presidency interview.</Text>
+            <Text style={styles.infoText}>{t('new.mpInfo')}</Text>
           </View>
         )}
 
         {/* Member Name */}
         <Input
-          label="Member Name"
+          label={t('new.memberName')}
           value={memberName}
           onChangeText={setMemberName}
-          placeholder="Full name"
+          placeholder={t('new.memberNamePlaceholder')}
           leftIcon="person-outline"
         />
 
         {/* Ward Picker (optional) */}
-        <Text style={styles.fieldLabel}>Ward <Text style={styles.optionalLabel}>(optional)</Text></Text>
+        <Text style={styles.fieldLabel}>{t('new.ward')} <Text style={styles.optionalLabel}>{t('detail.optional')}</Text></Text>
         <TouchableOpacity
           style={styles.pickerBtn}
           onPress={() => setShowWardPicker(true)}
         >
           <Text style={wardId ? styles.pickerBtnText : styles.pickerBtnPlaceholder}>
-            {wardId ? wardName : 'Select ward…'}
+            {wardId ? wardName : t('new.selectWard')}
           </Text>
           <Text style={styles.pickerArrow}>▼</Text>
         </TouchableOpacity>
@@ -190,7 +192,7 @@ export function NewCallingScreen({ navigation }: any) {
         {/* Calling / Ordination */}
         {type === 'mp_ordination' ? (
           <>
-            <Text style={styles.sectionLabel}>Ordination Type</Text>
+            <Text style={styles.sectionLabel}>{t('new.ordinationType')}</Text>
             <View style={styles.typeRow}>
               {ORDINATION_OPTIONS.map(opt => (
                 <TouchableOpacity
@@ -207,22 +209,22 @@ export function NewCallingScreen({ navigation }: any) {
           </>
         ) : (
           <>
-            <Text style={styles.fieldLabel}>Calling</Text>
+            <Text style={styles.fieldLabel}>{t('new.callingLabel')}</Text>
             <TouchableOpacity
               style={styles.pickerBtn}
               onPress={() => setShowCallingPicker(true)}
             >
               <Text style={callingName ? styles.pickerBtnText : styles.pickerBtnPlaceholder}>
-                {callingName || 'Select calling…'}
+                {callingName || t('new.selectCalling')}
               </Text>
               <Text style={styles.pickerArrow}>▼</Text>
             </TouchableOpacity>
             {(callingName === 'Other' || callingName === '') && (
               <Input
-                label="Custom Calling Name"
+                label={t('new.customCallingName')}
                 value={customCallingName}
                 onChangeText={setCustomCallingName}
-                placeholder="Enter calling name"
+                placeholder={t('new.customCallingPlaceholder')}
               />
             )}
           </>
@@ -237,16 +239,16 @@ export function NewCallingScreen({ navigation }: any) {
             <View style={[styles.checkbox, bishopApproved && styles.checkboxOn]}>
               {bishopApproved && <Text style={styles.checkMark}>✓</Text>}
             </View>
-            <Text style={styles.checkLabel}>Bishop has approved this calling</Text>
+            <Text style={styles.checkLabel}>{t('new.bishopApproved')}</Text>
           </TouchableOpacity>
         )}
 
         {/* Notes */}
         <Input
-          label="Notes (optional)"
+          label={t('new.notes')}
           value={notes}
           onChangeText={setNotes}
-          placeholder="Any additional context…"
+          placeholder={t('new.notesPlaceholder')}
           multiline
           numberOfLines={3}
         />
@@ -255,7 +257,7 @@ export function NewCallingScreen({ navigation }: any) {
 
         {type === 'mp_ordination' ? (
           <Button
-            title="Submit to HC Approval"
+            title={t('new.submitToHCApproval')}
             onPress={() => handleSave('for_approval')}
             loading={loading === 'approval'}
             disabled={loading !== null}
@@ -266,7 +268,7 @@ export function NewCallingScreen({ navigation }: any) {
         ) : (
           <>
             <Button
-              title="Add to Ideas"
+              title={t('new.submitIdea')}
               onPress={() => handleSave('ideas')}
               loading={loading === 'ideas'}
               disabled={loading !== null}
@@ -276,7 +278,7 @@ export function NewCallingScreen({ navigation }: any) {
               style={styles.submitBtn}
             />
             <Button
-              title="Submit for SP Approval"
+              title={t('new.submitForSPApproval')}
               onPress={() => handleSave('for_approval')}
               loading={loading === 'approval'}
               disabled={loading !== null}
@@ -302,13 +304,13 @@ export function NewCallingScreen({ navigation }: any) {
           onPress={() => setShowWardPicker(false)}
         >
           <View style={styles.modalSheet} onStartShouldSetResponder={() => true}>
-            <Text style={styles.modalTitle}>Select Ward</Text>
+            <Text style={styles.modalTitle}>{t('new.selectWardTitle')}</Text>
             <TouchableOpacity
               style={[styles.modalItem, !wardId && styles.modalItemSelected]}
               onPress={() => { setWardId(''); setWardName(''); setShowWardPicker(false); }}
             >
               <Text style={[styles.modalItemText, !wardId && styles.modalItemTextSelected]}>
-                No ward / TBD
+                {t('new.noWard')}
               </Text>
             </TouchableOpacity>
             <FlatList
@@ -347,7 +349,7 @@ export function NewCallingScreen({ navigation }: any) {
           onPress={() => setShowCallingPicker(false)}
         >
           <View style={styles.modalSheet} onStartShouldSetResponder={() => true}>
-            <Text style={styles.modalTitle}>Select Calling</Text>
+            <Text style={styles.modalTitle}>{t('new.selectCallingTitle')}</Text>
             <FlatList
               data={[
                 ...CALLING_GROUPS.flatMap(g => [

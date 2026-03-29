@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/theme';
+import { useLanguage } from '../context/LanguageContext';
 
 const TAB_ICONS = {
   SP: require('../assets/icon_sp_board.png'),
@@ -67,6 +68,7 @@ function SettingsStack() {
 
 export function MainTabNavigator() {
   const { isPresidency, isClerk } = useAuth();
+  const { t } = useLanguage();
   const showPresidencyBoard = isPresidency || isClerk;
 
   return (
@@ -96,13 +98,13 @@ export function MainTabNavigator() {
       <Tab.Screen
         name="New"
         component={NewCallingScreen}
-        options={{ tabBarLabel: 'New' }}
+        options={{ tabBarLabel: t('nav.new') }}
       />
       {showPresidencyBoard && (
         <Tab.Screen
           name="PresidencyBoard"
           component={PresidencyStack}
-          options={{ tabBarLabel: 'SP Board' }}
+          options={{ tabBarLabel: t('nav.spBoard') }}
           listeners={({ navigation }) => ({
             tabPress: (e) => {
               e.preventDefault();
@@ -114,7 +116,7 @@ export function MainTabNavigator() {
       <Tab.Screen
         name="HC"
         component={HCStack}
-        options={{ tabBarLabel: 'HC Board' }}
+        options={{ tabBarLabel: t('nav.hcBoard') }}
         listeners={({ navigation }) => ({
           tabPress: (e) => {
             e.preventDefault();
@@ -125,12 +127,12 @@ export function MainTabNavigator() {
       <Tab.Screen
         name="Completed"
         component={CompletedStack}
-        options={{ tabBarLabel: 'Completed' }}
+        options={{ tabBarLabel: t('nav.completed') }}
       />
       <Tab.Screen
         name="Settings"
         component={SettingsStack}
-        options={{ tabBarLabel: 'Settings' }}
+        options={{ tabBarLabel: t('nav.settings') }}
       />
     </Tab.Navigator>
   );

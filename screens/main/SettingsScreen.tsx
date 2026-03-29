@@ -14,12 +14,14 @@ import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme
 import { ROLE_LABELS } from '../../constants/callings';
 import { notifyAccessApproved } from '../../lib/slack';
 import { CHANGELOG } from '../../constants/changelog';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface SlackSetting { id: string; event_type: string; webhook_url: string; active: boolean; }
 
 export function SettingsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { profile, signOut, isAdmin } = useAuth();
+  const { t, language, setLanguage } = useLanguage();
   const [pendingUsers, setPendingUsers] = useState<Profile[]>([]);
   const [approving, setApproving] = useState<Record<string, boolean>>({});
   const [rejecting, setRejecting] = useState<Record<string, boolean>>({});
@@ -99,13 +101,13 @@ export function SettingsScreen({ navigation }: any) {
 
   function handleSignOut() {
     if (Platform.OS === 'web') {
-      if (window.confirm('Sign out of Magnify?')) {
+      if (window.confirm(t('settings.signOutConfirm'))) {
         signOut();
       }
     } else {
-      Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Sign Out', style: 'destructive', onPress: signOut },
+      Alert.alert(t('settings.signOut'), t('settings.signOutConfirm'), [
+        { text: t('detail.cancel'), style: 'cancel' },
+        { text: t('settings.signOut'), style: 'destructive', onPress: signOut },
       ]);
     }
   }
@@ -119,29 +121,29 @@ export function SettingsScreen({ navigation }: any) {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Settings</Text>
+        <Text style={styles.title}>{t('settings.title')}</Text>
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         {/* Profile Info */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>My Profile</Text>
+          <Text style={styles.sectionTitle}>{t('settings.myProfile')}</Text>
           {profile && (
             <>
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Name</Text>
+                <Text style={styles.infoLabel}>{t('settings.name')}</Text>
                 <Text style={styles.infoValue}>{profile.full_name}</Text>
               </View>
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Email</Text>
+                <Text style={styles.infoLabel}>{t('settings.email')}</Text>
                 <Text style={styles.infoValue}>{profile.email}</Text>
               </View>
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Role</Text>
+                <Text style={styles.infoLabel}>{t('settings.roleLabel')}</Text>
                 <Text style={styles.infoValue}>{ROLE_LABELS[profile.role as UserRole]}</Text>
               </View>
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Status</Text>
+                <Text style={styles.infoLabel}>{t('settings.statusLabel')}</Text>
                 <View style={[styles.statusChip, profile.status === 'approved' ? styles.statusApproved : styles.statusPending]}>
                   <Text style={[styles.statusText, profile.status === 'approved' ? styles.statusTextApproved : styles.statusTextPending]}>
                     {profile.status.charAt(0).toUpperCase() + profile.status.slice(1)}
@@ -155,10 +157,10 @@ export function SettingsScreen({ navigation }: any) {
         {/* Admin: Manage Users */}
         {isAdmin && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Manage Users</Text>
+            <Text style={styles.sectionTitle}>{t('settings.manageUsers')}</Text>
             {pendingUsers.length === 0 ? (
               <View style={styles.emptyUsers}>
-                <Text style={styles.emptyUsersText}>No pending users</Text>
+                <Text style={styles.emptyUsersText}>{t('settings.noPending')}</Text>
               </View>
             ) : (
               pendingUsers.map(u => (
@@ -175,7 +177,7 @@ export function SettingsScreen({ navigation }: any) {
                       disabled={approving[u.id]}
                     >
                       <Text style={styles.approveBtnText}>
-                        {approving[u.id] ? '…' : 'Approve'}
+                        {approving[u.id] ? '…' : t('settings.approve')}
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -184,7 +186,7 @@ export function SettingsScreen({ navigation }: any) {
                       disabled={rejecting[u.id]}
                     >
                       <Text style={styles.rejectBtnText}>
-                        {rejecting[u.id] ? '…' : 'Reject'}
+                        {rejecting[u.id] ? '…' : t('settings.reject')}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -196,16 +198,16 @@ export function SettingsScreen({ navigation }: any) {
 
         {/* Leadership */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Leadership</Text>
+          <Text style={styles.sectionTitle}>{t('settings.leadership')}</Text>
           <Button
-            title="Manage Stake Presidency Members"
+            title={t('settings.manageSP')}
             onPress={() => navigation.navigate('SPAdmin')}
             variant="outline"
             fullWidth
             style={styles.actionBtn}
           />
           <Button
-            title="Manage High Council Members"
+            title={t('settings.manageHC')}
             onPress={() => navigation.navigate('HCAdmin')}
             variant="outline"
             fullWidth
@@ -215,16 +217,16 @@ export function SettingsScreen({ navigation }: any) {
 
         {/* Help & Info */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Help & Information</Text>
+          <Text style={styles.sectionTitle}>{t('settings.helpInfo')}</Text>
           <Button
-            title="Help & Documentation"
+            title={t('settings.help')}
             onPress={() => navigation.navigate('Help')}
             variant="outline"
             fullWidth
             style={styles.actionBtn}
           />
           <Button
-            title="Release Notes"
+            title={t('settings.releaseNotes')}
             onPress={() => navigation.navigate('ReleaseNotes')}
             variant="outline"
             fullWidth
@@ -232,7 +234,7 @@ export function SettingsScreen({ navigation }: any) {
           />
           {profile?.role === 'stake_president' && (
             <Button
-              title="Access Permissions"
+              title={t('settings.accessPermissions')}
               onPress={() => navigation.navigate('Permissions')}
               variant="outline"
               fullWidth
@@ -244,27 +246,27 @@ export function SettingsScreen({ navigation }: any) {
         {/* Slack */}
         {isAdmin && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Slack Notifications</Text>
-            <Text style={styles.slackHint}>Paste an Incoming Webhook URL to send notifications to a Slack channel.</Text>
+            <Text style={styles.sectionTitle}>{t('settings.slackNotifications')}</Text>
+            <Text style={styles.slackHint}>{t('settings.slackHint')}</Text>
             {[
-              { key: 'sp_stage_change', label: 'SP Board Updates', placeholder: 'https://hooks.slack.com/services/…' },
-              { key: 'hc_stage_change', label: 'HC Board Updates', placeholder: 'https://hooks.slack.com/services/…' },
-              { key: 'rejection', label: 'Rejections', placeholder: 'https://hooks.slack.com/services/…' },
-              { key: 'user_access', label: 'User Access Requests & Approvals', placeholder: 'https://hooks.slack.com/services/…' },
-            ].map(({ key, label, placeholder }) => {
+              { key: 'sp_stage_change', label: t('settings.spBoardWebhook') },
+              { key: 'hc_stage_change', label: t('settings.hcBoardWebhook') },
+              { key: 'rejection', label: t('settings.rejectionWebhook') },
+              { key: 'user_access', label: t('settings.accessWebhook') },
+            ].map(({ key, label }) => {
               const active = slackSettings.find(s => s.event_type === key)?.active;
               return (
                 <View key={key} style={styles.slackRow}>
                   <View style={styles.slackLabelRow}>
                     <Text style={styles.slackLabel}>{label}</Text>
-                    {active && <Text style={styles.slackActive}>● Active</Text>}
+                    {active && <Text style={styles.slackActive}>● {t('settings.active')}</Text>}
                   </View>
                   <View style={styles.slackInputRow}>
                     <TextInput
                       style={styles.slackInput}
                       value={slackDraft[key] ?? ''}
                       onChangeText={v => setSlackDraft(prev => ({ ...prev, [key]: v }))}
-                      placeholder={placeholder}
+                      placeholder={t('settings.webhookPlaceholder')}
                       placeholderTextColor={Colors.gray[400]}
                       autoCapitalize="none"
                       autoCorrect={false}
@@ -274,7 +276,7 @@ export function SettingsScreen({ navigation }: any) {
                       onPress={() => saveSlackWebhook(key)}
                       disabled={slackSaving[key]}
                     >
-                      <Text style={styles.slackSaveBtnText}>{slackSaving[key] ? '…' : 'Save'}</Text>
+                      <Text style={styles.slackSaveBtnText}>{slackSaving[key] ? '…' : t('settings.save')}</Text>
                     </TouchableOpacity>
                     {active && (
                       <TouchableOpacity
@@ -282,7 +284,7 @@ export function SettingsScreen({ navigation }: any) {
                         onPress={() => testSlackWebhook(key)}
                         disabled={slackTesting[key]}
                       >
-                        <Text style={styles.slackTestBtnText}>{slackTesting[key] ? '…' : 'Test'}</Text>
+                        <Text style={styles.slackTestBtnText}>{slackTesting[key] ? '…' : t('settings.test')}</Text>
                       </TouchableOpacity>
                     )}
                   </View>
@@ -292,12 +294,35 @@ export function SettingsScreen({ navigation }: any) {
           </View>
         )}
 
+        {/* Language */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('settings.language')}</Text>
+          <View style={styles.langRow}>
+            <TouchableOpacity
+              style={[styles.langBtn, language === 'en' && styles.langBtnActive]}
+              onPress={() => setLanguage('en')}
+            >
+              <Text style={[styles.langBtnText, language === 'en' && styles.langBtnTextActive]}>
+                {t('settings.languageEnglish')}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.langBtn, language === 'es' && styles.langBtnActive]}
+              onPress={() => setLanguage('es')}
+            >
+              <Text style={[styles.langBtnText, language === 'es' && styles.langBtnTextActive]}>
+                {t('settings.languageSpanish')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* App Actions */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>App</Text>
+          <Text style={styles.sectionTitle}>{t('settings.app')}</Text>
           {Platform.OS === 'web' && (
             <Button
-              title="Refresh App"
+              title={t('settings.refreshApp')}
               onPress={handleReload}
               variant="outline"
               fullWidth
@@ -305,7 +330,7 @@ export function SettingsScreen({ navigation }: any) {
             />
           )}
           <Button
-            title="Sign Out"
+            title={t('settings.signOut')}
             onPress={handleSignOut}
             variant="danger"
             fullWidth
@@ -471,6 +496,32 @@ const styles = StyleSheet.create({
     borderRadius: Radius.sm, borderWidth: 1, borderColor: Colors.success,
   },
   slackTestBtnText: { color: Colors.success, fontSize: FontSize.sm, fontWeight: '700' },
+  langRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  langBtn: {
+    flex: 1,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.md,
+    borderWidth: 1.5,
+    borderColor: Colors.gray[300],
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+  },
+  langBtnActive: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primaryFade,
+  },
+  langBtnText: {
+    fontSize: FontSize.sm,
+    fontWeight: '600',
+    color: Colors.gray[600],
+  },
+  langBtnTextActive: {
+    color: Colors.primary,
+    fontWeight: '700',
+  },
   version: {
     fontSize: FontSize.xs,
     color: Colors.gray[400],

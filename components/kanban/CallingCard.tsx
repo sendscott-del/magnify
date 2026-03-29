@@ -3,13 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Colors, Spacing, Radius, FontSize, Shadow } from '../../constants/theme';
 import { Badge } from '../ui/Badge';
 import { Calling } from '../../lib/database.types';
-import { STAGE_LABELS } from '../../constants/callings';
-
-const TYPE_LABELS: Record<string, string> = {
-  ward_calling: 'Ward',
-  stake_calling: 'Stake',
-  mp_ordination: 'MP',
-};
+import { useLanguage } from '../../context/LanguageContext';
 
 const TYPE_COLORS: Record<string, string> = {
   ward_calling: Colors.info,
@@ -29,6 +23,19 @@ interface Props {
 }
 
 export function CallingCard({ calling, onPress }: Props) {
+  const { t } = useLanguage();
+  const STAGE_LABELS: Record<string, string> = {
+    ideas: t('stage.ideas'),
+    for_approval: t('stage.for_approval'),
+    stake_approved: t('stage.stake_approved'),
+    hc_approval: t('stage.hc_approval'),
+    issue_calling: t('stage.issue_calling'),
+    ordained: t('stage.issue_calling'),
+    sustain: t('stage.sustain'),
+    set_apart: t('stage.set_apart'),
+    record: t('stage.record'),
+    complete: t('stage.complete'),
+  };
   return (
     <TouchableOpacity
       style={[styles.card, calling.rejected && styles.rejected]}
@@ -46,7 +53,7 @@ export function CallingCard({ calling, onPress }: Props) {
       </View>
       {calling.rejected && (
         <View style={styles.rejectedBanner}>
-          <Text style={styles.rejectedText}>DECLINED</Text>
+          <Text style={styles.rejectedText}>{t('detail.declined').toUpperCase()}</Text>
         </View>
       )}
     </TouchableOpacity>

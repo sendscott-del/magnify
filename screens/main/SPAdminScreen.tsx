@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
 import { Button } from '../../components/ui/Button';
 import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface SPMember {
   id: string;
@@ -18,14 +19,15 @@ interface SPMember {
   active: boolean;
 }
 
-const ROLE_OPTIONS: { value: SPMember['role']; label: string }[] = [
-  { value: 'stake_president', label: 'Stake President' },
-  { value: 'first_counselor', label: '1st Counselor' },
-  { value: 'second_counselor', label: '2nd Counselor' },
-];
-
 export function SPAdminScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const { t } = useLanguage();
+
+  const ROLE_OPTIONS: { value: SPMember['role']; label: string }[] = [
+    { value: 'stake_president', label: t('spAdmin.spShort') },
+    { value: 'first_counselor', label: t('spAdmin.c1Short') },
+    { value: 'second_counselor', label: t('spAdmin.c2Short') },
+  ];
   const [members, setMembers] = useState<SPMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState('');
@@ -73,11 +75,11 @@ export function SPAdminScreen({ navigation }: any) {
 
   async function handleDelete(member: SPMember) {
     const confirmed = Platform.OS === 'web'
-      ? window.confirm(`Remove ${member.name}?`)
+      ? window.confirm(`${member.name} — ${t('spAdmin.removeConfirm')}`)
       : await new Promise<boolean>(resolve =>
-          Alert.alert('Remove Member', `Remove ${member.name}?`, [
-            { text: 'Cancel', onPress: () => resolve(false) },
-            { text: 'Remove', style: 'destructive', onPress: () => resolve(true) },
+          Alert.alert(t('spAdmin.removeTitle'), `${member.name} — ${t('spAdmin.removeConfirm')}`, [
+            { text: t('detail.cancel'), onPress: () => resolve(false) },
+            { text: t('spAdmin.remove'), style: 'destructive', onPress: () => resolve(true) },
           ])
         );
     if (!confirmed) return;
@@ -94,15 +96,15 @@ export function SPAdminScreen({ navigation }: any) {
           <Ionicons name="chevron-back" size={24} color={Colors.gray[700]} />
         </TouchableOpacity>
         <View>
-          <Text style={styles.title}>Stake Presidency</Text>
-          <Text style={styles.subtitle}>{members.filter(m => m.active).length} active members</Text>
+          <Text style={styles.title}>{t('spAdmin.title')}</Text>
+          <Text style={styles.subtitle}>{members.filter(m => m.active).length} {t('spAdmin.activeMembers')}</Text>
         </View>
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         {/* Add Member */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Add Member</Text>
+          <Text style={styles.sectionTitle}>{t('spAdmin.addMember')}</Text>
           <View style={styles.roleRow}>
             {ROLE_OPTIONS.map(r => (
               <TouchableOpacity
@@ -121,13 +123,13 @@ export function SPAdminScreen({ navigation }: any) {
               style={styles.input}
               value={newName}
               onChangeText={setNewName}
-              placeholder="Full name…"
+              placeholder={t('spAdmin.namePlaceholder')}
               placeholderTextColor={Colors.gray[400]}
               onSubmitEditing={handleAdd}
               returnKeyType="done"
             />
             <Button
-              title="Add"
+              title={t('spAdmin.add')}
               onPress={handleAdd}
               loading={adding}
               disabled={!newName.trim() || adding}
@@ -138,11 +140,11 @@ export function SPAdminScreen({ navigation }: any) {
 
         {/* Member List */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Members</Text>
+          <Text style={styles.sectionTitle}>{t('spAdmin.members')}</Text>
           {loading ? (
             <ActivityIndicator color={Colors.primary} style={{ padding: Spacing.lg }} />
           ) : members.length === 0 ? (
-            <Text style={styles.empty}>No members added yet.</Text>
+            <Text style={styles.empty}>{t('spAdmin.noMembers')}</Text>
           ) : (
             members.map(member => (
               <View key={member.id} style={styles.memberRow}>
@@ -165,7 +167,7 @@ export function SPAdminScreen({ navigation }: any) {
                   </Text>
                   <Text style={styles.memberRole}>{roleLabel(member.role)}</Text>
                 </View>
-                {!member.active && <Text style={styles.inactiveLabel}>inactive</Text>}
+                {!member.active && <Text style={styles.inactiveLabel}>{t('spAdmin.inactive')}</Text>}
                 <TouchableOpacity style={styles.deleteBtn} onPress={() => handleDelete(member)}>
                   <Ionicons name="trash-outline" size={18} color={Colors.error} />
                 </TouchableOpacity>

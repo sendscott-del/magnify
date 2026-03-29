@@ -5,9 +5,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme';
 import { CHANGELOG } from '../../constants/changelog';
 import { DisclaimerFooter } from '../../components/ui/DisclaimerFooter';
+import { useLanguage } from '../../context/LanguageContext';
 
 export function ReleaseNotesScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const { t } = useLanguage();
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -15,7 +17,7 @@ export function ReleaseNotesScreen({ navigation }: any) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Ionicons name="chevron-back" size={24} color={Colors.primary} />
         </TouchableOpacity>
-        <Text style={styles.title}>Release Notes</Text>
+        <Text style={styles.title}>{t('releaseNotes.title')}</Text>
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
@@ -28,7 +30,7 @@ export function ReleaseNotesScreen({ navigation }: any) {
 
             {entry.enhancements.length > 0 && (
               <>
-                <Text style={styles.categoryLabel}>Enhancements</Text>
+                <Text style={styles.categoryLabel}>{t('releaseNotes.enhancements')}</Text>
                 {entry.enhancements.map((item, i) => (
                   <View key={i} style={styles.bulletRow}>
                     <Text style={styles.bulletGreen}>+</Text>
@@ -40,7 +42,7 @@ export function ReleaseNotesScreen({ navigation }: any) {
 
             {entry.bugFixes.length > 0 && (
               <>
-                <Text style={[styles.categoryLabel, { marginTop: Spacing.sm }]}>Bug Fixes</Text>
+                <Text style={[styles.categoryLabel, { marginTop: Spacing.sm }]}>{t('releaseNotes.bugFixes')}</Text>
                 {entry.bugFixes.map((item, i) => (
                   <View key={i} style={styles.bulletRow}>
                     <Text style={styles.bulletRed}>•</Text>
@@ -52,7 +54,7 @@ export function ReleaseNotesScreen({ navigation }: any) {
           </View>
         ))}
 
-        <Text style={styles.footer}>Release notes are generated automatically on each deployment.</Text>
+        <Text style={styles.footer}>{t('releaseNotes.footer')}</Text>
         <DisclaimerFooter />
       </ScrollView>
     </View>

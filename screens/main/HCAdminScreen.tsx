@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
 import { Button } from '../../components/ui/Button';
 import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface HCMember {
   id: string;
@@ -19,6 +20,7 @@ interface HCMember {
 
 export function HCAdminScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const { t } = useLanguage();
   const [members, setMembers] = useState<HCMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState('');
@@ -69,11 +71,11 @@ export function HCAdminScreen({ navigation }: any) {
 
   async function handleDelete(member: HCMember) {
     const confirm = Platform.OS === 'web'
-      ? window.confirm(`Remove ${member.name} from the High Council?`)
+      ? window.confirm(`${member.name} — ${t('hcAdmin.removeConfirm')}`)
       : await new Promise<boolean>(resolve =>
-          Alert.alert('Remove Member', `Remove ${member.name}?`, [
-            { text: 'Cancel', onPress: () => resolve(false) },
-            { text: 'Remove', style: 'destructive', onPress: () => resolve(true) },
+          Alert.alert(t('hcAdmin.removeTitle'), `${member.name} — ${t('hcAdmin.removeConfirm')}`, [
+            { text: t('detail.cancel'), onPress: () => resolve(false) },
+            { text: t('hcAdmin.remove'), style: 'destructive', onPress: () => resolve(true) },
           ])
         );
     if (!confirm) return;
@@ -90,27 +92,27 @@ export function HCAdminScreen({ navigation }: any) {
           <Ionicons name="chevron-back" size={24} color={Colors.gray[700]} />
         </TouchableOpacity>
         <View>
-          <Text style={styles.title}>High Council</Text>
-          <Text style={styles.subtitle}>{activeCount} active members</Text>
+          <Text style={styles.title}>{t('hcAdmin.title')}</Text>
+          <Text style={styles.subtitle}>{activeCount} {t('hcAdmin.activeMembers')}</Text>
         </View>
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         {/* Add Member */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Add Member</Text>
+          <Text style={styles.sectionTitle}>{t('hcAdmin.addMember')}</Text>
           <View style={styles.addRow}>
             <TextInput
               style={styles.input}
               value={newName}
               onChangeText={setNewName}
-              placeholder="Full name…"
+              placeholder={t('hcAdmin.namePlaceholder')}
               placeholderTextColor={Colors.gray[400]}
               onSubmitEditing={handleAdd}
               returnKeyType="done"
             />
             <Button
-              title="Add"
+              title={t('hcAdmin.add')}
               onPress={handleAdd}
               loading={adding}
               disabled={!newName.trim() || adding}
@@ -121,11 +123,11 @@ export function HCAdminScreen({ navigation }: any) {
 
         {/* Member List */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Members</Text>
+          <Text style={styles.sectionTitle}>{t('hcAdmin.members')}</Text>
           {loading ? (
             <ActivityIndicator color={Colors.primary} style={{ padding: Spacing.lg }} />
           ) : members.length === 0 ? (
-            <Text style={styles.empty}>No members added yet.</Text>
+            <Text style={styles.empty}>{t('hcAdmin.noMembers')}</Text>
           ) : (
             members.map(member => (
               <View key={member.id} style={styles.memberRow}>
@@ -146,7 +148,7 @@ export function HCAdminScreen({ navigation }: any) {
                   {member.name}
                 </Text>
                 {!member.active && (
-                  <Text style={styles.inactiveLabel}>inactive</Text>
+                  <Text style={styles.inactiveLabel}>{t('hcAdmin.inactive')}</Text>
                 )}
                 <TouchableOpacity
                   style={styles.deleteBtn}
@@ -159,9 +161,7 @@ export function HCAdminScreen({ navigation }: any) {
           )}
         </View>
 
-        <Text style={styles.hint}>
-          Active members count toward the ≥50% approval threshold for callings. Toggle a member inactive to exclude them without deleting their record.
-        </Text>
+        <Text style={styles.hint}>{t('hcAdmin.hint')}</Text>
       </ScrollView>
     </View>
   );

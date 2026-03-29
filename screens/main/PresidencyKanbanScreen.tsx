@@ -11,25 +11,27 @@ import { Calling, CallingType } from '../../lib/database.types';
 import { KanbanColumn } from '../../components/kanban/KanbanColumn';
 import { DisclaimerFooter } from '../../components/ui/DisclaimerFooter';
 import { Colors, Spacing, FontSize, Radius } from '../../constants/theme';
+import { useLanguage } from '../../context/LanguageContext';
 
 const ACTIVE_STAGES = ['ideas', 'for_approval', 'stake_approved'];
-
-const ACTIVE_COLUMNS = [
-  { stage: 'ideas', label: 'Ideas', color: Colors.stage.ideas },
-  { stage: 'for_approval', label: 'For Approval', color: Colors.stage.for_approval },
-  { stage: 'stake_approved', label: 'Approved', color: Colors.stage.stake_approved },
-];
-
-const TYPE_FILTERS: { label: string; value: CallingType | 'all' }[] = [
-  { label: 'All', value: 'all' },
-  { label: 'Ward', value: 'ward_calling' },
-  { label: 'Stake', value: 'stake_calling' },
-  { label: 'MP', value: 'mp_ordination' },
-];
 
 export function PresidencyKanbanScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { profile } = useAuth();
+  const { t } = useLanguage();
+
+  const ACTIVE_COLUMNS = [
+    { stage: 'ideas', label: t('stage.ideas'), color: Colors.stage.ideas },
+    { stage: 'for_approval', label: t('stage.for_approval'), color: Colors.stage.for_approval },
+    { stage: 'stake_approved', label: t('stage.stake_approved'), color: Colors.stage.stake_approved },
+  ];
+
+  const TYPE_FILTERS: { label: string; value: CallingType | 'all' }[] = [
+    { label: t('spBoard.filterAll'), value: 'all' },
+    { label: t('type.ward_calling_short'), value: 'ward_calling' },
+    { label: t('type.stake_calling_short'), value: 'stake_calling' },
+    { label: t('type.mp_ordination_short'), value: 'mp_ordination' },
+  ];
   const [callings, setCallings] = useState<Calling[]>([]);
   const [rejectedCallings, setRejectedCallings] = useState<Calling[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -76,7 +78,7 @@ export function PresidencyKanbanScreen({ navigation }: any) {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Stake Presidency</Text>
+        <Text style={styles.title}>{t('spBoard.title')}</Text>
       </View>
       <ScrollView
         horizontal
@@ -114,7 +116,7 @@ export function PresidencyKanbanScreen({ navigation }: any) {
         ))}
         {canSeeRejected && (
           <KanbanColumn
-            title="Declined"
+            title={t('detail.declined')}
             color={Colors.error}
             callings={rejectedCallings}
             onCardPress={(c) => navigation.navigate('CallingDetail', { callingId: c.id })}
@@ -150,5 +152,5 @@ const styles = StyleSheet.create({
   filterText: { fontSize: FontSize.sm, color: Colors.gray[600] },
   filterTextActive: { color: Colors.primary, fontWeight: '700' },
   board: { flex: 1 },
-  boardContent: { padding: Spacing.md, flexDirection: 'row', alignItems: 'flex-start' },
+  boardContent: { padding: Spacing.md, flexDirection: 'row', alignItems: 'stretch' },
 });

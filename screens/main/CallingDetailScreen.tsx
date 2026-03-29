@@ -9,6 +9,7 @@ import { format } from 'date-fns';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { Calling, CallingLogEntry, WardSustaining, Ward, Stage, Profile } from '../../lib/database.types';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
@@ -21,11 +22,7 @@ import {
 } from '../../lib/permissions';
 import { notifyStageChange, notifyRejection } from '../../lib/slack';
 
-const TYPE_LABELS: Record<string, string> = {
-  ward_calling: 'Ward Calling',
-  stake_calling: 'Stake Calling',
-  mp_ordination: 'MP Ordination',
-};
+// TYPE_LABELS is built inside CallingDetailScreen using t()
 const TYPE_COLORS: Record<string, string> = {
   ward_calling: Colors.info,
   stake_calling: '#8B5CF6',
@@ -38,12 +35,13 @@ const TYPE_ICONS: Record<string, any> = {
 };
 
 // SP roles in order — stake_clerk and exec_secretary are optional (informational only)
+// Labels are injected via t() inside each component that renders them
 const SP_ROLES = [
-  { role: 'stake_president', label: 'Stake President', required: true },
-  { role: 'first_counselor', label: 'First Counselor', required: true },
-  { role: 'second_counselor', label: 'Second Counselor', required: true },
-  { role: 'stake_clerk', label: 'Stake Clerk', required: false },
-  { role: 'exec_secretary', label: 'Exec. Secretary', required: false },
+  { role: 'stake_president', required: true },
+  { role: 'first_counselor', required: true },
+  { role: 'second_counselor', required: true },
+  { role: 'stake_clerk', required: false },
+  { role: 'exec_secretary', required: false },
 ];
 
 function formatDate(d?: string | null) {
@@ -60,9 +58,10 @@ function WardSustainingSection({ wards, sustainings, canToggle, onToggle }: {
   wards: Ward[]; sustainings: WardSustaining[]; canToggle: boolean;
   onToggle: (wardId: string, existing: WardSustaining | undefined) => Promise<void>;
 }) {
+  const { t } = useLanguage();
   return (
     <View style={wsStyles.container}>
-      <Text style={wsStyles.title}>Ward Sustainings</Text>
+      <Text style={wsStyles.title}>{t('detail.wardSustainings')}</Text>
       <View style={wsStyles.grid}>
         {wards.map(ward => {
           const s = sustainings.find(sx => sx.ward_id === ward.id);
@@ -75,7 +74,7 @@ function WardSustainingSection({ wards, sustainings, canToggle, onToggle }: {
           );
         })}
       </View>
-      <Text style={wsStyles.hint}>{sustainings.filter(s => s.sustained).length}/{wards.length} wards sustained</Text>
+      <Text style={wsStyles.hint}>{sustainings.filter(s => s.sustained).length}/{wards.length} {t('detail.wardsSustained')}</Text>
     </View>
   );
 }
@@ -97,6 +96,14 @@ interface SPApproval { id: string; calling_id: string; role: string; approved: b
 function StakePresidencyApprovalSection({ callingId, approvals, canToggle, userRole, onToggle, showOverrideNote }: {
   callingId: string; approvals: SPApproval[]; canToggle: boolean; userRole?: string; onToggle: (role: string, current: boolean) => Promise<void>; showOverrideNote?: boolean;
 }) {
+  const { t } = useLanguage();
+  const SP_ROLES_LABELED = [
+    { role: 'stake_president', label: t('role.stake_president'), required: true },
+    { role: 'first_counselor', label: t('role.first_counselor'), required: true },
+    { role: 'second_counselor', label: t('role.second_counselor'), required: true },
+    { role: 'stake_clerk', label: t('role.stake_clerk'), required: false },
+    { role: 'exec_secretary', label: t('role.exec_secretary'), required: false },
+  ];
   const presidentApproved = approvals.find(a => a.role === 'stake_president')?.approved ?? false;
   const requiredApproved = SP_ROLES.filter(r => r.required).every(r => approvals.find(a => a.role === r.role)?.approved ?? false);
   const approvedCount = SP_ROLES.filter(r => r.required && (approvals.find(a => a.role === r.role)?.approved ?? false)).length;
@@ -104,8 +111,8 @@ function StakePresidencyApprovalSection({ callingId, approvals, canToggle, userR
 
   return (
     <View style={spStyles.container}>
-      <Text style={spStyles.title}>Stake Presidency Approval</Text>
-      {SP_ROLES.map(({ role, label, required }) => {
+      <Text style={spStyles.title}>{t('detail.stakePresidencyApproval')}</Text>
+      {SP_ROLES_LABELED.map(({ role, label, required }) => {
         const rec = approvals.find(a => a.role === role);
         const isApproved = rec?.approved ?? false;
         const canCheck = canToggle && (userRole === role || userRole === 'stake_president' || userRole === 'stake_clerk' || userRole === 'exec_secretary');
@@ -114,18 +121,18 @@ function StakePresidencyApprovalSection({ callingId, approvals, canToggle, userR
             <View style={[spStyles.checkbox, isApproved && spStyles.checkboxOn]}>
               {isApproved && <Text style={spStyles.checkMark}>✓</Text>}
             </View>
-            <Text style={[spStyles.label, !required && spStyles.labelOptional]}>{label}{!required ? ' (optional)' : ''}</Text>
+            <Text style={[spStyles.label, !required && spStyles.labelOptional]}>{label}{!required ? ` ${t('detail.optional')}` : ''}</Text>
             {isApproved && rec?.approved_at && <Text style={spStyles.date}>{format(new Date(rec.approved_at), 'M/d')}</Text>}
           </TouchableOpacity>
         );
       })}
       <Text style={[spStyles.status, isReady && spStyles.statusReady]}>
-        {approvedCount}/3 approved
-        {presidentApproved ? ' — Stake President approved ✓' : requiredApproved ? ' — All approved ✓' : ' — Awaiting approval'}
+        {approvedCount}/3 {t('detail.approved')}
+        {presidentApproved ? ` — ${t('detail.spApproved')}` : requiredApproved ? ` — ${t('detail.allApproved')}` : ` — ${t('detail.awaitingApproval')}`}
       </Text>
       {showOverrideNote && presidentApproved && (
         <View style={spStyles.overrideBanner}>
-          <Text style={spStyles.overrideBannerText}>✓ Stake President override applied — HC threshold bypassed</Text>
+          <Text style={spStyles.overrideBannerText}>{t('detail.spOverrideApplied')}</Text>
         </View>
       )}
     </View>
@@ -154,6 +161,7 @@ interface HCApproval { id: string; calling_id: string; hc_member_id: string; app
 function HCApprovalSection({ hcMembers, hcApprovals, canToggle, spOverride, onToggle }: {
   hcMembers: HCMember[]; hcApprovals: HCApproval[]; canToggle: boolean; spOverride: boolean; onToggle: (memberId: string, current: boolean) => Promise<void>;
 }) {
+  const { t } = useLanguage();
   const activeMembers = hcMembers.filter(m => m.active);
   const approvedCount = hcApprovals.filter(a => a.approved).length;
   const needed = Math.ceil(activeMembers.length / 2);
@@ -162,8 +170,8 @@ function HCApprovalSection({ hcMembers, hcApprovals, canToggle, spOverride, onTo
   if (activeMembers.length === 0) {
     return (
       <View style={hcStyles.container}>
-        <Text style={hcStyles.title}>High Council Approval</Text>
-        <Text style={hcStyles.empty}>No HC members configured. Go to Settings → Manage High Council.</Text>
+        <Text style={hcStyles.title}>{t('detail.highCouncilApproval')}</Text>
+        <Text style={hcStyles.empty}>{t('detail.noHCConfigured')}</Text>
       </View>
     );
   }
@@ -171,8 +179,8 @@ function HCApprovalSection({ hcMembers, hcApprovals, canToggle, spOverride, onTo
   return (
     <View style={hcStyles.container}>
       <View style={hcStyles.titleRow}>
-        <Text style={hcStyles.title}>High Council Approval</Text>
-        {spOverride && <View style={hcStyles.overrideBadge}><Text style={hcStyles.overrideBadgeText}>SP Override</Text></View>}
+        <Text style={hcStyles.title}>{t('detail.highCouncilApproval')}</Text>
+        {spOverride && <View style={hcStyles.overrideBadge}><Text style={hcStyles.overrideBadgeText}>{t('detail.spOverride')}</Text></View>}
       </View>
       {activeMembers.map(member => {
         const rec = hcApprovals.find(a => a.hc_member_id === member.id);
@@ -189,12 +197,12 @@ function HCApprovalSection({ hcMembers, hcApprovals, canToggle, spOverride, onTo
       })}
       <Text style={[hcStyles.status, isReady && hcStyles.statusReady]}>
         {spOverride
-          ? 'Stake President override — HC threshold bypassed ✓'
-          : `${approvedCount}/${activeMembers.length} approved — need ${needed}${isReady ? ' ✓' : ''}`}
+          ? `${t('detail.spApproved')} — ${t('detail.hcThresholdMet')}`
+          : `${approvedCount}/${activeMembers.length} ${t('detail.hcApproved')} — ${t('detail.hcNeeded')} ${needed}${isReady ? ` — ${t('detail.hcThresholdMet')}` : ` — ${t('detail.hcAwaitingVotes')}`}`}
       </Text>
       {spOverride && (
         <View style={hcStyles.overrideBanner}>
-          <Text style={hcStyles.overrideBannerText}>✓ Stake Presidency override applied — approved without full HC vote</Text>
+          <Text style={hcStyles.overrideBannerText}>{t('detail.spOverrideApplied')}</Text>
         </View>
       )}
     </View>
@@ -221,6 +229,7 @@ const hcStyles = StyleSheet.create({
 
 // ─── Notes ───────────────────────────────────────────────────────────────────
 function NotesSection({ notes, canEdit, onSave }: { notes: string; canEdit: boolean; onSave: (text: string) => Promise<void>; }) {
+  const { t } = useLanguage();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(notes);
   const [saving, setSaving] = useState(false);
@@ -235,10 +244,10 @@ function NotesSection({ notes, canEdit, onSave }: { notes: string; canEdit: bool
   return (
     <View style={notesStyles.container}>
       <View style={notesStyles.header}>
-        <Text style={notesStyles.title}>Notes</Text>
+        <Text style={notesStyles.title}>{t('detail.notes')}</Text>
         {canEdit && !editing && (
           <TouchableOpacity onPress={() => { setDraft(notes); setEditing(true); }}>
-            <Text style={notesStyles.editBtn}>Edit</Text>
+            <Text style={notesStyles.editBtn}>{t('detail.edit')}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -249,21 +258,21 @@ function NotesSection({ notes, canEdit, onSave }: { notes: string; canEdit: bool
             value={draft}
             onChangeText={setDraft}
             multiline
-            placeholder="Add notes…"
+            placeholder={t('detail.addNotes')}
             autoFocus
           />
           <View style={notesStyles.btnRow}>
             <TouchableOpacity style={notesStyles.cancelBtn} onPress={() => setEditing(false)}>
-              <Text style={notesStyles.cancelText}>Cancel</Text>
+              <Text style={notesStyles.cancelText}>{t('detail.cancel')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={notesStyles.saveBtn} onPress={save} disabled={saving}>
-              <Text style={notesStyles.saveText}>{saving ? 'Saving…' : 'Save'}</Text>
+              <Text style={notesStyles.saveText}>{saving ? t('detail.saving') : t('detail.save')}</Text>
             </TouchableOpacity>
           </View>
         </>
       ) : (
         <Text style={notes ? notesStyles.notesText : notesStyles.placeholder}>
-          {notes || (canEdit ? 'Tap Edit to add notes…' : 'No notes.')}
+          {notes || (canEdit ? t('detail.addNotes') : t('detail.noNotes'))}
         </Text>
       )}
     </View>
@@ -287,33 +296,27 @@ const notesStyles = StyleSheet.create({
 // ─── Task Assignments ─────────────────────────────────────────────────────────
 interface Assignee { name: string; subtitle: string; }
 
-const TASK_FIELDS: { key: string; label: string; locked?: boolean }[] = [
-  { key: 'extend_by', label: 'Extend Calling' },
-  { key: 'sustain_by', label: 'Sustain' },
-  { key: 'set_apart_by', label: 'Set Apart / Ordain' },
-  { key: 'record_by', label: 'Record', locked: true },
-];
-
-const SP_ROLE_LABELS: Record<string, string> = {
-  stake_president: 'Stake President',
-  first_counselor: 'Stake Presidency 1st Counselor',
-  second_counselor: 'Stake Presidency 2nd Counselor',
-};
-
 function TaskAssignmentsSection({ calling, assignees, clerkName, canEdit, onAssign }: {
   calling: Calling; assignees: Assignee[]; clerkName: string | null; canEdit: boolean;
   onAssign: (field: string, name: string | null) => Promise<void>;
 }) {
+  const { t } = useLanguage();
+  const TASK_FIELDS: { key: string; label: string; locked?: boolean }[] = [
+    { key: 'extend_by', label: t('detail.extendCalling') },
+    { key: 'sustain_by', label: t('detail.sustain') },
+    { key: 'set_apart_by', label: t('detail.setApart') },
+    { key: 'record_by', label: t('detail.record'), locked: true },
+  ];
   const [pickerField, setPickerField] = useState<string | null>(null);
   const visibleFields = TASK_FIELDS.filter(f => !(f.key === 'extend_by' && calling.type === 'mp_ordination'));
 
   return (
     <View style={taStyles.container}>
-      <Text style={taStyles.title}>Task Assignments</Text>
+      <Text style={taStyles.title}>{t('detail.taskAssignments')}</Text>
       {visibleFields.map(({ key, label, locked }) => {
         const assignedName = (calling as any)[key] as string | null;
         const isRecord = locked;
-        const displayName = isRecord ? (clerkName ?? 'Stake Clerk') : assignedName;
+        const displayName = isRecord ? (clerkName ?? t('role.stake_clerk')) : assignedName;
         const isFilled = !!displayName && (!isRecord || !!clerkName);
         return (
           <View key={key} style={taStyles.row}>
@@ -324,7 +327,7 @@ function TaskAssignmentsSection({ calling, assignees, clerkName, canEdit, onAssi
               disabled={isRecord || !canEdit}
             >
               <Text style={[taStyles.assignBtnText, isFilled && taStyles.assignBtnTextFilled]}>
-                {displayName ?? 'Assign…'}
+                {displayName ?? t('detail.assign')}
               </Text>
               {!isRecord && canEdit && <Text style={taStyles.assignArrow}>▼</Text>}
               {isRecord && <Text style={taStyles.lockedIcon}>🔒</Text>}
@@ -336,12 +339,12 @@ function TaskAssignmentsSection({ calling, assignees, clerkName, canEdit, onAssi
       <Modal visible={!!pickerField} transparent animationType="slide" onRequestClose={() => setPickerField(null)}>
         <TouchableOpacity style={taStyles.modalOverlay} activeOpacity={1} onPress={() => setPickerField(null)}>
           <View style={taStyles.modalSheet} onStartShouldSetResponder={() => true}>
-            <Text style={taStyles.modalTitle}>Assign {TASK_FIELDS.find(f => f.key === pickerField)?.label}</Text>
+            <Text style={taStyles.modalTitle}>{t('detail.assignLabel')} {TASK_FIELDS.find(f => f.key === pickerField)?.label}</Text>
             <TouchableOpacity
               style={taStyles.modalItem}
               onPress={() => { if (pickerField) onAssign(pickerField, null); setPickerField(null); }}
             >
-              <Text style={[taStyles.modalItemText, { color: Colors.gray[400] }]}>— Unassign —</Text>
+              <Text style={[taStyles.modalItemText, { color: Colors.gray[400] }]}>{t('detail.unassign')}</Text>
             </TouchableOpacity>
             <FlatList
               data={assignees}
@@ -388,6 +391,19 @@ export function CallingDetailScreen({ route, navigation }: any) {
   const { callingId } = route.params;
   const insets = useSafeAreaInsets();
   const { profile } = useAuth();
+  const { t } = useLanguage();
+
+  const TYPE_LABELS: Record<string, string> = {
+    ward_calling: t('type.ward_calling'),
+    stake_calling: t('type.stake_calling'),
+    mp_ordination: t('type.mp_ordination'),
+  };
+
+  const SP_ROLE_LABELS: Record<string, string> = {
+    stake_president: t('role.stake_president'),
+    first_counselor: t('role.first_counselor'),
+    second_counselor: t('role.second_counselor'),
+  };
 
   const [calling, setCalling] = useState<Calling | null>(null);
   const [log, setLog] = useState<CallingLogEntry[]>([]);
@@ -510,12 +526,12 @@ export function CallingDetailScreen({ route, navigation }: any) {
 
     if (!approvalsReady(profile.role)) {
       const msg = calling.stage === 'for_approval'
-        ? 'All three Stake Presidency members must approve before advancing.'
+        ? t('detail.allThreeMustApprove')
         : calling.stage === 'sustain' && calling.type === 'stake_calling'
-        ? 'All wards must be sustained before advancing. Stake Presidency, Clerk, or Executive Secretary can override.'
-        : 'At least half of the High Council must approve before advancing.';
+        ? t('detail.allWardsMustSustain')
+        : t('detail.halfHCMustApprove');
       if (Platform.OS === 'web') window.alert(msg);
-      else Alert.alert('Approvals Needed', msg);
+      else Alert.alert(t('detail.approvalsNeeded'), msg);
       return;
     }
 
@@ -538,7 +554,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
     }).catch(() => {});
 
     await fetchData();
-    setSuccessMsg(`Moved to: ${STAGE_LABELS[next]}`);
+    setSuccessMsg(`${t('detail.movedTo')} ${STAGE_LABELS[next]}`);
     setTimeout(() => setSuccessMsg(''), 3000);
     setActionLoading(false);
   }
@@ -549,11 +565,11 @@ export function CallingDetailScreen({ route, navigation }: any) {
     if (!prev) return;
 
     const confirm = Platform.OS === 'web'
-      ? window.confirm(`Move back to "${STAGE_LABELS[prev]}"?`)
+      ? window.confirm(`${t('detail.moveBackConfirm')} "${STAGE_LABELS[prev]}"?`)
       : await new Promise<boolean>(resolve =>
-          Alert.alert('Move Back', `Move this calling back to "${STAGE_LABELS[prev]}"?`, [
-            { text: 'Cancel', onPress: () => resolve(false) },
-            { text: 'Move Back', style: 'destructive', onPress: () => resolve(true) },
+          Alert.alert(t('detail.moveBack'), `${t('detail.moveBackConfirm')} "${STAGE_LABELS[prev]}"?`, [
+            { text: t('detail.cancel'), onPress: () => resolve(false) },
+            { text: t('detail.moveBack'), style: 'destructive', onPress: () => resolve(true) },
           ])
         );
     if (!confirm) return;
@@ -561,11 +577,11 @@ export function CallingDetailScreen({ route, navigation }: any) {
     setActionLoading(true);
     await supabase.from('callings').update({ stage: prev, completed_at: null }).eq('id', calling.id);
     await supabase.from('calling_log').insert({
-      calling_id: calling.id, action: `Moved back to ${STAGE_LABELS[prev]}`,
+      calling_id: calling.id, action: `${t('detail.movedBack')} ${STAGE_LABELS[prev]}`,
       from_stage: calling.stage, to_stage: prev, performed_by: profile.id,
     });
     await fetchData();
-    setSuccessMsg(`Moved back to: ${STAGE_LABELS[prev]}`);
+    setSuccessMsg(`${t('detail.movedBack')} ${STAGE_LABELS[prev]}`);
     setTimeout(() => setSuccessMsg(''), 3000);
     setActionLoading(false);
   }
@@ -573,11 +589,11 @@ export function CallingDetailScreen({ route, navigation }: any) {
   async function handleDelete() {
     if (!calling || !profile) return;
     const confirm = Platform.OS === 'web'
-      ? window.confirm(`Are you sure you want to delete this entry for ${calling.member_name}? This cannot be undone.`)
+      ? window.confirm(`${t('detail.deleteConfirm')} ${calling.member_name}? ${t('detail.deleteCannotUndo')}`)
       : await new Promise<boolean>(resolve =>
-          Alert.alert('Delete Entry', `Are you sure you want to delete this entry for ${calling.member_name}? This cannot be undone.`, [
-            { text: 'Cancel', onPress: () => resolve(false) },
-            { text: 'Delete', style: 'destructive', onPress: () => resolve(true) },
+          Alert.alert(t('detail.deleteEntry'), `${t('detail.deleteConfirm')} ${calling.member_name}? ${t('detail.deleteCannotUndo')}`, [
+            { text: t('detail.cancel'), onPress: () => resolve(false) },
+            { text: t('detail.delete'), style: 'destructive', onPress: () => resolve(true) },
           ])
         );
     if (!confirm) return;
@@ -599,11 +615,11 @@ export function CallingDetailScreen({ route, navigation }: any) {
     // If no notes, ask the user if they want to add some before proceeding
     if (!rejectionNotes.trim()) {
       const proceed = Platform.OS === 'web'
-        ? window.confirm('No notes added. Decline this calling without a reason?')
+        ? window.confirm(t('detail.declineWithoutReason'))
         : await new Promise<boolean>(resolve =>
-            Alert.alert('No Notes Added', 'Would you like to add a reason for declining?', [
-              { text: 'Add Notes', style: 'cancel', onPress: () => resolve(false) },
-              { text: 'Decline Anyway', style: 'destructive', onPress: () => resolve(true) },
+            Alert.alert(t('detail.noNotesAdded'), t('detail.declineWithoutReason'), [
+              { text: t('detail.addNoteFirst'), style: 'cancel', onPress: () => resolve(false) },
+              { text: t('detail.declineAnyway'), style: 'destructive', onPress: () => resolve(true) },
             ])
           );
       if (!proceed) return;
@@ -639,7 +655,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
     return <View style={[styles.loading, { paddingTop: insets.top }]}><ActivityIndicator color={Colors.primary} size="large" /></View>;
   }
   if (!calling) {
-    return <View style={[styles.loading, { paddingTop: insets.top }]}><Text style={styles.notFound}>Calling not found.</Text><Button title="Go Back" onPress={() => navigation.goBack()} variant="outline" /></View>;
+    return <View style={[styles.loading, { paddingTop: insets.top }]}><Text style={styles.notFound}>{t('detail.notFound')}</Text><Button title={t('detail.goBack')} onPress={() => navigation.goBack()} variant="outline" /></View>;
   }
 
   const role = profile?.role;
@@ -651,7 +667,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
 
   // Build list of assignable people: SP members table + active HC members
   const spAssignees: Assignee[] = spMembers.map(m => ({ name: m.name, subtitle: SP_ROLE_LABELS[m.role] ?? m.role }));
-  const hcAssignees: Assignee[] = hcMembers.map(m => ({ name: m.name, subtitle: 'High Councilor' }));
+  const hcAssignees: Assignee[] = hcMembers.map(m => ({ name: m.name, subtitle: t('role.high_councilor') }));
   const taskAssignees: Assignee[] = [...spAssignees, ...hcAssignees];
 
   const clerkName = allProfiles.find(p => p.role === 'stake_clerk')?.full_name ?? null;
@@ -702,12 +718,12 @@ export function CallingDetailScreen({ route, navigation }: any) {
           <View style={styles.rejectedBanner}>
             <View style={styles.rejectedRow}>
               <Ionicons name="close-circle" size={20} color={Colors.error} />
-              <Text style={styles.rejectedTitle}>Declined</Text>
+              <Text style={styles.rejectedTitle}>{t('detail.declined')}</Text>
             </View>
             {calling.rejection_notes ? <Text style={styles.rejectedNotes}>{calling.rejection_notes}</Text> : null}
             {(role === 'stake_president' || role === 'stake_clerk') && (
               <TouchableOpacity onPress={handleUnreject} style={styles.unrejectBtn}>
-                <Text style={styles.unrejectBtnText}>Clear Decline</Text>
+                <Text style={styles.unrejectBtnText}>{t('detail.clearDecline')}</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -725,7 +741,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
           <Text style={styles.sectionTitle}>Details</Text>
           <View style={styles.infoGrid}>
             <View style={styles.infoItem}>
-              <Text style={styles.infoLabel}>Ward</Text>
+              <Text style={styles.infoLabel}>{t('detail.ward')}</Text>
               <Text style={styles.infoValue}>{calling.wards?.name ?? 'TBD'}</Text>
             </View>
             <View style={styles.infoItem}>
@@ -745,7 +761,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
               </View>
             )}
             <View style={styles.infoItem}>
-              <Text style={styles.infoLabel}>Created By</Text>
+              <Text style={styles.infoLabel}>{t('detail.createdBy')}</Text>
               <Text style={styles.infoValue}>{calling.profiles?.full_name ?? '—'}</Text>
             </View>
             <View style={styles.infoItem}>
@@ -823,11 +839,11 @@ export function CallingDetailScreen({ route, navigation }: any) {
               <Button title={advanceLabel} onPress={handleAdvance} loading={actionLoading} fullWidth size="lg" style={styles.advanceBtn} />
             )}
             {canRejectCalling && !calling.rejected && (
-              <Button title="Decline" onPress={() => setShowRejectModal(true)} variant="danger" fullWidth style={styles.rejectBtn} />
+              <Button title={t('detail.decline')} onPress={() => setShowRejectModal(true)} variant="danger" fullWidth style={styles.rejectBtn} />
             )}
             {canBack && prevStage && !calling.rejected && (
               <Button
-                title={`← Move Back to ${STAGE_LABELS[prevStage]}`}
+                title={`← ${t('detail.moveBack')} ${STAGE_LABELS[prevStage]}`}
                 onPress={handleMoveBack}
                 variant="outline"
                 fullWidth
@@ -843,9 +859,9 @@ export function CallingDetailScreen({ route, navigation }: any) {
 
         {/* Activity Log */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Activity Log</Text>
+          <Text style={styles.sectionTitle}>{t('detail.activityLog')}</Text>
           {visibleLog.length === 0 ? (
-            <Text style={styles.emptyLog}>No activity yet.</Text>
+            <Text style={styles.emptyLog}>{t('detail.noActivity')}</Text>
           ) : (
             visibleLog.map((entry, index) => (
               <View key={entry.id} style={styles.logEntry}>
@@ -873,19 +889,19 @@ export function CallingDetailScreen({ route, navigation }: any) {
       <Modal visible={showRejectModal} transparent animationType="slide" onRequestClose={() => setShowRejectModal(false)}>
         <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowRejectModal(false)}>
           <View style={styles.modalSheet} onStartShouldSetResponder={() => true}>
-            <Text style={styles.modalTitle}>Decline Calling</Text>
-            <Text style={styles.modalSubtitle}>Add a reason for declining this calling (recommended).</Text>
+            <Text style={styles.modalTitle}>{t('detail.declineCalling')}</Text>
+            <Text style={styles.modalSubtitle}>{t('detail.declineCallingDesc')}</Text>
             <TextInput
               style={styles.modalInput}
               value={rejectionNotes}
               onChangeText={setRejectionNotes}
-              placeholder="Reason for declining…"
+              placeholder={t('detail.declineReasonPlaceholder')}
               placeholderTextColor={Colors.gray[400]}
               multiline numberOfLines={4}
             />
             <View style={styles.modalActions}>
-              <Button title="Cancel" onPress={() => { setShowRejectModal(false); setRejectionNotes(''); }} variant="outline" style={styles.modalBtn} />
-              <Button title="Confirm Decline" onPress={handleReject} variant="danger" loading={rejectLoading} style={styles.modalBtn} />
+              <Button title={t('detail.cancel')} onPress={() => { setShowRejectModal(false); setRejectionNotes(''); }} variant="outline" style={styles.modalBtn} />
+              <Button title={t('detail.confirmDecline')} onPress={handleReject} variant="danger" loading={rejectLoading} style={styles.modalBtn} />
             </View>
           </View>
         </TouchableOpacity>

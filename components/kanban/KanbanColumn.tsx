@@ -4,6 +4,7 @@ import { Colors, Spacing, Radius, FontSize } from '../../constants/theme';
 import { CallingCard } from './CallingCard';
 import { Calling } from '../../lib/database.types';
 import { EmptyState } from '../ui/EmptyState';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface Props {
   title: string;
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export function KanbanColumn({ title, callings, onCardPress, color = Colors.primary }: Props) {
+  const { t } = useLanguage();
   return (
     <View style={styles.column}>
       <View style={[styles.header, { borderTopColor: color }]}>
@@ -21,9 +23,9 @@ export function KanbanColumn({ title, callings, onCardPress, color = Colors.prim
           <Text style={styles.badgeText}>{callings.length}</Text>
         </View>
       </View>
-      <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false} nestedScrollEnabled>
         {callings.length === 0 ? (
-          <EmptyState icon="list-outline" title="Nothing here" />
+          <EmptyState icon="list-outline" title={t('hcBoard.nothingHere')} />
         ) : (
           callings.map(c => (
             <CallingCard key={c.id} calling={c} onPress={() => onCardPress(c)} />

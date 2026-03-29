@@ -4,27 +4,28 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme';
 import { DisclaimerFooter } from '../../components/ui/DisclaimerFooter';
-
-const ROLES = [
-  { key: 'stake_president', label: 'Stake President' },
-  { key: 'first_counselor', label: '1st Counselor' },
-  { key: 'second_counselor', label: '2nd Counselor' },
-  { key: 'stake_clerk', label: 'Stake Clerk' },
-  { key: 'exec_secretary', label: 'Exec Secretary' },
-  { key: 'high_councilor', label: 'High Councilor' },
-];
+import { useLanguage } from '../../context/LanguageContext';
 
 type PermValue = boolean | string;
 
 interface Permission {
-  label: string;
+  labelKey: string;
   values: Record<string, PermValue>;
-  note?: string;
+  noteKey?: string;
 }
+
+const ROLE_KEYS = [
+  'stake_president',
+  'first_counselor',
+  'second_counselor',
+  'stake_clerk',
+  'exec_secretary',
+  'high_councilor',
+];
 
 const PERMISSIONS: Permission[] = [
   {
-    label: 'SP Board Access',
+    labelKey: 'permissions.spBoard',
     values: {
       stake_president: true,
       first_counselor: true,
@@ -35,19 +36,19 @@ const PERMISSIONS: Permission[] = [
     },
   },
   {
-    label: 'Advance: For Approval',
+    labelKey: 'permissions.advanceForApproval',
     values: {
-      stake_president: 'Anytime',
-      first_counselor: 'All 3 approved',
-      second_counselor: 'All 3 approved',
-      stake_clerk: 'All 3 approved',
+      stake_president: 'anytime',
+      first_counselor: 'all3',
+      second_counselor: 'all3',
+      stake_clerk: 'all3',
       exec_secretary: false,
       high_councilor: false,
     },
-    note: 'Stake President can advance unilaterally. Others require all three presidency members to have approved.',
+    noteKey: 'permissions.advanceForApprovalNote',
   },
   {
-    label: 'HC Board Access',
+    labelKey: 'permissions.hcBoard',
     values: {
       stake_president: true,
       first_counselor: true,
@@ -58,19 +59,19 @@ const PERMISSIONS: Permission[] = [
     },
   },
   {
-    label: 'Advance: HC Approval',
+    labelKey: 'permissions.advanceHC',
     values: {
-      stake_president: 'Anytime',
-      first_counselor: 'Anytime',
-      second_counselor: 'Anytime',
-      stake_clerk: 'Anytime',
+      stake_president: 'anytime',
+      first_counselor: 'anytime',
+      second_counselor: 'anytime',
+      stake_clerk: 'anytime',
       exec_secretary: false,
-      high_councilor: '>50% approved',
+      high_councilor: '50pct',
     },
-    note: 'SP and Stake Clerk can advance without waiting for HC votes. HC members need more than 50% of active HC members to approve.',
+    noteKey: 'permissions.advanceHCNote',
   },
   {
-    label: 'Decline Callings',
+    labelKey: 'permissions.declineCallings',
     values: {
       stake_president: true,
       first_counselor: true,
@@ -79,10 +80,10 @@ const PERMISSIONS: Permission[] = [
       exec_secretary: true,
       high_councilor: true,
     },
-    note: 'All users can decline a calling (except at Ideas or Complete stage).',
+    noteKey: 'permissions.declineCallingNote',
   },
   {
-    label: 'See Declined Cards',
+    labelKey: 'permissions.seeDeclined',
     values: {
       stake_president: true,
       first_counselor: false,
@@ -91,10 +92,10 @@ const PERMISSIONS: Permission[] = [
       exec_secretary: false,
       high_councilor: false,
     },
-    note: 'Only the Stake President can see the Declined column on the SP Board.',
+    noteKey: 'permissions.seeDeclinedNote',
   },
   {
-    label: 'Delete Callings',
+    labelKey: 'permissions.deleteCallings',
     values: {
       stake_president: true,
       first_counselor: true,
@@ -105,7 +106,7 @@ const PERMISSIONS: Permission[] = [
     },
   },
   {
-    label: 'Move Back Stage',
+    labelKey: 'permissions.moveBack',
     values: {
       stake_president: true,
       first_counselor: true,
@@ -116,7 +117,7 @@ const PERMISSIONS: Permission[] = [
     },
   },
   {
-    label: 'Manage Users & Settings',
+    labelKey: 'permissions.manageUsers',
     values: {
       stake_president: true,
       first_counselor: false,
@@ -125,11 +126,11 @@ const PERMISSIONS: Permission[] = [
       exec_secretary: true,
       high_councilor: false,
     },
-    note: 'Includes approving/rejecting user accounts, Slack settings, and managing SP/HC rosters.',
+    noteKey: 'permissions.manageUsersNote',
   },
 ];
 
-function PermCell({ value }: { value: PermValue }) {
+function PermCell({ value, t }: { value: PermValue; t: (key: string) => string }) {
   if (value === true) {
     return (
       <View style={[styles.cell, styles.cellYes]}>
@@ -144,15 +145,36 @@ function PermCell({ value }: { value: PermValue }) {
       </View>
     );
   }
+  // Resolve token strings to translated labels
+  let displayValue: string;
+  if (value === 'anytime') {
+    displayValue = t('permissions.advanceForApprovalAnytime');
+  } else if (value === 'all3') {
+    displayValue = t('permissions.advanceForApprovalAll3');
+  } else if (value === '50pct') {
+    displayValue = t('permissions.advanceHC50');
+  } else {
+    displayValue = value as string;
+  }
   return (
     <View style={[styles.cell, styles.cellPartial]}>
-      <Text style={styles.cellPartialText} numberOfLines={2}>{value as string}</Text>
+      <Text style={styles.cellPartialText} numberOfLines={2}>{displayValue}</Text>
     </View>
   );
 }
 
 export function PermissionsTableScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const { t } = useLanguage();
+
+  const roleLabels: Record<string, string> = {
+    stake_president: t('role.stake_president'),
+    first_counselor: t('role.first_counselor'),
+    second_counselor: t('role.second_counselor'),
+    stake_clerk: t('role.stake_clerk'),
+    exec_secretary: t('role.exec_secretary'),
+    high_councilor: t('role.high_councilor'),
+  };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -160,50 +182,48 @@ export function PermissionsTableScreen({ navigation }: any) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Ionicons name="chevron-back" size={24} color={Colors.primary} />
         </TouchableOpacity>
-        <Text style={styles.title}>Access Permissions</Text>
+        <Text style={styles.title}>{t('permissions.title')}</Text>
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.intro}>
-          This table shows what each role can do in Magnify. To change a role's permissions, contact your app administrator.
-        </Text>
+        <Text style={styles.intro}>{t('permissions.intro')}</Text>
 
         {PERMISSIONS.map((perm) => (
-          <View key={perm.label} style={styles.section}>
-            <Text style={styles.permLabel}>{perm.label}</Text>
+          <View key={perm.labelKey} style={styles.section}>
+            <Text style={styles.permLabel}>{t(perm.labelKey as any)}</Text>
             <View style={styles.roleRow}>
-              {ROLES.map((role) => (
-                <View key={role.key} style={styles.roleCol}>
-                  <Text style={styles.roleHeader} numberOfLines={2}>{role.label}</Text>
-                  <PermCell value={perm.values[role.key]} />
+              {ROLE_KEYS.map((roleKey) => (
+                <View key={roleKey} style={styles.roleCol}>
+                  <Text style={styles.roleHeader} numberOfLines={2}>{roleLabels[roleKey]}</Text>
+                  <PermCell value={perm.values[roleKey]} t={t as (key: string) => string} />
                 </View>
               ))}
             </View>
-            {perm.note && <Text style={styles.note}>{perm.note}</Text>}
+            {perm.noteKey && <Text style={styles.note}>{t(perm.noteKey as any)}</Text>}
           </View>
         ))}
 
         <DisclaimerFooter />
 
         <View style={styles.legend}>
-          <Text style={styles.legendTitle}>Legend</Text>
+          <Text style={styles.legendTitle}>{t('permissions.legend')}</Text>
           <View style={styles.legendRow}>
             <View style={styles.legendCell}>
               <Ionicons name="checkmark" size={14} color={Colors.success} />
             </View>
-            <Text style={styles.legendText}>Permitted</Text>
+            <Text style={styles.legendText}>{t('permissions.permitted')}</Text>
           </View>
           <View style={styles.legendRow}>
             <View style={[styles.legendCell, styles.cellNo]}>
               <Text style={styles.cellNoText}>—</Text>
             </View>
-            <Text style={styles.legendText}>Not permitted</Text>
+            <Text style={styles.legendText}>{t('permissions.notPermitted')}</Text>
           </View>
           <View style={styles.legendRow}>
             <View style={[styles.legendCell, styles.cellPartial]}>
               <Text style={styles.cellPartialText}>Cond.</Text>
             </View>
-            <Text style={styles.legendText}>Permitted with conditions (see note)</Text>
+            <Text style={styles.legendText}>{t('permissions.conditionalPermit')}</Text>
           </View>
         </View>
       </ScrollView>

@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.3.0',
+    date: '2026-03-29',
+    enhancements: [
+      'Full Spanish language support — switch between English and Spanish in Settings',
+      'Language preference is saved and persists across sessions',
+      'All screens, modals, labels, and buttons are fully translated',
+      'Kanban columns now scroll when content fills the screen',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '1.2.0',
     date: '2026-03-29',
     enhancements: [

@@ -1,13 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Colors, FontSize, Spacing } from '../../constants/theme';
+import { useLanguage } from '../../context/LanguageContext';
 
 export function DisclaimerFooter() {
+  const { t } = useLanguage();
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>
-        This app is not an official app from The Church of Jesus Christ of Latter-day Saints.
-      </Text>
+      <Text style={styles.text}>{t('app.disclaimer')}</Text>
     </View>
   );
 }

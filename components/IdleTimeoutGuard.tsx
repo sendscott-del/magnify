@@ -2,10 +2,11 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, Platform } from 'react-native';
 import { supabase } from '../lib/supabase';
 import { Colors, Spacing, FontSize, Radius } from '../constants/theme';
+import { useLanguage } from '../context/LanguageContext';
 
-const IDLE_MS = 15 * 60 * 1000;   // 15 minutes total
-const WARN_MS = 3 * 60 * 1000;    // warn 3 minutes before logout
-const ACTIVE_MS = IDLE_MS - WARN_MS; // 12 minutes before warning
+const IDLE_MS = 15 * 60 * 1000;
+const WARN_MS = 3 * 60 * 1000;
+const ACTIVE_MS = IDLE_MS - WARN_MS;
 
 function formatTime(ms: number) {
   const total = Math.max(0, Math.ceil(ms / 1000));
@@ -19,6 +20,7 @@ interface Props {
 }
 
 export function IdleTimeoutGuard({ children }: Props) {
+  const { t } = useLanguage();
   const [showWarning, setShowWarning] = useState(false);
   const [remaining, setRemaining] = useState(WARN_MS);
   const lastActivity = useRef(Date.now());
@@ -60,7 +62,7 @@ export function IdleTimeoutGuard({ children }: Props) {
   }, [signOut]);
 
   const resetTimer = useCallback(() => {
-    if (showWarning) return; // don't reset while warning is active — let user click Stay Signed In
+    if (showWarning) return;
     startTimers();
   }, [showWarning, startTimers]);
 
@@ -85,10 +87,8 @@ export function IdleTimeoutGuard({ children }: Props) {
       <Modal visible={showWarning} transparent animationType="fade">
         <View style={styles.overlay}>
           <View style={styles.dialog}>
-            <Text style={styles.title}>Session Expiring</Text>
-            <Text style={styles.body}>
-              You've been inactive. For security, you'll be signed out in:
-            </Text>
+            <Text style={styles.title}>{t('idle.title')}</Text>
+            <Text style={styles.body}>{t('idle.body')}</Text>
             <Text style={styles.countdown}>{formatTime(remaining)}</Text>
             <TouchableOpacity
               style={styles.stayBtn}
@@ -97,10 +97,10 @@ export function IdleTimeoutGuard({ children }: Props) {
                 startTimers();
               }}
             >
-              <Text style={styles.stayBtnText}>Stay Signed In</Text>
+              <Text style={styles.stayBtnText}>{t('idle.staySignedIn')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.signOutBtn} onPress={signOut}>
-              <Text style={styles.signOutBtnText}>Sign Out Now</Text>
+              <Text style={styles.signOutBtnText}>{t('idle.signOutNow')}</Text>
             </TouchableOpacity>
           </View>
         </View>
