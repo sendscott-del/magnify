@@ -1,7 +1,6 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { CommonActions } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/theme';
 import { useAuth } from '../context/AuthContext';
@@ -19,7 +18,7 @@ const Stack = createNativeStackNavigator();
 function PresidencyStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="PresidencyBoard" component={PresidencyKanbanScreen} />
+      <Stack.Screen name="PresidencyMain" component={PresidencyKanbanScreen} />
       <Stack.Screen name="CallingDetail" component={CallingDetailScreen} />
     </Stack.Navigator>
   );
@@ -28,7 +27,7 @@ function PresidencyStack() {
 function HCStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="HCBoard" component={HCKanbanScreen} />
+      <Stack.Screen name="HCMain" component={HCKanbanScreen} />
       <Stack.Screen name="CallingDetail" component={CallingDetailScreen} />
     </Stack.Navigator>
   );
@@ -82,10 +81,9 @@ export function MainTabNavigator() {
           component={PresidencyStack}
           options={{ tabBarLabel: 'SP Board' }}
           listeners={({ navigation }) => ({
-            tabPress: () => {
-              navigation.dispatch(
-                CommonActions.reset({ index: 0, routes: [{ name: 'PresidencyBoard' }] })
-              );
+            tabPress: (e) => {
+              e.preventDefault();
+              navigation.navigate('PresidencyBoard', { screen: 'PresidencyMain' });
             },
           })}
         />
@@ -95,10 +93,9 @@ export function MainTabNavigator() {
         component={HCStack}
         options={{ tabBarLabel: 'HC Board' }}
         listeners={({ navigation }) => ({
-          tabPress: () => {
-            navigation.dispatch(
-              CommonActions.reset({ index: 0, routes: [{ name: 'HC' }] })
-            );
+          tabPress: (e) => {
+            e.preventDefault();
+            navigation.navigate('HC', { screen: 'HCMain' });
           },
         })}
       />
