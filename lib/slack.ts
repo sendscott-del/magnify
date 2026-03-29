@@ -36,7 +36,8 @@ export async function notifyStageChange({
   if (!settings || settings.length === 0) return;
 
   const wardStr = wardName ? ` (${wardName})` : '';
-  const text = `📋 *Magnify Update*\n*${memberName}*${wardStr} — ${callingName}\n${fromStage} → *${toStage}*`;
+  const byStr = performedBy ? `\nMoved by ${performedBy}` : '';
+  const text = `📋 *Magnify Update*\n*${memberName}*${wardStr} — ${callingName}\n${fromStage} → *${toStage}*${byStr}`;
 
   for (const s of settings) {
     await postToWebhook(s.webhook_url, text);
