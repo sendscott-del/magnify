@@ -243,8 +243,8 @@ const TASK_FIELDS: { key: string; label: string; locked?: boolean }[] = [
 
 const SP_ROLE_LABELS: Record<string, string> = {
   stake_president: 'Stake President',
-  first_counselor: '1st Counselor',
-  second_counselor: '2nd Counselor',
+  first_counselor: 'Stake Presidency 1st Counselor',
+  second_counselor: 'Stake Presidency 2nd Counselor',
 };
 
 function TaskAssignmentsSection({ calling, assignees, clerkName, canEdit, onAssign }: {

@@ -54,7 +54,7 @@ export function HCKanbanScreen({ navigation }: any) {
     ]);
     setCallings((callingsRes.data as Calling[]) ?? []);
     setWards((wardsRes.data as Ward[]) ?? []);
-    const spLabelMap: Record<string, string> = { stake_president: 'Stake President', first_counselor: '1st Counselor', second_counselor: '2nd Counselor' };
+    const spLabelMap: Record<string, string> = { stake_president: 'Stake President', first_counselor: 'Stake Presidency 1st Counselor', second_counselor: 'Stake Presidency 2nd Counselor' };
     const spOptions = (profilesRes.data ?? []).map((p: any) => ({ name: p.full_name, subtitle: spLabelMap[p.role] ?? p.role }));
     const hcOptions = (hcMembersRes.data ?? []).map((m: any) => ({ name: m.name, subtitle: 'High Councilor' }));
     setAssigneeOptions([...spOptions, ...hcOptions]);
