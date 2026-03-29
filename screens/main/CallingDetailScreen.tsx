@@ -339,14 +339,15 @@ export function CallingDetailScreen({ route, navigation }: any) {
   const fetchData = useCallback(async () => {
     setLoading(true);
     const [callingRes, logRes, wardsRes, spRes, hcMembersRes, hcApprovalsRes, profilesRes] = await Promise.all([
-      supabase.from('callings').select('*, wards(id,name,abbreviation), profiles(id,full_name,email,role,status,created_at)').eq('id', callingId).single(),
-      supabase.from('calling_log').select('*, profiles(id,full_name,email,role,status,created_at)').eq('calling_id', callingId).order('created_at', { ascending: false }),
+      supabase.from('callings').select('*, wards(id,name,abbreviation), profiles!created_by(id,full_name,email,role,status,created_at)').eq('id', callingId).single(),
+      supabase.from('calling_log').select('*, profiles!performed_by(id,full_name,email,role,status,created_at)').eq('calling_id', callingId).order('created_at', { ascending: false }),
       supabase.from('wards').select('*').order('name'),
       supabase.from('stake_presidency_approvals').select('*').eq('calling_id', callingId),
       supabase.from('high_council_members').select('*').eq('active', true).order('sort_order'),
       supabase.from('hc_approvals').select('*').eq('calling_id', callingId),
       supabase.from('profiles').select('id,full_name,role,status,email,created_at').eq('status', 'approved').order('full_name'),
     ]);
+    if (callingRes.error) console.error('callingRes error:', JSON.stringify(callingRes.error));
     setCalling(callingRes.data as Calling ?? null);
     setLog((logRes.data as CallingLogEntry[]) ?? []);
     setAllWards((wardsRes.data as Ward[]) ?? []);
