@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Alert, Platform,
+  Alert, Platform, TextInput,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -12,28 +12,50 @@ import { Button } from '../../components/ui/Button';
 import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme';
 import { ROLE_LABELS } from '../../constants/callings';
 
+interface SlackSetting { id: string; event_type: string; webhook_url: string; active: boolean; }
+
 export function SettingsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { profile, signOut, isAdmin } = useAuth();
   const [pendingUsers, setPendingUsers] = useState<Profile[]>([]);
   const [approving, setApproving] = useState<Record<string, boolean>>({});
   const [rejecting, setRejecting] = useState<Record<string, boolean>>({});
+  const [slackSettings, setSlackSettings] = useState<SlackSetting[]>([]);
+  const [slackDraft, setSlackDraft] = useState<Record<string, string>>({});
+  const [slackSaving, setSlackSaving] = useState<Record<string, boolean>>({});
 
   const fetchPendingUsers = useCallback(async () => {
     if (!isAdmin) return;
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('status', 'pending')
-      .order('created_at');
+    const { data } = await supabase.from('profiles').select('*').eq('status', 'pending').order('created_at');
     setPendingUsers((data as Profile[]) ?? []);
   }, [isAdmin]);
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchPendingUsers();
-    }, [fetchPendingUsers])
-  );
+  const fetchSlackSettings = useCallback(async () => {
+    const { data } = await supabase.from('slack_settings').select('*').order('event_type');
+    const rows = (data as SlackSetting[]) ?? [];
+    setSlackSettings(rows);
+    const drafts: Record<string, string> = {};
+    rows.forEach(r => { drafts[r.event_type] = r.webhook_url; });
+    setSlackDraft(drafts);
+  }, []);
+
+  useFocusEffect(useCallback(() => {
+    fetchPendingUsers();
+    fetchSlackSettings();
+  }, [fetchPendingUsers, fetchSlackSettings]));
+
+  async function saveSlackWebhook(eventType: string) {
+    const url = (slackDraft[eventType] ?? '').trim();
+    setSlackSaving(prev => ({ ...prev, [eventType]: true }));
+    const existing = slackSettings.find(s => s.event_type === eventType);
+    if (existing) {
+      await supabase.from('slack_settings').update({ webhook_url: url, active: !!url }).eq('id', existing.id);
+    } else if (url) {
+      await supabase.from('slack_settings').insert({ event_type: eventType, webhook_url: url, active: true });
+    }
+    await fetchSlackSettings();
+    setSlackSaving(prev => ({ ...prev, [eventType]: false }));
+  }
 
   async function handleApprove(userId: string) {
     setApproving(prev => ({ ...prev, [userId]: true }));
@@ -164,6 +186,46 @@ export function SettingsScreen({ navigation }: any) {
             style={styles.actionBtn}
           />
         </View>
+
+        {/* Slack */}
+        {isAdmin && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Slack Notifications</Text>
+            <Text style={styles.slackHint}>Paste an Incoming Webhook URL to send notifications to a Slack channel.</Text>
+            {[
+              { key: 'stage_change', label: 'Stage Changes', placeholder: 'https://hooks.slack.com/services/…' },
+              { key: 'rejection', label: 'Rejections', placeholder: 'https://hooks.slack.com/services/…' },
+            ].map(({ key, label, placeholder }) => {
+              const active = slackSettings.find(s => s.event_type === key)?.active;
+              return (
+                <View key={key} style={styles.slackRow}>
+                  <View style={styles.slackLabelRow}>
+                    <Text style={styles.slackLabel}>{label}</Text>
+                    {active && <Text style={styles.slackActive}>● Active</Text>}
+                  </View>
+                  <View style={styles.slackInputRow}>
+                    <TextInput
+                      style={styles.slackInput}
+                      value={slackDraft[key] ?? ''}
+                      onChangeText={v => setSlackDraft(prev => ({ ...prev, [key]: v }))}
+                      placeholder={placeholder}
+                      placeholderTextColor={Colors.gray[400]}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                    />
+                    <TouchableOpacity
+                      style={[styles.slackSaveBtn, slackSaving[key] && styles.btnDisabled]}
+                      onPress={() => saveSlackWebhook(key)}
+                      disabled={slackSaving[key]}
+                    >
+                      <Text style={styles.slackSaveBtnText}>{slackSaving[key] ? '…' : 'Save'}</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
 
         {/* App Actions */}
         <View style={styles.section}>
@@ -321,6 +383,23 @@ const styles = StyleSheet.create({
   },
   btnDisabled: { opacity: 0.5 },
   actionBtn: { marginBottom: Spacing.sm },
+  slackHint: { fontSize: FontSize.xs, color: Colors.gray[500], marginBottom: Spacing.md, lineHeight: 18 },
+  slackRow: { marginBottom: Spacing.md },
+  slackLabelRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginBottom: Spacing.xs },
+  slackLabel: { fontSize: FontSize.sm, fontWeight: '600', color: Colors.gray[700] },
+  slackActive: { fontSize: FontSize.xs, color: Colors.success, fontWeight: '700' },
+  slackInputRow: { flexDirection: 'row', gap: Spacing.sm, alignItems: 'center' },
+  slackInput: {
+    flex: 1, backgroundColor: Colors.gray[50], borderWidth: 1.5,
+    borderColor: Colors.gray[200], borderRadius: Radius.md,
+    paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs,
+    fontSize: FontSize.xs, color: Colors.black,
+  },
+  slackSaveBtn: {
+    paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs,
+    borderRadius: Radius.sm, backgroundColor: Colors.primary,
+  },
+  slackSaveBtnText: { color: Colors.white, fontSize: FontSize.sm, fontWeight: '700' },
   version: {
     fontSize: FontSize.xs,
     color: Colors.gray[400],
