@@ -41,15 +41,15 @@ export function canDelete(role: UserRole): boolean {
   return CLERK_GROUP.includes(role);
 }
 
-export function getNextStage(stage: Stage, _type: CallingType): Stage | null {
-  // All calling types follow the same linear flow
+export function getNextStage(stage: Stage, type: CallingType): Stage | null {
+  const isMP = type === 'mp_ordination';
   switch (stage) {
     case 'ideas': return 'for_approval';
     case 'for_approval': return 'stake_approved';
     case 'stake_approved': return 'hc_approval';
-    case 'hc_approval': return 'issue_calling';
+    case 'hc_approval': return isMP ? 'sustain' : 'issue_calling';
     case 'issue_calling': return 'sustain';
-    case 'ordained': return 'sustain'; // legacy stage, treat same as issue_calling
+    case 'ordained': return 'sustain'; // legacy stage
     case 'sustain': return 'set_apart';
     case 'set_apart': return 'record';
     case 'record': return 'complete';
@@ -57,14 +57,15 @@ export function getNextStage(stage: Stage, _type: CallingType): Stage | null {
   }
 }
 
-export function getPrevStage(stage: Stage, _type: CallingType): Stage | null {
+export function getPrevStage(stage: Stage, type: CallingType): Stage | null {
+  const isMP = type === 'mp_ordination';
   switch (stage) {
     case 'for_approval': return 'ideas';
     case 'stake_approved': return 'for_approval';
     case 'hc_approval': return 'stake_approved';
     case 'issue_calling': return 'hc_approval';
     case 'ordained': return 'hc_approval';
-    case 'sustain': return 'issue_calling';
+    case 'sustain': return isMP ? 'hc_approval' : 'issue_calling';
     case 'set_apart': return 'sustain';
     case 'record': return 'set_apart';
     case 'complete': return 'record';
