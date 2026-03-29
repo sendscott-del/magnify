@@ -231,6 +231,71 @@ const hcStyles = StyleSheet.create({
   overrideBannerText: { fontSize: FontSize.xs, color: Colors.success, fontWeight: '600' },
 });
 
+// ─── Notes ───────────────────────────────────────────────────────────────────
+function NotesSection({ notes, canEdit, onSave }: { notes: string; canEdit: boolean; onSave: (text: string) => Promise<void>; }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(notes);
+  const [saving, setSaving] = useState(false);
+
+  async function save() {
+    setSaving(true);
+    await onSave(draft);
+    setSaving(false);
+    setEditing(false);
+  }
+
+  return (
+    <View style={notesStyles.container}>
+      <View style={notesStyles.header}>
+        <Text style={notesStyles.title}>Notes</Text>
+        {canEdit && !editing && (
+          <TouchableOpacity onPress={() => { setDraft(notes); setEditing(true); }}>
+            <Text style={notesStyles.editBtn}>Edit</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+      {editing ? (
+        <>
+          <TextInput
+            style={notesStyles.input}
+            value={draft}
+            onChangeText={setDraft}
+            multiline
+            placeholder="Add notes…"
+            autoFocus
+          />
+          <View style={notesStyles.btnRow}>
+            <TouchableOpacity style={notesStyles.cancelBtn} onPress={() => setEditing(false)}>
+              <Text style={notesStyles.cancelText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={notesStyles.saveBtn} onPress={save} disabled={saving}>
+              <Text style={notesStyles.saveText}>{saving ? 'Saving…' : 'Save'}</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      ) : (
+        <Text style={notes ? notesStyles.notesText : notesStyles.placeholder}>
+          {notes || (canEdit ? 'Tap Edit to add notes…' : 'No notes.')}
+        </Text>
+      )}
+    </View>
+  );
+}
+const notesStyles = StyleSheet.create({
+  container: { backgroundColor: Colors.white, borderRadius: Radius.md, padding: Spacing.md, marginBottom: Spacing.md, borderWidth: 1, borderColor: Colors.gray[200] },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.xs },
+  title: { fontSize: FontSize.md, fontWeight: '700', color: Colors.gray[800] },
+  editBtn: { fontSize: FontSize.sm, color: Colors.primary, fontWeight: '600' },
+  notesText: { fontSize: FontSize.sm, color: Colors.gray[700], lineHeight: 20 },
+  placeholder: { fontSize: FontSize.sm, color: Colors.gray[400], fontStyle: 'italic' },
+  input: { fontSize: FontSize.sm, color: Colors.gray[800], borderWidth: 1, borderColor: Colors.gray[300], borderRadius: Radius.sm, padding: Spacing.sm, minHeight: 80, textAlignVertical: 'top' },
+  btnRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: Spacing.sm, marginTop: Spacing.sm },
+  cancelBtn: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs, borderRadius: Radius.sm, borderWidth: 1, borderColor: Colors.gray[300] },
+  cancelText: { fontSize: FontSize.sm, color: Colors.gray[600] },
+  saveBtn: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs, borderRadius: Radius.sm, backgroundColor: Colors.primary },
+  saveText: { fontSize: FontSize.sm, color: Colors.white, fontWeight: '600' },
+});
+
 // ─── Task Assignments ─────────────────────────────────────────────────────────
 interface Assignee { name: string; subtitle: string; }
 
@@ -664,12 +729,6 @@ export function CallingDetailScreen({ route, navigation }: any) {
               </View>
             )}
           </View>
-          {calling.notes ? (
-            <View style={styles.notesBox}>
-              <Text style={styles.infoLabel}>Notes</Text>
-              <Text style={styles.notesText}>{calling.notes}</Text>
-            </View>
-          ) : null}
         </View>
 
         {/* Task Assignments */}
@@ -714,6 +773,16 @@ export function CallingDetailScreen({ route, navigation }: any) {
             userId={profile?.id}
           />
         )}
+
+        {/* Notes */}
+        <NotesSection
+          notes={calling.notes ?? ''}
+          canEdit={canAssign}
+          onSave={async (text) => {
+            await supabase.from('callings').update({ notes: text || null }).eq('id', calling.id);
+            setCalling(prev => prev ? { ...prev, notes: text || undefined } : prev);
+          }}
+        />
 
         {/* Actions */}
         {!isComplete && (
