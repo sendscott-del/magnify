@@ -294,9 +294,10 @@ const notesStyles = StyleSheet.create({
 });
 
 // ─── Release Member ──────────────────────────────────────────────────────────
-function ReleaseMemberSection({ calling, wards, canEdit, onSave }: {
+function ReleaseMemberSection({ calling, wards, canEdit, onSave, onToggleDone }: {
   calling: Calling; wards: Ward[]; canEdit: boolean;
   onSave: (name: string, currentCalling: string, wardId: string) => Promise<void>;
+  onToggleDone: () => Promise<void>;
 }) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(calling.release_member_name ?? '');
@@ -305,6 +306,7 @@ function ReleaseMemberSection({ calling, wards, canEdit, onSave }: {
   const [wardName, setWardName] = useState(wards.find(w => w.id === (calling.release_ward_id ?? ''))?.name ?? '');
   const [showWardPicker, setShowWardPicker] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [toggling, setToggling] = useState(false);
 
   const hasData = !!(calling.release_member_name || calling.release_current_calling);
 
@@ -402,6 +404,23 @@ function ReleaseMemberSection({ calling, wards, canEdit, onSave }: {
           {calling.release_ward_id ? (
             <Text style={rmStyles.dataWard}>{wards.find(w => w.id === calling.release_ward_id)?.name ?? ''}</Text>
           ) : null}
+          <TouchableOpacity
+            style={rmStyles.doneRow}
+            onPress={async () => {
+              if (!canEdit || toggling) return;
+              setToggling(true);
+              await onToggleDone();
+              setToggling(false);
+            }}
+            disabled={!canEdit || toggling}
+          >
+            <View style={[rmStyles.doneCheck, calling.release_done && rmStyles.doneCheckOn]}>
+              {calling.release_done && <Text style={rmStyles.doneCheckMark}>✓</Text>}
+            </View>
+            <Text style={[rmStyles.doneLabel, calling.release_done && rmStyles.doneLabelOn]}>
+              {calling.release_done ? 'Released' : 'Mark as released'}
+            </Text>
+          </TouchableOpacity>
         </View>
       ) : (
         <Text style={rmStyles.placeholder}>{canEdit ? 'No release member entered. Tap Add to add one.' : 'No release required.'}</Text>
@@ -420,6 +439,16 @@ const rmStyles = StyleSheet.create({
   dataName: { fontSize: FontSize.md, fontWeight: '700', color: Colors.gray[800] },
   dataCalling: { fontSize: FontSize.sm, color: Colors.gray[600] },
   dataWard: { fontSize: FontSize.sm, color: Colors.gray[400], marginTop: 2 },
+  doneRow: { flexDirection: 'row', alignItems: 'center', marginTop: Spacing.sm, gap: Spacing.xs },
+  doneCheck: {
+    width: 20, height: 20, borderRadius: 10, borderWidth: 2,
+    borderColor: Colors.gray[300], backgroundColor: Colors.white,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  doneCheckOn: { backgroundColor: Colors.success, borderColor: Colors.success },
+  doneCheckMark: { color: Colors.white, fontSize: 11, fontWeight: '800' },
+  doneLabel: { fontSize: FontSize.sm, color: Colors.gray[500] },
+  doneLabelOn: { color: Colors.success, fontWeight: '700' },
   placeholder: { fontSize: FontSize.sm, color: Colors.gray[400], fontStyle: 'italic' },
   input: { fontSize: FontSize.sm, color: Colors.gray[800], borderWidth: 1, borderColor: Colors.gray[300], borderRadius: Radius.sm, padding: Spacing.sm, marginBottom: Spacing.sm },
   wardBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: Colors.gray[300], borderRadius: Radius.sm, padding: Spacing.sm, marginBottom: Spacing.sm, backgroundColor: Colors.gray[50] },
@@ -947,6 +976,11 @@ export function CallingDetailScreen({ route, navigation }: any) {
               release_ward_id: wardId || null,
             }).eq('id', calling.id);
             setCalling(prev => prev ? { ...prev, release_member_name: name || null, release_current_calling: currentCalling || null, release_ward_id: wardId || null } : prev);
+          }}
+          onToggleDone={async () => {
+            const newVal = !calling.release_done;
+            await supabase.from('callings').update({ release_done: newVal }).eq('id', calling.id);
+            setCalling(prev => prev ? { ...prev, release_done: newVal } : prev);
           }}
         />
 

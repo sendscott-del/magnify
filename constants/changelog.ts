@@ -9,6 +9,16 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.8.0',
+    date: '2026-03-29',
+    enhancements: [
+      'Member to be Released section now has a "Mark as released" checkmark — tap it to confirm the release is done; it turns green when complete',
+    ],
+    bugFixes: [
+      'Fixed app navigating back to the New Entry tab whenever you switch browser tabs or apps — it now stays on whichever screen you were on',
+    ],
+  },
+  {
     version: '1.7.0',
     date: '2026-03-29',
     enhancements: [

@@ -37,7 +37,7 @@ function loadNavState(): any {
 export function AppNavigator() {
   const { session, profile, loading } = useAuth();
   const [navReady, setNavReady] = useState(false);
-  const [initialState, setInitialState] = useState<any>(undefined);
+  const latestNavState = useRef<any>(undefined);
   const pendingLinkHandled = useRef(false);
 
   useEffect(() => {
@@ -53,7 +53,7 @@ export function AppNavigator() {
         }
       } catch {}
       const saved = loadNavState();
-      if (saved) setInitialState(saved);
+      if (saved) latestNavState.current = saved;
     }
     setNavReady(true);
   }, []);
@@ -94,8 +94,11 @@ export function AppNavigator() {
   return (
     <NavigationContainer
       ref={navigationRef}
-      initialState={isAuthenticated ? initialState : undefined}
-      onStateChange={saveNavState}
+      initialState={isAuthenticated ? latestNavState.current : undefined}
+      onStateChange={(state) => {
+        latestNavState.current = state;
+        saveNavState(state);
+      }}
     >
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!session ? (
