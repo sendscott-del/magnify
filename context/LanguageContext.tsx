@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Platform } from 'react-native';
 import { translations, Language, TranslationKey } from '../constants/translations';
+import { supabase } from '../lib/supabase';
 
 interface LanguageContextValue {
   language: Language;
@@ -26,7 +27,7 @@ function loadLanguage(): Language {
   return 'en';
 }
 
-function saveLanguage(lang: Language) {
+function saveLanguageLocal(lang: Language) {
   try {
     if (Platform.OS === 'web') {
       localStorage.setItem(STORAGE_KEY, lang);
@@ -35,15 +36,42 @@ function saveLanguage(lang: Language) {
 }
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguageState] = useState<Language>('en');
+  const [language, setLanguageState] = useState<Language>(loadLanguage());
 
+  // Sync language from the authenticated user's profile
   useEffect(() => {
-    setLanguageState(loadLanguage());
+    async function syncFromProfile(userId: string) {
+      const { data } = await supabase
+        .from('profiles')
+        .select('language')
+        .eq('id', userId)
+        .single();
+      const lang = data?.language;
+      if (lang === 'en' || lang === 'es') {
+        setLanguageState(lang);
+        saveLanguageLocal(lang);
+      }
+    }
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) syncFromProfile(session.user.id);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) syncFromProfile(session.user.id);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const setLanguage = useCallback((lang: Language) => {
+  const setLanguage = useCallback(async (lang: Language) => {
     setLanguageState(lang);
-    saveLanguage(lang);
+    saveLanguageLocal(lang);
+    // Persist to the user's profile if authenticated
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      supabase.from('profiles').update({ language: lang }).eq('id', session.user.id).then(() => {});
+    }
   }, []);
 
   const t = useCallback((key: TranslationKey): string => {

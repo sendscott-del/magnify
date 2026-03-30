@@ -10,6 +10,7 @@ export interface Profile {
   role: UserRole;
   status: ProfileStatus;
   created_at: string;
+  language?: 'en' | 'es';
 }
 
 export interface Ward {

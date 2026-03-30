@@ -16,6 +16,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       'Slack links to cards now navigate directly to the card, even if you need to log in first',
       'Slack notifications now @mention the assigned member when a card advances to their step (e.g. extend calling, sustain, set apart)',
       'HC Admin and SP Admin screens now support setting a Slack User ID per member — tap the @ icon on any member row to configure',
+      'Language preference now follows your account across all devices — set it once in Settings and it applies everywhere you log in',
     ],
     bugFixes: [],
   },
