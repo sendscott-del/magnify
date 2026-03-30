@@ -90,6 +90,7 @@ export function HelpScreen({ navigation }: any) {
         <Section title={t('help.hcBoard')}>
           <Text style={styles.body}>{t('help.hcBoardBody1')}</Text>
           <Text style={[styles.body, { marginTop: Spacing.xs }]}>{t('help.hcBoardBody2')}</Text>
+          <Text style={[styles.body, { marginTop: Spacing.xs }]}>{t('help.hcBoardBody3')}</Text>
         </Section>
 
         <Section title={t('help.slack')}>

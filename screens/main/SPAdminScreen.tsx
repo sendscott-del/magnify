@@ -14,7 +14,7 @@ import { useLanguage } from '../../context/LanguageContext';
 interface SPMember {
   id: string;
   name: string;
-  role: 'stake_president' | 'first_counselor' | 'second_counselor';
+  role: 'stake_president' | 'first_counselor' | 'second_counselor' | 'stake_clerk' | 'exec_secretary';
   sort_order: number;
   active: boolean;
   slack_user_id: string | null;
@@ -28,6 +28,8 @@ export function SPAdminScreen({ navigation }: any) {
     { value: 'stake_president', label: t('spAdmin.spShort') },
     { value: 'first_counselor', label: t('spAdmin.c1Short') },
     { value: 'second_counselor', label: t('spAdmin.c2Short') },
+    { value: 'stake_clerk', label: t('role.stake_clerk') },
+    { value: 'exec_secretary', label: t('role.exec_secretary') },
   ];
   const [members, setMembers] = useState<SPMember[]>([]);
   const [loading, setLoading] = useState(true);

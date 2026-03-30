@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View, Text, StyleSheet, ScrollView,
   RefreshControl, TouchableOpacity, Modal, FlatList, Platform, Share,
@@ -15,7 +15,7 @@ import { useLanguage } from '../../context/LanguageContext';
 
 export function HCKanbanScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const HC_COLUMNS = [
     { stages: ['hc_approval'], label: t('stage.hc_approval'), color: Colors.stage.hc_approval },
@@ -33,7 +33,8 @@ export function HCKanbanScreen({ navigation }: any) {
   ];
   const [callings, setCallings] = useState<Calling[]>([]);
   const [wards, setWards] = useState<Ward[]>([]);
-  const [assigneeOptions, setAssigneeOptions] = useState<{ name: string; subtitle: string }[]>([]);
+  const [rawSpMembers, setRawSpMembers] = useState<{ name: string; role: string }[]>([]);
+  const [rawHcMembers, setRawHcMembers] = useState<{ name: string }[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [hcApprovalMap, setHcApprovalMap] = useState<Record<string, boolean>>({});
   const [hcMemberIdMap, setHcMemberIdMap] = useState<Record<string, string>>({});
@@ -47,6 +48,20 @@ export function HCKanbanScreen({ navigation }: any) {
   const [showScriptModal, setShowScriptModal] = useState(false);
   const [scriptWard, setScriptWard] = useState<Ward | null>(null);
   const [scriptCopied, setScriptCopied] = useState(false);
+
+  // Compute translated assignee options reactively (updates when language changes)
+  const assigneeOptions = useMemo(() => {
+    const spLabelMap: Record<string, string> = {
+      stake_president: t('role.stake_president'),
+      first_counselor: t('hcBoard.sp1stCounselor'),
+      second_counselor: t('hcBoard.sp2ndCounselor'),
+      stake_clerk: t('role.stake_clerk'),
+      exec_secretary: t('role.exec_secretary'),
+    };
+    const spOptions = rawSpMembers.map(m => ({ name: m.name, subtitle: spLabelMap[m.role] ?? m.role }));
+    const hcOptions = rawHcMembers.map(m => ({ name: m.name, subtitle: t('role.high_councilor') }));
+    return [...spOptions, ...hcOptions];
+  }, [rawSpMembers, rawHcMembers, t]);
 
   const fetchData = useCallback(async () => {
     const [callingsRes, wardsRes, spMembersRes, hcMembersRes, hcApprovalsRes] = await Promise.all([
@@ -63,10 +78,8 @@ export function HCKanbanScreen({ navigation }: any) {
     ]);
     setCallings((callingsRes.data as Calling[]) ?? []);
     setWards((wardsRes.data as Ward[]) ?? []);
-    const spLabelMap: Record<string, string> = { stake_president: 'Stake President', first_counselor: 'Stake Presidency 1st Counselor', second_counselor: 'Stake Presidency 2nd Counselor' };
-    const spOptions = (spMembersRes.data ?? []).map((m: any) => ({ name: m.name, subtitle: spLabelMap[m.role] ?? m.role }));
-    const hcOptions = (hcMembersRes.data ?? []).map((m: any) => ({ name: m.name, subtitle: 'High Councilor' }));
-    setAssigneeOptions([...spOptions, ...hcOptions]);
+    setRawSpMembers((spMembersRes.data ?? []).map((m: any) => ({ name: m.name, role: m.role })));
+    setRawHcMembers((hcMembersRes.data ?? []).map((m: any) => ({ name: m.name })));
 
     // Build HC member name→id map
     const nameToId: Record<string, string> = {};
@@ -113,22 +126,24 @@ export function HCKanbanScreen({ navigation }: any) {
   }
 
   function joinList(items: string[]): string {
+    const and = t('script.listAnd');
     if (items.length === 1) return items[0];
-    if (items.length === 2) return `${items[0]} and ${items[1]}`;
-    return items.slice(0, -1).join(', ') + ', and ' + items[items.length - 1];
+    if (items.length === 2) return `${items[0]} ${and} ${items[1]}`;
+    return items.slice(0, -1).join(', ') + `, ${and} ` + items[items.length - 1];
   }
 
   function generateScript(ward: Ward): string {
     const sustaining = callings.filter(c => c.stage === 'sustain' && c.ward_id === ward.id);
-    const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const locale = language === 'es' ? 'es-US' : 'en-US';
+    const date = new Date().toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' });
 
     const lines: string[] = [];
-    lines.push(`SUSTAINING SCRIPT — ${ward.name.toUpperCase()}`);
+    lines.push(`${t('script.header')} — ${ward.name.toUpperCase()}`);
     lines.push(date);
     lines.push('');
 
     if (sustaining.length === 0) {
-      lines.push('No callings currently in the Sustain stage for this ward.');
+      lines.push(t('script.noCallings'));
       return lines.join('\n').trim();
     }
 
@@ -138,38 +153,38 @@ export function HCKanbanScreen({ navigation }: any) {
 
     // RELEASES — combined into one motion
     if (releases.length > 0) {
-      lines.push('─── RELEASES ───────────────────────────────────');
+      lines.push(t('script.releasesHeader'));
       lines.push('');
-      const releaseList = releases.map(c => `${c.release_member_name} as ${c.release_current_calling || '[calling]'}`);
-      lines.push(`It is proposed to release ${joinList(releaseList)}.`);
-      lines.push('Those in favor may manifest it.');
-      lines.push('Those opposed, if any, may manifest it.');
+      const releaseList = releases.map(c => `${c.release_member_name} ${t('script.as')} ${c.release_current_calling || t('script.unknownCalling')}`);
+      lines.push(t('script.proposeRelease').replace('{list}', joinList(releaseList)));
+      lines.push(t('script.thoseInFavor'));
+      lines.push(t('script.thoseOpposed'));
       lines.push('');
     }
 
     // SUSTAININGS — combined into one motion
     if (regularCallings.length > 0) {
-      lines.push('─── SUSTAININGS ─────────────────────────────────');
+      lines.push(t('script.sustainingsHeader'));
       lines.push('');
-      const sustainList = regularCallings.map(c => `${c.member_name} as ${c.calling_name}`);
-      lines.push(`It is proposed to sustain ${joinList(sustainList)}.`);
-      lines.push('Those in favor may manifest it.');
-      lines.push('Those opposed, if any, may manifest it.');
+      const sustainList = regularCallings.map(c => `${c.member_name} ${t('script.as')} ${c.calling_name}`);
+      lines.push(t('script.proposeSustain').replace('{list}', joinList(sustainList)));
+      lines.push(t('script.thoseInFavor'));
+      lines.push(t('script.thoseOpposed'));
       lines.push('');
     }
 
     // MP ORDINATIONS — individual, with correct wording per office
     if (ordinations.length > 0) {
-      lines.push('─── ORDINATIONS ─────────────────────────────────');
+      lines.push(t('script.ordinationsHeader'));
       lines.push('');
       for (const c of ordinations) {
         if (c.ordination_type === 'high_priest') {
-          lines.push(`It is proposed that Brother ${c.member_name} be ordained to the office of High Priest.`);
+          lines.push(t('script.proposeOrdainHighPriest').replace('{name}', c.member_name));
         } else {
-          lines.push(`It is proposed that Brother ${c.member_name} receive the Melchizedek Priesthood and be ordained to the office of Elder.`);
+          lines.push(t('script.proposeOrdainElder').replace('{name}', c.member_name));
         }
-        lines.push('Those in favor may manifest it.');
-        lines.push('Those opposed, if any, may manifest it.');
+        lines.push(t('script.thoseInFavor'));
+        lines.push(t('script.thoseOpposed'));
         lines.push('');
       }
     }
@@ -267,7 +282,7 @@ export function HCKanbanScreen({ navigation }: any) {
                 onPress={() => { setScriptWard(null); setScriptCopied(false); setShowScriptModal(true); }}
               >
                 <Ionicons name="document-text-outline" size={13} color={Colors.primary} />
-                <Text style={styles.scriptBtnText}>Sustaining Script</Text>
+                <Text style={styles.scriptBtnText}>{t('script.title')}</Text>
               </TouchableOpacity>
             ) : undefined}
           />
@@ -339,14 +354,14 @@ export function HCKanbanScreen({ navigation }: any) {
                 <Ionicons name={scriptWard ? 'chevron-back' : 'close'} size={22} color={Colors.gray[700]} />
               </TouchableOpacity>
               <Text style={styles.scriptModalTitle}>
-                {scriptWard ? `Script — ${scriptWard.name}` : 'Sustaining Script'}
+                {scriptWard ? `${t('script.scriptFor')} — ${scriptWard.name}` : t('script.title')}
               </Text>
               {scriptWard ? (
                 <TouchableOpacity onPress={() => handleCopyScript(generateScript(scriptWard))}>
                   <View style={[styles.copyBtn, scriptCopied && styles.copyBtnDone]}>
                     <Ionicons name={scriptCopied ? 'checkmark' : 'copy-outline'} size={15} color={scriptCopied ? Colors.success : Colors.primary} />
                     <Text style={[styles.copyBtnText, scriptCopied && styles.copyBtnTextDone]}>
-                      {scriptCopied ? 'Copied!' : 'Copy'}
+                      {scriptCopied ? t('script.copied') : t('script.copy')}
                     </Text>
                   </View>
                 </TouchableOpacity>
@@ -356,7 +371,7 @@ export function HCKanbanScreen({ navigation }: any) {
             {!scriptWard ? (
               /* Ward picker */
               <>
-                <Text style={styles.scriptPickerHint}>Select a ward to generate the sustaining script for their sacrament meeting.</Text>
+                <Text style={styles.scriptPickerHint}>{t('script.pickerHint')}</Text>
                 <FlatList
                   data={wards}
                   keyExtractor={w => w.id}
@@ -369,7 +384,7 @@ export function HCKanbanScreen({ navigation }: any) {
                       >
                         <View>
                           <Text style={styles.scriptWardName}>{w.name}</Text>
-                          <Text style={styles.scriptWardCount}>{count} calling{count !== 1 ? 's' : ''} in sustain</Text>
+                          <Text style={styles.scriptWardCount}>{count} {t(count !== 1 ? 'script.callingsPlural' : 'script.callingsSingular')}</Text>
                         </View>
                         <Ionicons name="chevron-forward" size={18} color={Colors.gray[400]} />
                       </TouchableOpacity>

@@ -36,6 +36,8 @@ export const CALLING_GROUPS: { org: string; callings: string[] }[] = [
       'Second Counselor in Bishopric',
       'Ward Clerk',
       'Assistant Ward Clerk',
+      'Assistant Ward Clerk Finance',
+      'Assistant Ward Clerk Membership',
       'Ward Executive Secretary',
       'Assistant Ward Executive Secretary',
     ],

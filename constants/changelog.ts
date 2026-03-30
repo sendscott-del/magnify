@@ -9,6 +9,20 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.6.0',
+    date: '2026-03-29',
+    enhancements: [
+      'Sustaining Script is now fully translated to Spanish — all wording, headers, and motions update when language is set to Spanish',
+      'Stake Clerk and Executive Secretary can now be added to the Stake Presidency Members admin page (Settings \u2192 Manage Stake Presidency Members)',
+      'Assignee filter labels on the HC Board now display in the correct language',
+      'Added two new ward callings: Assistant Ward Clerk Finance and Assistant Ward Clerk Membership',
+      'Help documentation updated: HC Board section now describes the Sustaining Script; Slack section explains @mention setup',
+    ],
+    bugFixes: [
+      'Fixed sustaining script showing English text regardless of language setting',
+    ],
+  },
+  {
     version: '1.5.0',
     date: '2026-03-29',
     enhancements: [
