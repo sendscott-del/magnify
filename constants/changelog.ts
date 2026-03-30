@@ -16,7 +16,9 @@ export const CHANGELOG: ChangelogEntry[] = [
       'Role is no longer selected on the registration screen — approvers now assign the correct role at approval time to prevent mistakes',
       'Approver can select a role for each pending user directly in Settings before tapping Approve',
     ],
-    bugFixes: [],
+    bugFixes: [
+      'Sustaining script no longer asks for an opposing vote on releases — releases now end with "Thank you." per GHB 30.3',
+    ],
   },
   {
     version: '1.6.0',

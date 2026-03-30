@@ -158,7 +158,7 @@ export function HCKanbanScreen({ navigation }: any) {
       const releaseList = releases.map(c => `${c.release_member_name} ${t('script.as')} ${c.release_current_calling || t('script.unknownCalling')}`);
       lines.push(t('script.proposeRelease').replace('{list}', joinList(releaseList)));
       lines.push(t('script.thoseInFavor'));
-      lines.push(t('script.thoseOpposed'));
+      lines.push(t('script.thankYou'));
       lines.push('');
     }
 
