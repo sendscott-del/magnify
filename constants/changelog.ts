@@ -16,6 +16,8 @@ export const CHANGELOG: ChangelogEntry[] = [
     ],
     bugFixes: [
       'Fixed app navigating back to the New Entry tab whenever you switch browser tabs or apps — it now stays on whichever screen you were on',
+      'Corrected Spanish sustaining script: "LIBERACIONES" → "RELEVOS", "liberar" → "relevar", fixed in-favor and opposed vote wording, fixed "guion" spelling',
+      'Releases in Spanish now read "Los que deseen manifestar su agradecimiento…" instead of asking for a vote',
     ],
   },
   {
