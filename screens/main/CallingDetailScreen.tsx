@@ -694,11 +694,21 @@ export function CallingDetailScreen({ route, navigation }: any) {
       from_stage: calling.stage, to_stage: next, performed_by: profile.id,
     });
 
+    // Determine assignee for the next stage for Slack @mention
+    const stageAssigneeMap: Partial<Record<string, string | null>> = {
+      issue_calling: calling.extend_by,
+      ordained: calling.extend_by,
+      sustain: calling.sustain_by,
+      set_apart: calling.set_apart_by,
+      record: calling.record_by,
+    };
+    const assigneeName = stageAssigneeMap[next] ?? null;
+
     // Slack notification
     notifyStageChange({
       memberName: calling.member_name, callingName: calling.calling_name,
       wardName: calling.wards?.name, fromStage: STAGE_LABELS[calling.stage], toStage: STAGE_LABELS[next],
-      toStageKey: next, performedBy: profile.full_name, callingId: calling.id,
+      toStageKey: next, performedBy: profile.full_name, callingId: calling.id, assigneeName,
     }).catch(() => {});
 
     await fetchData();

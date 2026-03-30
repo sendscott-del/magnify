@@ -17,7 +17,7 @@ export async function postToWebhook(webhookUrl: string, text: string): Promise<v
 const SP_STAGES = ['ideas', 'for_approval', 'stake_approved'];
 
 export async function notifyStageChange({
-  memberName, callingName, wardName, fromStage, toStage, toStageKey, performedBy, callingId,
+  memberName, callingName, wardName, fromStage, toStage, toStageKey, performedBy, callingId, assigneeName,
 }: {
   memberName: string;
   callingName: string;
@@ -27,6 +27,7 @@ export async function notifyStageChange({
   toStageKey: string;
   performedBy?: string | null;
   callingId?: string | null;
+  assigneeName?: string | null;
 }): Promise<void> {
   const eventType = SP_STAGES.includes(toStageKey) ? 'sp_stage_change' : 'hc_stage_change';
 
@@ -38,10 +39,23 @@ export async function notifyStageChange({
 
   if (!settings || settings.length === 0) return;
 
+  // Look up the assignee's Slack user ID for @mention
+  let slackUserId: string | null = null;
+  if (assigneeName) {
+    const [{ data: spData }, { data: hcData }] = await Promise.all([
+      supabase.from('sp_members').select('slack_user_id').eq('name', assigneeName).eq('active', true).maybeSingle(),
+      supabase.from('high_council_members').select('slack_user_id').eq('name', assigneeName).eq('active', true).maybeSingle(),
+    ]);
+    slackUserId = spData?.slack_user_id ?? hcData?.slack_user_id ?? null;
+  }
+
   const wardStr = wardName ? ` (${wardName})` : '';
   const byStr = performedBy ? `\nChanged by: *${performedBy}*` : '';
+  const assigneeStr = assigneeName
+    ? `\nAssigned to: ${slackUserId ? `<@${slackUserId}>` : `*${assigneeName}*`}`
+    : '';
   const linkStr = (APP_URL && callingId) ? `\n<${APP_URL}/calling/${callingId}|View Card>` : '';
-  const text = `📋 *Magnify Update*\n*${memberName}*${wardStr} — ${callingName}\n${fromStage} → *${toStage}*${byStr}${linkStr}`;
+  const text = `📋 *Magnify Update*\n*${memberName}*${wardStr} — ${callingName}\n${fromStage} → *${toStage}*${byStr}${assigneeStr}${linkStr}`;
 
   for (const s of settings) {
     await postToWebhook(s.webhook_url, text);

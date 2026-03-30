@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.5.0',
+    date: '2026-03-29',
+    enhancements: [
+      'Slack notifications now fire immediately when a user requests access (previously only on approval)',
+      'Slack links to cards now navigate directly to the card, even if you need to log in first',
+      'Slack notifications now @mention the assigned member when a card advances to their step (e.g. extend calling, sustain, set apart)',
+      'HC Admin and SP Admin screens now support setting a Slack User ID per member — tap the @ icon on any member row to configure',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '1.4.0',
     date: '2026-03-29',
     enhancements: [

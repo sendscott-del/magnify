@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  TextInput, Platform, Alert, ActivityIndicator,
+  TextInput, Platform, Alert, ActivityIndicator, Modal,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,6 +16,7 @@ interface HCMember {
   name: string;
   sort_order: number;
   active: boolean;
+  slack_user_id: string | null;
 }
 
 export function HCAdminScreen({ navigation }: any) {
@@ -26,6 +27,8 @@ export function HCAdminScreen({ navigation }: any) {
   const [newName, setNewName] = useState('');
   const [adding, setAdding] = useState(false);
   const [saving, setSaving] = useState<Record<string, boolean>>({});
+  const [slackModal, setSlackModal] = useState<{ id: string; name: string; value: string } | null>(null);
+  const [slackSaving, setSlackSaving] = useState(false);
 
   const fetchMembers = useCallback(async () => {
     setLoading(true);
@@ -81,6 +84,19 @@ export function HCAdminScreen({ navigation }: any) {
     if (!confirm) return;
     await supabase.from('high_council_members').delete().eq('id', member.id);
     setMembers(prev => prev.filter(m => m.id !== member.id));
+  }
+
+  async function handleSaveSlackId() {
+    if (!slackModal) return;
+    setSlackSaving(true);
+    const value = slackModal.value.trim() || null;
+    await supabase
+      .from('high_council_members')
+      .update({ slack_user_id: value })
+      .eq('id', slackModal.id);
+    setMembers(prev => prev.map(m => m.id === slackModal.id ? { ...m, slack_user_id: value } : m));
+    setSlackSaving(false);
+    setSlackModal(null);
   }
 
   const activeCount = members.filter(m => m.active).length;
@@ -144,12 +160,27 @@ export function HCAdminScreen({ navigation }: any) {
                     </Text>
                   )}
                 </TouchableOpacity>
-                <Text style={[styles.memberName, !member.active && styles.memberNameInactive]}>
-                  {member.name}
-                </Text>
+                <View style={styles.memberInfo}>
+                  <Text style={[styles.memberName, !member.active && styles.memberNameInactive]}>
+                    {member.name}
+                  </Text>
+                  {member.slack_user_id ? (
+                    <Text style={styles.slackIdText}>@ {member.slack_user_id}</Text>
+                  ) : null}
+                </View>
                 {!member.active && (
                   <Text style={styles.inactiveLabel}>{t('hcAdmin.inactive')}</Text>
                 )}
+                <TouchableOpacity
+                  style={styles.slackBtn}
+                  onPress={() => setSlackModal({ id: member.id, name: member.name, value: member.slack_user_id ?? '' })}
+                >
+                  <Ionicons
+                    name="at-outline"
+                    size={18}
+                    color={member.slack_user_id ? Colors.primary : Colors.gray[400]}
+                  />
+                </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.deleteBtn}
                   onPress={() => handleDelete(member)}
@@ -163,6 +194,40 @@ export function HCAdminScreen({ navigation }: any) {
 
         <Text style={styles.hint}>{t('hcAdmin.hint')}</Text>
       </ScrollView>
+
+      {/* Slack User ID Modal */}
+      <Modal visible={!!slackModal} transparent animationType="fade" onRequestClose={() => setSlackModal(null)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>{t('hcAdmin.slackId')}</Text>
+            <Text style={styles.modalName}>{slackModal?.name}</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={slackModal?.value ?? ''}
+              onChangeText={v => setSlackModal(prev => prev ? { ...prev, value: v } : null)}
+              placeholder={t('hcAdmin.slackIdPlaceholder')}
+              placeholderTextColor={Colors.gray[400]}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            <Text style={styles.modalHint}>{t('hcAdmin.slackIdHint')}</Text>
+            <View style={styles.modalButtons}>
+              <Button
+                title={t('detail.cancel')}
+                onPress={() => setSlackModal(null)}
+                variant="secondary"
+                style={styles.modalBtn}
+              />
+              <Button
+                title={t('detail.save')}
+                onPress={handleSaveSlackId}
+                loading={slackSaving}
+                style={styles.modalBtn}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -209,12 +274,36 @@ const styles = StyleSheet.create({
   activeToggleOn: { backgroundColor: Colors.success, borderColor: Colors.success },
   activeToggleText: { fontSize: FontSize.sm, fontWeight: '800', color: Colors.gray[500] },
   activeToggleTextOn: { color: Colors.white },
-  memberName: { flex: 1, fontSize: FontSize.md, color: Colors.gray[800], fontWeight: '500' },
+  memberInfo: { flex: 1 },
+  memberName: { fontSize: FontSize.md, color: Colors.gray[800], fontWeight: '500' },
   memberNameInactive: { color: Colors.gray[400] },
+  slackIdText: { fontSize: FontSize.xs, color: Colors.primary, marginTop: 1 },
   inactiveLabel: { fontSize: FontSize.xs, color: Colors.gray[400], fontStyle: 'italic' },
+  slackBtn: { padding: Spacing.xs },
   deleteBtn: { padding: Spacing.xs },
   hint: {
     fontSize: FontSize.xs, color: Colors.gray[400],
     textAlign: 'center', lineHeight: 18, marginBottom: Spacing.lg,
   },
+  // Modal
+  modalOverlay: {
+    flex: 1, backgroundColor: 'rgba(0,0,0,0.4)',
+    alignItems: 'center', justifyContent: 'center',
+    padding: Spacing.lg,
+  },
+  modalCard: {
+    backgroundColor: Colors.white, borderRadius: Radius.lg,
+    padding: Spacing.lg, width: '100%', maxWidth: 400,
+  },
+  modalTitle: { fontSize: FontSize.md, fontWeight: '700', color: Colors.gray[800], marginBottom: 4 },
+  modalName: { fontSize: FontSize.sm, color: Colors.primary, fontWeight: '600', marginBottom: Spacing.md },
+  modalInput: {
+    backgroundColor: Colors.gray[50], borderWidth: 1.5,
+    borderColor: Colors.gray[200], borderRadius: Radius.md,
+    paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm,
+    fontSize: FontSize.md, color: Colors.black, marginBottom: Spacing.xs,
+  },
+  modalHint: { fontSize: FontSize.xs, color: Colors.gray[400], marginBottom: Spacing.md },
+  modalButtons: { flexDirection: 'row', gap: Spacing.sm },
+  modalBtn: { flex: 1 },
 });

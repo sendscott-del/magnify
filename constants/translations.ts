@@ -276,6 +276,9 @@ export const translations = {
     'hcAdmin.removeConfirm': 'Remove from the High Council?',
     'hcAdmin.remove': 'Remove',
     'hcAdmin.hint': 'Active members count toward the \u226550% approval threshold for callings. Toggle a member inactive to exclude them without deleting their record.',
+    'hcAdmin.slackId': 'Slack User ID',
+    'hcAdmin.slackIdPlaceholder': 'e.g. U01ABCDE2\u2026',
+    'hcAdmin.slackIdHint': 'Used to @ mention this member in Slack notifications.',
 
     // SP Admin Screen
     'spAdmin.title': 'Stake Presidency',
@@ -292,6 +295,9 @@ export const translations = {
     'spAdmin.spShort': 'Stake Pres.',
     'spAdmin.c1Short': '1st Counselor',
     'spAdmin.c2Short': '2nd Counselor',
+    'spAdmin.slackId': 'Slack User ID',
+    'spAdmin.slackIdPlaceholder': 'e.g. U01ABCDE2\u2026',
+    'spAdmin.slackIdHint': 'Used to @ mention this member in Slack notifications.',
 
     // Help Screen
     'help.title': 'Help & Documentation',
@@ -645,6 +651,9 @@ export const translations = {
     'hcAdmin.removeConfirm': '\u00bfEliminar del Alto Consejo?',
     'hcAdmin.remove': 'Eliminar',
     'hcAdmin.hint': 'Los miembros activos cuentan hacia el umbral de aprobaci\u00f3n \u226550% para llamamientos. Desactive un miembro para excluirlo sin eliminar su registro.',
+    'hcAdmin.slackId': 'ID de Usuario de Slack',
+    'hcAdmin.slackIdPlaceholder': 'ej. U01ABCDE2\u2026',
+    'hcAdmin.slackIdHint': 'Se usa para mencionar a este miembro en las notificaciones de Slack.',
 
     // SP Admin Screen
     'spAdmin.title': 'Presidencia de Estaca',
@@ -661,6 +670,9 @@ export const translations = {
     'spAdmin.spShort': 'Pres. de Estaca',
     'spAdmin.c1Short': 'Primer Consejero',
     'spAdmin.c2Short': 'Segundo Consejero',
+    'spAdmin.slackId': 'ID de Usuario de Slack',
+    'spAdmin.slackIdPlaceholder': 'ej. U01ABCDE2\u2026',
+    'spAdmin.slackIdHint': 'Se usa para mencionar a este miembro en las notificaciones de Slack.',
 
     // Help Screen
     'help.title': 'Ayuda y Documentaci\u00f3n',
