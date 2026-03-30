@@ -112,40 +112,66 @@ export function HCKanbanScreen({ navigation }: any) {
     });
   }
 
+  function joinList(items: string[]): string {
+    if (items.length === 1) return items[0];
+    if (items.length === 2) return `${items[0]} and ${items[1]}`;
+    return items.slice(0, -1).join(', ') + ', and ' + items[items.length - 1];
+  }
+
   function generateScript(ward: Ward): string {
     const sustaining = callings.filter(c => c.stage === 'sustain' && c.ward_id === ward.id);
     const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
-    let lines: string[] = [];
+    const lines: string[] = [];
     lines.push(`SUSTAINING SCRIPT — ${ward.name.toUpperCase()}`);
     lines.push(date);
     lines.push('');
 
+    if (sustaining.length === 0) {
+      lines.push('No callings currently in the Sustain stage for this ward.');
+      return lines.join('\n').trim();
+    }
+
     const releases = sustaining.filter(c => c.release_member_name);
+    const regularCallings = sustaining.filter(c => c.type !== 'mp_ordination');
+    const ordinations = sustaining.filter(c => c.type === 'mp_ordination');
+
+    // RELEASES — combined into one motion
     if (releases.length > 0) {
       lines.push('─── RELEASES ───────────────────────────────────');
       lines.push('');
-      for (const c of releases) {
-        lines.push(`It is proposed to release ${c.release_member_name} as ${c.release_current_calling || '[calling]'}.`);
-        lines.push('Those in favor may manifest it.');
-        lines.push('Those opposed, if any, may manifest it.');
-        lines.push('');
-      }
+      const releaseList = releases.map(c => `${c.release_member_name} as ${c.release_current_calling || '[calling]'}`);
+      lines.push(`It is proposed to release ${joinList(releaseList)}.`);
+      lines.push('Those in favor may manifest it.');
+      lines.push('Those opposed, if any, may manifest it.');
+      lines.push('');
     }
 
-    if (sustaining.length > 0) {
+    // SUSTAININGS — combined into one motion
+    if (regularCallings.length > 0) {
       lines.push('─── SUSTAININGS ─────────────────────────────────');
       lines.push('');
-      for (const c of sustaining) {
-        lines.push(`It is proposed to sustain ${c.member_name} as ${c.calling_name}.`);
+      const sustainList = regularCallings.map(c => `${c.member_name} as ${c.calling_name}`);
+      lines.push(`It is proposed to sustain ${joinList(sustainList)}.`);
+      lines.push('Those in favor may manifest it.');
+      lines.push('Those opposed, if any, may manifest it.');
+      lines.push('');
+    }
+
+    // MP ORDINATIONS — individual, with correct wording per office
+    if (ordinations.length > 0) {
+      lines.push('─── ORDINATIONS ─────────────────────────────────');
+      lines.push('');
+      for (const c of ordinations) {
+        if (c.ordination_type === 'high_priest') {
+          lines.push(`It is proposed that Brother ${c.member_name} be ordained to the office of High Priest.`);
+        } else {
+          lines.push(`It is proposed that Brother ${c.member_name} receive the Melchizedek Priesthood and be ordained to the office of Elder.`);
+        }
         lines.push('Those in favor may manifest it.');
         lines.push('Those opposed, if any, may manifest it.');
         lines.push('');
       }
-    }
-
-    if (sustaining.length === 0) {
-      lines.push('No callings currently in the Sustain stage for this ward.');
     }
 
     return lines.join('\n').trim();
