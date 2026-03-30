@@ -251,6 +251,7 @@ export const translations = {
     'settings.leadership': 'Leadership',
     'settings.manageSP': 'Manage Stake Presidency Members',
     'settings.manageHC': 'Manage High Council Members',
+    'settings.manageUserRoles': 'Manage User Roles',
     'settings.helpInfo': 'Help & Information',
     'settings.help': 'Help & Documentation',
     'settings.releaseNotes': 'Release Notes',
@@ -325,6 +326,16 @@ export const translations = {
     'spAdmin.slackId': 'Slack User ID',
     'spAdmin.slackIdPlaceholder': 'e.g. U01ABCDE2\u2026',
     'spAdmin.slackIdHint': 'Used to @ mention this member in Slack notifications.',
+
+    // User Roles Screen
+    'userRoles.title': 'User Roles',
+    'userRoles.approvedCount': 'approved users',
+    'userRoles.noUsers': 'No approved users.',
+    'userRoles.assignRole': 'Change role:',
+    'userRoles.removeTitle': 'Revoke Access',
+    'userRoles.removeConfirm': 'Revoke access for',
+    'userRoles.remove': 'Revoke',
+    'userRoles.revokeAccess': 'Revoke Access',
 
     // Help Screen
     'help.title': 'Help & Documentation',
@@ -654,6 +665,7 @@ export const translations = {
     'settings.leadership': 'Liderazgo',
     'settings.manageSP': 'Administrar Miembros de la Presidencia de Estaca',
     'settings.manageHC': 'Administrar Miembros del Alto Consejo',
+    'settings.manageUserRoles': 'Administrar Roles de Usuario',
     'settings.helpInfo': 'Ayuda e Informaci\u00f3n',
     'settings.help': 'Ayuda y Documentaci\u00f3n',
     'settings.releaseNotes': 'Notas de Actualizaci\u00f3n',
@@ -728,6 +740,16 @@ export const translations = {
     'spAdmin.slackId': 'ID de Usuario de Slack',
     'spAdmin.slackIdPlaceholder': 'ej. U01ABCDE2\u2026',
     'spAdmin.slackIdHint': 'Se usa para mencionar a este miembro en las notificaciones de Slack.',
+
+    // User Roles Screen
+    'userRoles.title': 'Roles de Usuario',
+    'userRoles.approvedCount': 'usuarios aprobados',
+    'userRoles.noUsers': 'No hay usuarios aprobados.',
+    'userRoles.assignRole': 'Cambiar rol:',
+    'userRoles.removeTitle': 'Revocar Acceso',
+    'userRoles.removeConfirm': 'Revocar acceso para',
+    'userRoles.remove': 'Revocar',
+    'userRoles.revokeAccess': 'Revocar Acceso',
 
     // Help Screen
     'help.title': 'Ayuda y Documentaci\u00f3n',

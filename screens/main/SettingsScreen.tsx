@@ -216,6 +216,15 @@ export function SettingsScreen({ navigation }: any) {
         {/* Leadership */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('settings.leadership')}</Text>
+          {isAdmin && (
+            <Button
+              title={t('settings.manageUserRoles')}
+              onPress={() => navigation.navigate('UserRoles')}
+              variant="outline"
+              fullWidth
+              style={styles.actionBtn}
+            />
+          )}
           <Button
             title={t('settings.manageSP')}
             onPress={() => navigation.navigate('SPAdmin')}

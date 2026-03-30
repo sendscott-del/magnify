@@ -9,6 +9,16 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.9.0',
+    date: '2026-03-30',
+    enhancements: [
+      'New User Roles admin screen — view all approved users and change their assigned roles',
+      'Revoke access option to remove a user without deleting their account',
+      'Accessible from Settings > Leadership for Stake Presidency, Stake Clerk, and Executive Secretary',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '1.8.0',
     date: '2026-03-29',
     enhancements: [

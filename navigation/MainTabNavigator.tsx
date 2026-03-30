@@ -22,6 +22,7 @@ import { SPAdminScreen } from '../screens/main/SPAdminScreen';
 import { HelpScreen } from '../screens/main/HelpScreen';
 import { ReleaseNotesScreen } from '../screens/main/ReleaseNotesScreen';
 import { PermissionsTableScreen } from '../screens/main/PermissionsTableScreen';
+import { UserRolesScreen } from '../screens/main/UserRolesScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -62,6 +63,7 @@ function SettingsStack() {
       <Stack.Screen name="Help" component={HelpScreen} />
       <Stack.Screen name="ReleaseNotes" component={ReleaseNotesScreen} />
       <Stack.Screen name="Permissions" component={PermissionsTableScreen} />
+      <Stack.Screen name="UserRoles" component={UserRolesScreen} />
     </Stack.Navigator>
   );
 }
