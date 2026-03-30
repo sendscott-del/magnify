@@ -438,7 +438,12 @@ export function NewCallingScreen({ navigation }: any) {
             <Text style={styles.modalTitle}>{t('new.selectCallingTitle')}</Text>
             <FlatList
               data={[
-                ...CALLING_GROUPS.flatMap(g => [
+                ...CALLING_GROUPS.filter(g => {
+                  if (g.org === 'Other') return false;
+                  if (type === 'ward_calling') return g.org === 'Bishopric' || g.org === 'Elders Quorum';
+                  if (type === 'stake_calling') return g.org === 'Stake';
+                  return true;
+                }).flatMap(g => [
                   { type: 'header', label: g.org, value: `__header__${g.org}` },
                   ...g.callings.map(c => ({ type: 'item', label: c, value: c, org: g.org })),
                 ]),

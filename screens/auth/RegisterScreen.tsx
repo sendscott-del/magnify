@@ -7,9 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
-import { Colors, FontSize, Spacing, Radius } from '../../constants/theme';
-import { UserRole } from '../../lib/database.types';
-import { ROLE_LABELS } from '../../constants/callings';
+import { Colors, FontSize, Spacing } from '../../constants/theme';
 import { notifyAccessRequest } from '../../lib/slack';
 
 export function RegisterScreen({ navigation }: any) {
@@ -18,19 +16,9 @@ export function RegisterScreen({ navigation }: any) {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<UserRole>('stake_clerk');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-
-  const roles: UserRole[] = [
-    'stake_president',
-    'first_counselor',
-    'second_counselor',
-    'high_councilor',
-    'stake_clerk',
-    'exec_secretary',
-  ];
 
   async function handleRegister() {
     if (!fullName || !email || !password) {
@@ -39,13 +27,13 @@ export function RegisterScreen({ navigation }: any) {
     }
     setLoading(true);
     setError('');
-    const { error: err } = await signUp(email, password, fullName, role);
+    const { error: err } = await signUp(email, password, fullName, 'stake_clerk');
     setLoading(false);
     if (err) {
       setError(err.message);
       return;
     }
-    notifyAccessRequest({ name: fullName, email, role: ROLE_LABELS[role] }).catch(() => {});
+    notifyAccessRequest({ name: fullName, email, role: 'Pending' }).catch(() => {});
     setSuccess(true);
   }
 
@@ -92,21 +80,6 @@ export function RegisterScreen({ navigation }: any) {
         placeholder={t('register.passwordPlaceholder')}
       />
 
-      <Text style={styles.roleLabel}>{t('register.yourRole')}</Text>
-      <View style={styles.roleGrid}>
-        {roles.map(r => (
-          <TouchableOpacity
-            key={r}
-            style={[styles.roleChip, role === r && styles.roleChipActive]}
-            onPress={() => setRole(r)}
-          >
-            <Text style={[styles.roleChipText, role === r && styles.roleChipTextActive]}>
-              {ROLE_LABELS[r]}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
       <Button
@@ -144,39 +117,6 @@ const styles = StyleSheet.create({
     fontSize: FontSize.md,
     color: Colors.gray[500],
     marginBottom: Spacing.lg,
-  },
-  roleLabel: {
-    fontSize: FontSize.sm,
-    fontWeight: '600',
-    color: Colors.gray[700],
-    marginBottom: Spacing.sm,
-    marginTop: Spacing.sm,
-  },
-  roleGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.xs,
-    marginBottom: Spacing.md,
-  },
-  roleChip: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
-    borderRadius: Radius.full,
-    borderWidth: 1.5,
-    borderColor: Colors.gray[300],
-    backgroundColor: Colors.white,
-  },
-  roleChipActive: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.primaryFade,
-  },
-  roleChipText: {
-    fontSize: FontSize.sm,
-    color: Colors.gray[600],
-  },
-  roleChipTextActive: {
-    color: Colors.primary,
-    fontWeight: '700',
   },
   error: {
     color: Colors.error,

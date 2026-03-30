@@ -23,6 +23,7 @@ export function SettingsScreen({ navigation }: any) {
   const { profile, signOut, isAdmin } = useAuth();
   const { t, language, setLanguage } = useLanguage();
   const [pendingUsers, setPendingUsers] = useState<Profile[]>([]);
+  const [pendingRoles, setPendingRoles] = useState<Record<string, UserRole>>({});
   const [approving, setApproving] = useState<Record<string, boolean>>({});
   const [rejecting, setRejecting] = useState<Record<string, boolean>>({});
   const [slackSettings, setSlackSettings] = useState<SlackSetting[]>([]);
@@ -33,7 +34,11 @@ export function SettingsScreen({ navigation }: any) {
   const fetchPendingUsers = useCallback(async () => {
     if (!isAdmin) return;
     const { data } = await supabase.from('profiles').select('*').eq('status', 'pending').order('created_at');
-    setPendingUsers((data as Profile[]) ?? []);
+    const users = (data as Profile[]) ?? [];
+    setPendingUsers(users);
+    const roleDefaults: Record<string, UserRole> = {};
+    users.forEach(u => { roleDefaults[u.id] = (u.role as UserRole) || 'stake_clerk'; });
+    setPendingRoles(prev => ({ ...roleDefaults, ...prev }));
   }, [isAdmin]);
 
   const fetchSlackSettings = useCallback(async () => {
@@ -84,9 +89,10 @@ export function SettingsScreen({ navigation }: any) {
   async function handleApprove(userId: string) {
     setApproving(prev => ({ ...prev, [userId]: true }));
     const user = pendingUsers.find(u => u.id === userId);
-    await supabase.from('profiles').update({ status: 'approved' }).eq('id', userId);
+    const assignedRole = pendingRoles[userId] ?? 'stake_clerk';
+    await supabase.from('profiles').update({ status: 'approved', role: assignedRole }).eq('id', userId);
     if (user) {
-      notifyAccessApproved({ name: user.full_name, email: user.email, role: ROLE_LABELS[user.role as UserRole] }).catch(() => {});
+      notifyAccessApproved({ name: user.full_name, email: user.email, role: ROLE_LABELS[assignedRole] }).catch(() => {});
     }
     setPendingUsers(prev => prev.filter(u => u.id !== userId));
     setApproving(prev => ({ ...prev, [userId]: false }));
@@ -165,10 +171,21 @@ export function SettingsScreen({ navigation }: any) {
             ) : (
               pendingUsers.map(u => (
                 <View key={u.id} style={styles.userCard}>
-                  <View style={styles.userInfo}>
-                    <Text style={styles.userName}>{u.full_name}</Text>
-                    <Text style={styles.userEmail}>{u.email}</Text>
-                    <Text style={styles.userRole}>{ROLE_LABELS[u.role as UserRole]}</Text>
+                  <Text style={styles.userName}>{u.full_name}</Text>
+                  <Text style={styles.userEmail}>{u.email}</Text>
+                  <Text style={styles.userRoleLabel}>Assign role:</Text>
+                  <View style={styles.roleChipRow}>
+                    {(['stake_president', 'first_counselor', 'second_counselor', 'high_councilor', 'stake_clerk', 'exec_secretary'] as UserRole[]).map(r => (
+                      <TouchableOpacity
+                        key={r}
+                        style={[styles.roleChip, pendingRoles[u.id] === r && styles.roleChipActive]}
+                        onPress={() => setPendingRoles(prev => ({ ...prev, [u.id]: r }))}
+                      >
+                        <Text style={[styles.roleChipText, pendingRoles[u.id] === r && styles.roleChipTextActive]}>
+                          {ROLE_LABELS[r]}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
                   </View>
                   <View style={styles.userActions}>
                     <TouchableOpacity
@@ -420,14 +437,44 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   userCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: Colors.gray[100],
   },
   userInfo: { flex: 1 },
+  userRoleLabel: {
+    fontSize: FontSize.xs,
+    fontWeight: '600',
+    color: Colors.gray[500],
+    marginTop: Spacing.xs,
+    marginBottom: 4,
+  },
+  roleChipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+    marginBottom: Spacing.sm,
+  },
+  roleChip: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 3,
+    borderRadius: Radius.full,
+    borderWidth: 1.5,
+    borderColor: Colors.gray[300],
+    backgroundColor: Colors.white,
+  },
+  roleChipActive: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primaryFade,
+  },
+  roleChipText: {
+    fontSize: FontSize.xs,
+    color: Colors.gray[600],
+  },
+  roleChipTextActive: {
+    color: Colors.primary,
+    fontWeight: '700',
+  },
   userName: {
     fontSize: FontSize.md,
     fontWeight: '700',
@@ -447,6 +494,8 @@ const styles = StyleSheet.create({
   userActions: {
     flexDirection: 'row',
     gap: Spacing.xs,
+    justifyContent: 'flex-end',
+    marginTop: Spacing.xs,
   },
   approveBtn: {
     paddingHorizontal: Spacing.md,

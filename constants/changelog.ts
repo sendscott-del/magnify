@@ -9,6 +9,16 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.7.0',
+    date: '2026-03-29',
+    enhancements: [
+      'Calling picker now filters by type — ward callings show only Bishopric and Elders Quorum options; stake callings show only Stake options',
+      'Role is no longer selected on the registration screen — approvers now assign the correct role at approval time to prevent mistakes',
+      'Approver can select a role for each pending user directly in Settings before tapping Approve',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '1.6.0',
     date: '2026-03-29',
     enhancements: [
