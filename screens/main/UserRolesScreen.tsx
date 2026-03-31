@@ -47,7 +47,7 @@ export function UserRolesScreen({ navigation }: any) {
     if (error) {
       const msg = error.message;
       if (Platform.OS === 'web') window.alert(msg);
-      else Alert.alert('Error', msg);
+      else Alert.alert(t('common.error'), msg);
     } else {
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
     }

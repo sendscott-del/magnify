@@ -64,11 +64,11 @@ export function SettingsScreen({ navigation }: any) {
         method: 'POST', mode: 'no-cors',
         body: JSON.stringify({ text: '✅ *Magnify test* — Slack integration is working!' }),
       });
-      if (Platform.OS === 'web') window.alert('Test message sent! Check your Slack channel.');
-      else Alert.alert('Sent', 'Test message sent! Check your Slack channel.');
+      if (Platform.OS === 'web') window.alert(t('settings.slackTestSent'));
+      else Alert.alert(t('settings.sent'), t('settings.slackTestSent'));
     } catch {
-      if (Platform.OS === 'web') window.alert('Failed to send. Check the webhook URL.');
-      else Alert.alert('Error', 'Failed to send. Check the webhook URL.');
+      if (Platform.OS === 'web') window.alert(t('settings.slackTestFailed'));
+      else Alert.alert(t('common.error'), t('settings.slackTestFailed'));
     }
     setSlackTesting(prev => ({ ...prev, [eventType]: false }));
   }
@@ -173,7 +173,7 @@ export function SettingsScreen({ navigation }: any) {
                 <View key={u.id} style={styles.userCard}>
                   <Text style={styles.userName}>{u.full_name}</Text>
                   <Text style={styles.userEmail}>{u.email}</Text>
-                  <Text style={styles.userRoleLabel}>Assign role:</Text>
+                  <Text style={styles.userRoleLabel}>{t('settings.assignRole')}</Text>
                   <View style={styles.roleChipRow}>
                     {(['stake_president', 'first_counselor', 'second_counselor', 'high_councilor', 'stake_clerk', 'exec_secretary'] as UserRole[]).map(r => (
                       <TouchableOpacity

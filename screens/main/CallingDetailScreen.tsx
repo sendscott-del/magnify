@@ -299,6 +299,7 @@ function ReleaseMemberSection({ calling, wards, canEdit, onSave, onToggleDone }:
   onSave: (name: string, currentCalling: string, wardId: string) => Promise<void>;
   onToggleDone: () => Promise<void>;
 }) {
+  const { t } = useLanguage();
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(calling.release_member_name ?? '');
   const [currentCalling, setCurrentCalling] = useState(calling.release_current_calling ?? '');
@@ -330,12 +331,12 @@ function ReleaseMemberSection({ calling, wards, canEdit, onSave, onToggleDone }:
       <View style={rmStyles.header}>
         <View style={rmStyles.titleRow}>
           <Ionicons name="person-remove-outline" size={16} color={Colors.warning} style={{ marginRight: 6 }} />
-          <Text style={rmStyles.title}>Member to be Released</Text>
-          {!hasData && !editing && <Text style={rmStyles.optionalTag}>Optional</Text>}
+          <Text style={rmStyles.title}>{t('release.sectionTitle')}</Text>
+          {!hasData && !editing && <Text style={rmStyles.optionalTag}>{t('detail.optional')}</Text>}
         </View>
         {canEdit && !editing && (
           <TouchableOpacity onPress={() => setEditing(true)}>
-            <Text style={rmStyles.editBtn}>{hasData ? 'Edit' : 'Add'}</Text>
+            <Text style={rmStyles.editBtn}>{hasData ? t('release.edit') : t('release.add')}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -346,14 +347,14 @@ function ReleaseMemberSection({ calling, wards, canEdit, onSave, onToggleDone }:
             style={rmStyles.input}
             value={name}
             onChangeText={setName}
-            placeholder="Member name"
+            placeholder={t('release.memberNamePlaceholder')}
             autoFocus
           />
           <TextInput
             style={rmStyles.input}
             value={currentCalling}
             onChangeText={setCurrentCalling}
-            placeholder="Current calling (e.g. Primary President)"
+            placeholder={t('release.currentCallingPlaceholder')}
           />
           <TouchableOpacity style={rmStyles.wardBtn} onPress={() => setShowWardPicker(true)}>
             <Text style={wardId ? rmStyles.wardBtnText : rmStyles.wardBtnPlaceholder}>
@@ -373,12 +374,12 @@ function ReleaseMemberSection({ calling, wards, canEdit, onSave, onToggleDone }:
           <Modal visible={showWardPicker} transparent animationType="slide" onRequestClose={() => setShowWardPicker(false)}>
             <TouchableOpacity style={rmStyles.modalOverlay} activeOpacity={1} onPress={() => setShowWardPicker(false)}>
               <View style={rmStyles.modalSheet} onStartShouldSetResponder={() => true}>
-                <Text style={rmStyles.modalTitle}>Select Ward (Release)</Text>
+                <Text style={rmStyles.modalTitle}>{t('release.selectWardTitle')}</Text>
                 <TouchableOpacity
                   style={[rmStyles.modalItem, !wardId && rmStyles.modalItemSelected]}
                   onPress={() => { setWardId(''); setWardName(''); setShowWardPicker(false); }}
                 >
-                  <Text style={[rmStyles.modalItemText, !wardId && rmStyles.modalItemTextSelected]}>No ward / not applicable</Text>
+                  <Text style={[rmStyles.modalItemText, !wardId && rmStyles.modalItemTextSelected]}>{t('release.noWard')}</Text>
                 </TouchableOpacity>
                 <FlatList
                   data={wards}
@@ -418,7 +419,7 @@ function ReleaseMemberSection({ calling, wards, canEdit, onSave, onToggleDone }:
               {calling.release_done && <Text style={rmStyles.doneCheckMark}>✓</Text>}
             </View>
             <Text style={[rmStyles.doneLabel, calling.release_done && rmStyles.doneLabelOn]}>
-              {calling.release_done ? 'Released' : 'Mark as released'}
+              {calling.release_done ? t('release.released') : t('release.markAsReleased')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -937,8 +938,8 @@ export function CallingDetailScreen({ route, navigation }: any) {
             </View>
             {calling.ordination_type && (
               <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>Ordination</Text>
-                <Text style={styles.infoValue}>{calling.ordination_type === 'elder' ? 'Elder' : 'High Priest'}</Text>
+                <Text style={styles.infoLabel}>{t('ordination.title')}</Text>
+                <Text style={styles.infoValue}>{calling.ordination_type === 'elder' ? t('ordination.elder') : t('ordination.highPriest')}</Text>
               </View>
             )}
             {calling.bishop_approved && (

@@ -26,8 +26,8 @@ export function NewCallingScreen({ navigation }: any) {
   ];
 
   const ORDINATION_OPTIONS = [
-    { label: 'Elder', value: 'elder' },
-    { label: 'High Priest', value: 'high_priest' },
+    { label: t('ordination.elder'), value: 'elder' },
+    { label: t('ordination.highPriest'), value: 'high_priest' },
   ];
 
   const [type, setType] = useState<CallingType>('ward_calling');
@@ -73,11 +73,11 @@ export function NewCallingScreen({ navigation }: any) {
 
   async function handleSave(targetStage: 'ideas' | 'for_approval') {
     const finalCallingName = type === 'mp_ordination'
-      ? `Melchizedek Priesthood Ordination (${ordinationType === 'elder' ? 'Elder' : 'High Priest'})`
+      ? `Melchizedek Priesthood Ordination (${ordinationType === 'elder' ? t('ordination.elder') : t('ordination.highPriest')})`
       : (callingName === 'Other' ? customCallingName : callingName);
 
-    if (!memberName.trim()) { setError('Member name is required.'); return; }
-    if (!finalCallingName.trim()) { setError('Please specify a calling or ordination.'); return; }
+    if (!memberName.trim()) { setError(t('validation.memberNameRequired')); return; }
+    if (!finalCallingName.trim()) { setError(t('validation.callingRequired')); return; }
 
     setLoading(targetStage === 'ideas' ? 'ideas' : 'approval');
     setError('');
@@ -119,10 +119,10 @@ export function NewCallingScreen({ navigation }: any) {
     await supabase.from('calling_log').insert({
       calling_id: newCalling.id,
       action: stage === 'hc_approval'
-        ? 'MP Ordination created — sent directly to HC Approval'
+        ? t('log.mpCreated')
         : stage === 'for_approval'
-          ? 'Calling created and submitted for Stake Presidency approval'
-          : 'Calling created and added to Ideas',
+          ? t('log.callingSubmitted')
+          : t('log.callingIdeas'),
       to_stage: stage,
       performed_by: user?.id,
     });
@@ -134,8 +134,8 @@ export function NewCallingScreen({ navigation }: any) {
     if (Platform.OS === 'web') {
       navigation.navigate(dest);
     } else {
-      Alert.alert('Success', 'Entry added successfully.', [
-        { text: 'OK', onPress: () => navigation.navigate(dest) },
+      Alert.alert(t('common.success'), t('new.entryAdded'), [
+        { text: t('common.ok'), onPress: () => navigation.navigate(dest) },
       ]);
     }
   }
@@ -257,20 +257,20 @@ export function NewCallingScreen({ navigation }: any) {
 
         {/* Member to be Released */}
         <View style={styles.releaseSection}>
-          <Text style={styles.sectionLabel}>Member to be Released <Text style={styles.optionalLabel}>(Optional)</Text></Text>
-          <Text style={styles.releaseHint}>Enter the person currently holding this calling who will need to be released.</Text>
+          <Text style={styles.sectionLabel}>{t('release.sectionTitle')} <Text style={styles.optionalLabel}>({t('detail.optional')})</Text></Text>
+          <Text style={styles.releaseHint}>{t('release.hint')}</Text>
           <Input
-            label="Member Name"
+            label={t('release.memberName')}
             value={releaseMemberName}
             onChangeText={setReleaseMemberName}
-            placeholder="Full name"
+            placeholder={t('release.memberNamePlaceholder')}
             leftIcon="person-remove-outline"
           />
           <Input
-            label="Current Calling"
+            label={t('release.currentCalling')}
             value={releaseCurrentCalling}
             onChangeText={setReleaseCurrentCalling}
-            placeholder="e.g. Primary President"
+            placeholder={t('release.currentCallingPlaceholder')}
           />
           <Text style={styles.fieldLabel}>Ward <Text style={styles.optionalLabel}>(Optional)</Text></Text>
           <TouchableOpacity
@@ -278,7 +278,7 @@ export function NewCallingScreen({ navigation }: any) {
             onPress={() => setShowReleaseWardPicker(true)}
           >
             <Text style={releaseWardId ? styles.pickerBtnText : styles.pickerBtnPlaceholder}>
-              {releaseWardId ? releaseWardName : 'Select ward'}
+              {releaseWardId ? releaseWardName : t('new.selectWard')}
             </Text>
             <Text style={styles.pickerArrow}>▼</Text>
           </TouchableOpacity>
@@ -390,13 +390,13 @@ export function NewCallingScreen({ navigation }: any) {
           onPress={() => setShowReleaseWardPicker(false)}
         >
           <View style={styles.modalSheet} onStartShouldSetResponder={() => true}>
-            <Text style={styles.modalTitle}>Select Ward (Release)</Text>
+            <Text style={styles.modalTitle}>{t('release.selectWardTitle')}</Text>
             <TouchableOpacity
               style={[styles.modalItem, !releaseWardId && styles.modalItemSelected]}
               onPress={() => { setReleaseWardId(''); setReleaseWardName(''); setShowReleaseWardPicker(false); }}
             >
               <Text style={[styles.modalItemText, !releaseWardId && styles.modalItemTextSelected]}>
-                No ward / not applicable
+                {t('release.noWard')}
               </Text>
             </TouchableOpacity>
             <FlatList

@@ -284,6 +284,46 @@ export const translations = {
     'settings.slackDesc': 'Enter Incoming Webhook URLs from your Slack workspace.',
     'settings.saveWebhooks': 'Save Webhooks',
     'settings.saved': 'Saved!',
+    'settings.assignRole': 'Assign role:',
+    'settings.slackTestSent': 'Test message sent! Check your Slack channel.',
+    'settings.slackTestFailed': 'Failed to send. Check the webhook URL.',
+    'settings.sent': 'Sent',
+
+    // Common
+    'common.error': 'Error',
+    'common.success': 'Success',
+    'common.ok': 'OK',
+
+    // Ordination
+    'ordination.elder': 'Elder',
+    'ordination.highPriest': 'High Priest',
+    'ordination.title': 'Ordination',
+
+    // Release section
+    'release.sectionTitle': 'Member to be Released',
+    'release.hint': 'Enter the person currently holding this calling who will need to be released.',
+    'release.memberName': 'Member Name',
+    'release.memberNamePlaceholder': 'Full name',
+    'release.currentCalling': 'Current Calling',
+    'release.currentCallingPlaceholder': 'e.g. Primary President',
+    'release.selectWardTitle': 'Select Ward (Release)',
+    'release.noWard': 'No ward / not applicable',
+    'release.released': 'Released',
+    'release.markAsReleased': 'Mark as released',
+    'release.edit': 'Edit',
+    'release.add': 'Add',
+
+    // Validation
+    'validation.memberNameRequired': 'Member name is required.',
+    'validation.callingRequired': 'Please specify a calling or ordination.',
+
+    // Activity log
+    'log.mpCreated': 'MP Ordination created — sent directly to HC Approval',
+    'log.callingSubmitted': 'Calling created and submitted for Stake Presidency approval',
+    'log.callingIdeas': 'Calling created and added to Ideas',
+
+    // Success
+    'new.entryAdded': 'Entry added successfully.',
 
     // Idle Timeout
     'idle.title': 'Session Expiring',
@@ -698,6 +738,46 @@ export const translations = {
     'settings.slackDesc': 'Ingrese las URL de Webhook entrante de su espacio de Slack.',
     'settings.saveWebhooks': 'Guardar Webhooks',
     'settings.saved': '\u00a1Guardado!',
+    'settings.assignRole': 'Asignar rol:',
+    'settings.slackTestSent': '\u00a1Mensaje de prueba enviado! Revisa tu canal de Slack.',
+    'settings.slackTestFailed': 'Error al enviar. Verifica la URL del webhook.',
+    'settings.sent': 'Enviado',
+
+    // Common
+    'common.error': 'Error',
+    'common.success': '\u00c9xito',
+    'common.ok': 'OK',
+
+    // Ordination
+    'ordination.elder': '\u00c9lder',
+    'ordination.highPriest': 'Sumo Sacerdote',
+    'ordination.title': 'Ordenaci\u00f3n',
+
+    // Release section
+    'release.sectionTitle': 'Miembro a Relevar',
+    'release.hint': 'Ingrese la persona que actualmente tiene este llamamiento y que necesita ser relevada.',
+    'release.memberName': 'Nombre del Miembro',
+    'release.memberNamePlaceholder': 'Nombre completo',
+    'release.currentCalling': 'Llamamiento Actual',
+    'release.currentCallingPlaceholder': 'ej. Presidenta de la Primaria',
+    'release.selectWardTitle': 'Seleccionar Barrio (Relevo)',
+    'release.noWard': 'Sin barrio / no aplica',
+    'release.released': 'Relevado',
+    'release.markAsReleased': 'Marcar como relevado',
+    'release.edit': 'Editar',
+    'release.add': 'Agregar',
+
+    // Validation
+    'validation.memberNameRequired': 'El nombre del miembro es obligatorio.',
+    'validation.callingRequired': 'Por favor especifique un llamamiento u ordenaci\u00f3n.',
+
+    // Activity log
+    'log.mpCreated': 'Ordenaci\u00f3n MP creada \u2014 enviada directamente a Aprobaci\u00f3n del AC',
+    'log.callingSubmitted': 'Llamamiento creado y enviado para aprobaci\u00f3n de la Presidencia de Estaca',
+    'log.callingIdeas': 'Llamamiento creado y agregado a Ideas',
+
+    // Success
+    'new.entryAdded': 'Entrada agregada exitosamente.',
 
     // Idle Timeout
     'idle.title': 'Sesi\u00f3n por Expirar',

@@ -63,7 +63,7 @@ export function SPAdminScreen({ navigation }: any) {
       .insert({ name, role: newRole, sort_order: maxOrder, active: true });
     if (error) {
       if (Platform.OS === 'web') window.alert(error.message);
-      else Alert.alert('Error', error.message);
+      else Alert.alert(t('common.error'), error.message);
     } else {
       setNewName('');
       fetchMembers();

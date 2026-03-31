@@ -9,6 +9,23 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.0.0',
+    date: '2026-03-30',
+    enhancements: [
+      'Complete Spanish translation audit — all 28 hardcoded English strings now use translation system',
+      'Release section fully translated (member name, current calling, ward picker, status labels)',
+      'Ordination labels (Elder/High Priest) translated',
+      'Validation messages, success alerts, and activity log entries translated',
+      'Admin screens (Settings, SP Admin, HC Admin, User Roles) error alerts translated',
+      'Slack webhook test messages translated',
+    ],
+    bugFixes: [
+      'Fixed "Assign role:" label not translating in pending user management',
+      'Fixed "Select Ward (Release)" modal title not translating',
+      'Fixed "No ward / not applicable" picker option not translating',
+    ],
+  },
+  {
     version: '1.9.0',
     date: '2026-03-30',
     enhancements: [

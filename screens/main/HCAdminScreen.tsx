@@ -54,7 +54,7 @@ export function HCAdminScreen({ navigation }: any) {
     if (error) {
       const msg = error.message;
       if (Platform.OS === 'web') window.alert(msg);
-      else Alert.alert('Error', msg);
+      else Alert.alert(t('common.error'), msg);
     } else {
       setNewName('');
       fetchMembers();
