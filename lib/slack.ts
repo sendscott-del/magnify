@@ -102,7 +102,7 @@ export async function notifyAccessRequest({
     .from('slack_settings')
     .select('webhook_url')
     .eq('active', true)
-    .eq('event_type', 'user_access');
+    .eq('event_type', 'user_access_request');
 
   if (!settings || settings.length === 0) return;
 
@@ -124,7 +124,7 @@ export async function notifyAccessApproved({
     .from('slack_settings')
     .select('webhook_url')
     .eq('active', true)
-    .eq('event_type', 'user_access');
+    .eq('event_type', 'user_access_approved');
 
   if (!settings || settings.length === 0) return;
 

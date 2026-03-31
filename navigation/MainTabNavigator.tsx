@@ -58,8 +58,6 @@ function SettingsStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="SettingsMain" component={SettingsScreen} />
-      <Stack.Screen name="HCAdmin" component={HCAdminScreen} />
-      <Stack.Screen name="SPAdmin" component={SPAdminScreen} />
       <Stack.Screen name="Help" component={HelpScreen} />
       <Stack.Screen name="ReleaseNotes" component={ReleaseNotesScreen} />
       <Stack.Screen name="Permissions" component={PermissionsTableScreen} />

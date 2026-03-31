@@ -216,25 +216,9 @@ export function SettingsScreen({ navigation }: any) {
         {/* Leadership */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('settings.leadership')}</Text>
-          {isAdmin && (
-            <Button
-              title={t('settings.manageUserRoles')}
-              onPress={() => navigation.navigate('UserRoles')}
-              variant="outline"
-              fullWidth
-              style={styles.actionBtn}
-            />
-          )}
           <Button
-            title={t('settings.manageSP')}
-            onPress={() => navigation.navigate('SPAdmin')}
-            variant="outline"
-            fullWidth
-            style={styles.actionBtn}
-          />
-          <Button
-            title={t('settings.manageHC')}
-            onPress={() => navigation.navigate('HCAdmin')}
+            title={t('settings.manageUserRoles')}
+            onPress={() => navigation.navigate('UserRoles')}
             variant="outline"
             fullWidth
             style={styles.actionBtn}
@@ -278,7 +262,8 @@ export function SettingsScreen({ navigation }: any) {
               { key: 'sp_stage_change', label: t('settings.spBoardWebhook') },
               { key: 'hc_stage_change', label: t('settings.hcBoardWebhook') },
               { key: 'rejection', label: t('settings.rejectionWebhook') },
-              { key: 'user_access', label: t('settings.accessWebhook') },
+              { key: 'user_access_request', label: t('settings.accessRequestWebhook') },
+              { key: 'user_access_approved', label: t('settings.accessApprovedWebhook') },
             ].map(({ key, label }) => {
               const active = slackSettings.find(s => s.event_type === key)?.active;
               return (

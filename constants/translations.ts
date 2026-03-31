@@ -262,6 +262,8 @@ export const translations = {
     'settings.hcBoardWebhook': 'HC Board Updates',
     'settings.rejectionWebhook': 'Rejections',
     'settings.accessWebhook': 'User Access Requests & Approvals',
+    'settings.accessRequestWebhook': 'User Access Requests',
+    'settings.accessApprovedWebhook': 'User Access Approvals',
     'settings.webhookPlaceholder': 'https://hooks.slack.com/services/\u2026',
     'settings.save': 'Save',
     'settings.active': 'Active',
@@ -368,7 +370,8 @@ export const translations = {
     'spAdmin.slackIdHint': 'Used to @ mention this member in Slack notifications.',
 
     // User Roles Screen
-    'userRoles.title': 'User Roles',
+    'userRoles.title': 'Manage Members',
+    'userRoles.usersTab': 'Users',
     'userRoles.approvedCount': 'approved users',
     'userRoles.noUsers': 'No approved users.',
     'userRoles.assignRole': 'Change role:',
@@ -716,6 +719,8 @@ export const translations = {
     'settings.hcBoardWebhook': 'Actualizaciones del Tablero CH',
     'settings.rejectionWebhook': 'Rechazos',
     'settings.accessWebhook': 'Solicitudes y Aprobaciones de Acceso de Usuarios',
+    'settings.accessRequestWebhook': 'Solicitudes de Acceso',
+    'settings.accessApprovedWebhook': 'Aprobaciones de Acceso',
     'settings.webhookPlaceholder': 'https://hooks.slack.com/services/\u2026',
     'settings.save': 'Guardar',
     'settings.active': 'Activo',
@@ -822,7 +827,8 @@ export const translations = {
     'spAdmin.slackIdHint': 'Se usa para mencionar a este miembro en las notificaciones de Slack.',
 
     // User Roles Screen
-    'userRoles.title': 'Roles de Usuario',
+    'userRoles.title': 'Administrar Miembros',
+    'userRoles.usersTab': 'Usuarios',
     'userRoles.approvedCount': 'usuarios aprobados',
     'userRoles.noUsers': 'No hay usuarios aprobados.',
     'userRoles.assignRole': 'Cambiar rol:',

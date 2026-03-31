@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.1.0',
+    date: '2026-03-30',
+    enhancements: [
+      'Split Slack webhooks: separate channels for user access requests vs approvals',
+      'Consolidated admin: SP Members and HC Members now managed in the same screen as User Roles (3 tabs)',
+      'Removed separate SP Admin and HC Admin screens — all management in one place',
+      '"Manage Members" button in Settings replaces three separate buttons',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.0.0',
     date: '2026-03-30',
     enhancements: [
