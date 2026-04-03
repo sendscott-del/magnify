@@ -120,16 +120,23 @@ function UsersTab() {
       ) : (
         users.map(user => (
           <View key={user.id} style={styles.memberRow}>
-            <View style={styles.memberInfo}>
-              <Text style={styles.memberName}>{user.full_name}</Text>
-              <Text style={styles.memberSub}>{user.email}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
+              <View style={styles.memberInfo}>
+                <Text style={styles.memberName}>{user.full_name}</Text>
+                <Text style={styles.memberSub}>{user.email}</Text>
+                {editingId !== user.id && (
+                  <Text style={styles.memberRole}>{ROLE_LABELS[user.role as UserRole]}</Text>
+                )}
+              </View>
               {editingId !== user.id && (
-                <Text style={styles.memberRole}>{ROLE_LABELS[user.role as UserRole]}</Text>
+                <TouchableOpacity style={styles.editIcon} onPress={() => setEditingId(user.id)}>
+                  <Ionicons name="create-outline" size={18} color={Colors.primary} />
+                </TouchableOpacity>
               )}
             </View>
 
-            {editingId === user.id ? (
-              <View style={{ marginTop: Spacing.xs }}>
+            {editingId === user.id && (
+              <View style={{ width: '100%' }}>
                 <View style={styles.roleChipRow}>
                   {ALL_ROLES.map(r => (
                     <TouchableOpacity
@@ -154,10 +161,6 @@ function UsersTab() {
                   </TouchableOpacity>
                 </View>
               </View>
-            ) : (
-              <TouchableOpacity style={styles.editIcon} onPress={() => setEditingId(user.id)}>
-                <Ionicons name="create-outline" size={18} color={Colors.primary} />
-              </TouchableOpacity>
             )}
           </View>
         ))
@@ -455,8 +458,8 @@ const styles = StyleSheet.create({
   hint: { fontSize: FontSize.xs, color: Colors.gray[500], marginBottom: Spacing.md, lineHeight: 18 },
   empty: { fontSize: FontSize.sm, color: Colors.gray[400], fontStyle: 'italic', textAlign: 'center', padding: Spacing.md },
   memberRow: {
-    flexDirection: 'row', alignItems: 'center', paddingVertical: Spacing.sm,
-    borderBottomWidth: 1, borderBottomColor: Colors.gray[100], gap: Spacing.sm, flexWrap: 'wrap',
+    paddingVertical: Spacing.sm,
+    borderBottomWidth: 1, borderBottomColor: Colors.gray[100], gap: Spacing.xs,
   },
   memberInfo: { flex: 1 },
   memberName: { fontSize: FontSize.md, color: Colors.gray[800], fontWeight: '600' },
