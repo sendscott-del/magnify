@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.1.1',
+    date: '2026-04-02',
+    enhancements: [],
+    bugFixes: [
+      'Fixed role chips getting cut off on narrow phone screens in User Roles — now horizontally scrollable',
+    ],
+  },
+  {
     version: '2.1.0',
     date: '2026-03-30',
     enhancements: [
