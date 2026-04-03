@@ -130,22 +130,20 @@ function UsersTab() {
 
             {editingId === user.id ? (
               <View style={{ marginTop: Spacing.xs }}>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: Spacing.sm }}>
-                  <View style={styles.roleChipRow}>
-                    {ALL_ROLES.map(r => (
-                      <TouchableOpacity
-                        key={r}
-                        style={[styles.roleChip, user.role === r && styles.roleChipActive]}
-                        onPress={() => handleRoleChange(user.id, r)}
-                        disabled={saving[user.id]}
-                      >
-                        <Text style={[styles.roleChipText, user.role === r && styles.roleChipTextActive]}>
-                          {ROLE_LABELS[r]}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                </ScrollView>
+                <View style={styles.roleChipRow}>
+                  {ALL_ROLES.map(r => (
+                    <TouchableOpacity
+                      key={r}
+                      style={[styles.roleChip, user.role === r && styles.roleChipActive]}
+                      onPress={() => handleRoleChange(user.id, r)}
+                      disabled={saving[user.id]}
+                    >
+                      <Text style={[styles.roleChipText, user.role === r && styles.roleChipTextActive]}>
+                        {ROLE_LABELS[r]}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
                 <View style={styles.editActions}>
                   <TouchableOpacity style={styles.removeBtn} onPress={() => handleRemoveUser(user)}>
                     <Ionicons name="person-remove-outline" size={14} color={Colors.error} />
@@ -468,7 +466,7 @@ const styles = StyleSheet.create({
   slackIdText: { fontSize: FontSize.xs, color: Colors.primary, marginTop: 1 },
   inactiveLabel: { fontSize: FontSize.xs, color: Colors.gray[400], fontStyle: 'italic' },
   editIcon: { padding: Spacing.xs },
-  roleChipRow: { flexDirection: 'row', gap: 4 },
+  roleChipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginBottom: Spacing.sm },
   roleChip: {
     paddingHorizontal: Spacing.sm, paddingVertical: 3, borderRadius: Radius.full,
     borderWidth: 1.5, borderColor: Colors.gray[300], backgroundColor: Colors.white,
