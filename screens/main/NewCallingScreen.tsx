@@ -131,7 +131,14 @@ export function NewCallingScreen({ navigation }: any) {
     });
 
     // Notify SP channel that a new calling was submitted (no names for confidentiality)
-    notifyNewCallingPosted({ stage: STAGE_LABELS[stage] ?? stage });
+    const wardData = wards.find(w => w.id === wardId);
+    notifyNewCallingPosted({
+      memberName: memberName.trim(),
+      callingName: finalCallingName.trim(),
+      wardName: wardData?.name,
+      submittedBy: profile?.full_name ?? 'Unknown',
+      stage: STAGE_LABELS[stage] ?? stage,
+    });
 
     setLoading(null);
     resetForm();
@@ -158,11 +165,11 @@ export function NewCallingScreen({ navigation }: any) {
           <TouchableOpacity
             onPress={() => {
               setShowConfirmation(false);
-              navigation.navigate('PresidencyBoard');
+              navigation.navigate('HC');
             }}
             style={styles.confirmationLink}
           >
-            <Text style={styles.confirmationLinkText}>{t('spBoard.title') ?? 'Go to SP Board'}</Text>
+            <Text style={styles.confirmationLinkText}>{t('hcBoard.title') ?? 'Go to HC Board'}</Text>
           </TouchableOpacity>
         </View>
       </View>

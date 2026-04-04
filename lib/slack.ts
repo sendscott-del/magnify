@@ -92,10 +92,15 @@ export async function notifyRejection({
 }
 
 export async function notifyNewCallingPosted({
-  stage,
+  memberName, callingName, wardName, submittedBy, stage,
 }: {
+  memberName: string;
+  callingName: string;
+  wardName?: string | null;
+  submittedBy: string;
   stage: string;
 }): Promise<void> {
+  // Posts to SP channel only — SP is authorized to see names/callings
   const { data: settings } = await supabase
     .from('slack_settings')
     .select('webhook_url')
@@ -104,7 +109,8 @@ export async function notifyNewCallingPosted({
 
   if (!settings || settings.length === 0) return;
 
-  const text = `📋 *Magnify*\nA new calling recommendation has been posted → *${stage}*\n_Open Magnify to review._`;
+  const wardStr = wardName ? ` (${wardName})` : '';
+  const text = `📋 *Magnify: New Calling Submitted*\n*${memberName}*${wardStr} — ${callingName}\nSubmitted by *${submittedBy}* → *${stage}*`;
 
   for (const s of settings) {
     await postToWebhook(s.webhook_url, text);
