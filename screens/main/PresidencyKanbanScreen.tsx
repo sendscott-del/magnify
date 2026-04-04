@@ -34,6 +34,7 @@ export function PresidencyKanbanScreen({ navigation }: any) {
   ];
   const [callings, setCallings] = useState<Calling[]>([]);
   const [rejectedCallings, setRejectedCallings] = useState<Calling[]>([]);
+  const [viewedIds, setViewedIds] = useState<Set<string>>(new Set());
   const [refreshing, setRefreshing] = useState(false);
   const [typeFilter, setTypeFilter] = useState<CallingType | 'all'>('all');
 
@@ -61,7 +62,18 @@ export function PresidencyKanbanScreen({ navigation }: any) {
       const { data: rd } = await rq;
       setRejectedCallings((rd as Calling[]) ?? []);
     }
-  }, [typeFilter, canSeeRejected]);
+
+    // Fetch which callings this user has viewed
+    if (profile?.id) {
+      const { data: views } = await supabase
+        .from('calling_views')
+        .select('calling_id')
+        .eq('user_id', profile.id);
+      if (views) {
+        setViewedIds(new Set(views.map((v: any) => v.calling_id)));
+      }
+    }
+  }, [typeFilter, canSeeRejected, profile?.id]);
 
   useFocusEffect(
     useCallback(() => {
@@ -111,6 +123,7 @@ export function PresidencyKanbanScreen({ navigation }: any) {
             title={col.label}
             color={col.color}
             callings={callings.filter(c => c.stage === col.stage)}
+            viewedIds={viewedIds}
             onCardPress={(c) => navigation.navigate('CallingDetail', { callingId: c.id })}
           />
         ))}
@@ -119,6 +132,7 @@ export function PresidencyKanbanScreen({ navigation }: any) {
             title={t('detail.declined')}
             color={Colors.error}
             callings={rejectedCallings}
+            viewedIds={viewedIds}
             onCardPress={(c) => navigation.navigate('CallingDetail', { callingId: c.id })}
           />
         )}

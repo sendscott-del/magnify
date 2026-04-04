@@ -13,6 +13,8 @@ import { DisclaimerFooter } from '../../components/ui/DisclaimerFooter';
 import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme';
 import { CALLING_GROUPS } from '../../constants/callings';
 import { useLanguage } from '../../context/LanguageContext';
+import { notifyCallingSubmitted } from '../../lib/slack';
+import { STAGE_LABELS } from '../../constants/callings';
 
 export function NewCallingScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -125,6 +127,17 @@ export function NewCallingScreen({ navigation }: any) {
           : t('log.callingIdeas'),
       to_stage: stage,
       performed_by: user?.id,
+    });
+
+    // Send Slack confirmation @mentioning the submitter
+    const wardData = wards.find(w => w.id === wardId);
+    notifyCallingSubmitted({
+      memberName: memberName.trim(),
+      callingName: finalCallingName.trim(),
+      wardName: wardData?.name,
+      submittedBy: profile?.full_name ?? 'Unknown',
+      callingId: newCalling.id,
+      stage: STAGE_LABELS[stage] ?? stage,
     });
 
     setLoading(null);

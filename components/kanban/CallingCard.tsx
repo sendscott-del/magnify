@@ -20,9 +20,10 @@ const TYPE_ICONS: Record<string, any> = {
 interface Props {
   calling: Calling;
   onPress: () => void;
+  isNew?: boolean;
 }
 
-export function CallingCard({ calling, onPress }: Props) {
+export function CallingCard({ calling, onPress, isNew }: Props) {
   const { t } = useLanguage();
   const STAGE_LABELS: Record<string, string> = {
     ideas: t('stage.ideas'),
@@ -45,6 +46,11 @@ export function CallingCard({ calling, onPress }: Props) {
       <View style={styles.row}>
         <Image source={TYPE_ICONS[calling.type]} style={styles.typeIcon} />
         <Text style={styles.name} numberOfLines={1}>{calling.member_name}</Text>
+        {isNew && (
+          <View style={styles.newBadge}>
+            <Text style={styles.newBadgeText}>NEW</Text>
+          </View>
+        )}
       </View>
       <Text style={styles.callingName} numberOfLines={1}>{calling.calling_name}</Text>
       <View style={styles.footer}>
@@ -91,6 +97,18 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.gray[900],
     flex: 1,
+  },
+  newBadge: {
+    backgroundColor: Colors.error,
+    borderRadius: Radius.full,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  newBadgeText: {
+    color: Colors.white,
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
   callingName: {
     fontSize: FontSize.sm,

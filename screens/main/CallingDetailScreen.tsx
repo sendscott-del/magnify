@@ -625,7 +625,16 @@ export function CallingDetailScreen({ route, navigation }: any) {
     setLoading(false);
   }, [callingId]);
 
-  useFocusEffect(useCallback(() => { fetchData(); }, [fetchData]));
+  useFocusEffect(useCallback(() => {
+    fetchData();
+    // Mark this calling as viewed by the current user
+    if (profile?.id) {
+      supabase.from('calling_views').upsert(
+        { calling_id: callingId, user_id: profile.id },
+        { onConflict: 'calling_id,user_id' }
+      ).then(() => {});
+    }
+  }, [fetchData, callingId, profile?.id]));
 
   async function toggleSPApproval(role: string, current: boolean) {
     const newVal = !current;

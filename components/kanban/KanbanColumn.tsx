@@ -12,9 +12,10 @@ interface Props {
   onCardPress: (calling: Calling) => void;
   color?: string;
   headerAction?: React.ReactNode;
+  viewedIds?: Set<string>;
 }
 
-export function KanbanColumn({ title, callings, onCardPress, color = Colors.primary, headerAction }: Props) {
+export function KanbanColumn({ title, callings, onCardPress, color = Colors.primary, headerAction, viewedIds }: Props) {
   const { t } = useLanguage();
   return (
     <View style={styles.column}>
@@ -30,7 +31,7 @@ export function KanbanColumn({ title, callings, onCardPress, color = Colors.prim
           <EmptyState icon="list-outline" title={t('hcBoard.nothingHere')} />
         ) : (
           callings.map(c => (
-            <CallingCard key={c.id} calling={c} onPress={() => onCardPress(c)} />
+            <CallingCard key={c.id} calling={c} onPress={() => onCardPress(c)} isNew={viewedIds ? !viewedIds.has(c.id) : false} />
           ))
         )}
       </ScrollView>

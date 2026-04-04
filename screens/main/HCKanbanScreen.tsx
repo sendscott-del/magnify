@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../context/AuthContext';
 import { Calling, CallingType, Ward } from '../../lib/database.types';
 import { KanbanColumn } from '../../components/kanban/KanbanColumn';
 import { DisclaimerFooter } from '../../components/ui/DisclaimerFooter';
@@ -15,6 +16,7 @@ import { useLanguage } from '../../context/LanguageContext';
 
 export function HCKanbanScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const { profile } = useAuth();
   const { t, language } = useLanguage();
 
   const HC_COLUMNS = [
@@ -45,6 +47,7 @@ export function HCKanbanScreen({ navigation }: any) {
 
   const [showWardFilter, setShowWardFilter] = useState(false);
   const [showAssigneeFilter, setShowAssigneeFilter] = useState(false);
+  const [viewedIds, setViewedIds] = useState<Set<string>>(new Set());
   const [showScriptModal, setShowScriptModal] = useState(false);
   const [scriptWard, setScriptWard] = useState<Ward | null>(null);
   const [scriptCopied, setScriptCopied] = useState(false);
@@ -92,7 +95,18 @@ export function HCKanbanScreen({ navigation }: any) {
       approvalMap[`${a.calling_id}:${a.hc_member_id}`] = a.approved;
     });
     setHcApprovalMap(approvalMap);
-  }, []);
+
+    // Fetch which callings this user has viewed
+    if (profile?.id) {
+      const { data: views } = await supabase
+        .from('calling_views')
+        .select('calling_id')
+        .eq('user_id', profile.id);
+      if (views) {
+        setViewedIds(new Set(views.map((v: any) => v.calling_id)));
+      }
+    }
+  }, [profile?.id]);
 
   useFocusEffect(useCallback(() => { fetchData(); }, [fetchData]));
 
@@ -275,6 +289,7 @@ export function HCKanbanScreen({ navigation }: any) {
             title={col.label}
             color={col.color}
             callings={filteredCallings(col.stages)}
+            viewedIds={viewedIds}
             onCardPress={(c) => navigation.navigate('CallingDetail', { callingId: c.id })}
             headerAction={col.stages.includes('sustain') ? (
               <TouchableOpacity
