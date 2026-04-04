@@ -91,14 +91,9 @@ export async function notifyRejection({
   }
 }
 
-export async function notifyCallingSubmitted({
-  memberName, callingName, wardName, submittedBy, callingId, stage,
+export async function notifyNewCallingPosted({
+  stage,
 }: {
-  memberName: string;
-  callingName: string;
-  wardName?: string | null;
-  submittedBy: string;
-  callingId?: string | null;
   stage: string;
 }): Promise<void> {
   const { data: settings } = await supabase
@@ -109,18 +104,7 @@ export async function notifyCallingSubmitted({
 
   if (!settings || settings.length === 0) return;
 
-  // Look up submitter's Slack user ID for @mention
-  let slackUserId: string | null = null;
-  const [{ data: spData }, { data: hcData }] = await Promise.all([
-    supabase.from('sp_members').select('slack_user_id').eq('name', submittedBy).eq('active', true).maybeSingle(),
-    supabase.from('high_council_members').select('slack_user_id').eq('name', submittedBy).eq('active', true).maybeSingle(),
-  ]);
-  slackUserId = spData?.slack_user_id ?? hcData?.slack_user_id ?? null;
-
-  const wardStr = wardName ? ` (${wardName})` : '';
-  const byStr = slackUserId ? `<@${slackUserId}>` : `*${submittedBy}*`;
-  const linkStr = (APP_URL && callingId) ? `\n<${APP_URL}/calling/${callingId}|View Card>` : '';
-  const text = `✅ *Magnify: Calling Submitted*\n*${memberName}*${wardStr} — ${callingName}\nSubmitted by ${byStr} → *${stage}*${linkStr}`;
+  const text = `📋 *Magnify*\nA new calling recommendation has been posted → *${stage}*\n_Open Magnify to review._`;
 
   for (const s of settings) {
     await postToWebhook(s.webhook_url, text);

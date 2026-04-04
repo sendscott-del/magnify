@@ -13,7 +13,7 @@ import { DisclaimerFooter } from '../../components/ui/DisclaimerFooter';
 import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme';
 import { CALLING_GROUPS } from '../../constants/callings';
 import { useLanguage } from '../../context/LanguageContext';
-import { notifyCallingSubmitted } from '../../lib/slack';
+import { notifyNewCallingPosted } from '../../lib/slack';
 import { STAGE_LABELS } from '../../constants/callings';
 
 export function NewCallingScreen({ navigation }: any) {
@@ -47,6 +47,7 @@ export function NewCallingScreen({ navigation }: any) {
   const [releaseWardName, setReleaseWardName] = useState('');
   const [showReleaseWardPicker, setShowReleaseWardPicker] = useState(false);
   const [loading, setLoading] = useState<'ideas' | 'approval' | null>(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const [error, setError] = useState('');
 
   const [wards, setWards] = useState<Ward[]>([]);
@@ -129,28 +130,43 @@ export function NewCallingScreen({ navigation }: any) {
       performed_by: user?.id,
     });
 
-    // Send Slack confirmation @mentioning the submitter
-    const wardData = wards.find(w => w.id === wardId);
-    notifyCallingSubmitted({
-      memberName: memberName.trim(),
-      callingName: finalCallingName.trim(),
-      wardName: wardData?.name,
-      submittedBy: profile?.full_name ?? 'Unknown',
-      callingId: newCalling.id,
-      stage: STAGE_LABELS[stage] ?? stage,
-    });
+    // Notify SP channel that a new calling was submitted (no names for confidentiality)
+    notifyNewCallingPosted({ stage: STAGE_LABELS[stage] ?? stage });
 
     setLoading(null);
     resetForm();
+    setShowConfirmation(true);
+  }
 
-    const dest = type === 'mp_ordination' ? 'HC' : 'PresidencyBoard';
-    if (Platform.OS === 'web') {
-      navigation.navigate(dest);
-    } else {
-      Alert.alert(t('common.success'), t('new.entryAdded'), [
-        { text: t('common.ok'), onPress: () => navigation.navigate(dest) },
-      ]);
-    }
+  // Confirmation screen after successful submission
+  if (showConfirmation) {
+    return (
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={styles.confirmationContainer}>
+          <View style={styles.confirmationIcon}>
+            <Ionicons name="checkmark-circle" size={64} color={Colors.success} />
+          </View>
+          <Text style={styles.confirmationTitle}>{t('common.success')}</Text>
+          <Text style={styles.confirmationMessage}>
+            {t('new.entryAdded')}{'\n\n'}Your calling recommendation has been submitted to the Stake Presidency for review.
+          </Text>
+          <Button
+            title={t('new.submitAnother') ?? 'Submit Another'}
+            onPress={() => setShowConfirmation(false)}
+            style={{ marginTop: Spacing.lg }}
+          />
+          <TouchableOpacity
+            onPress={() => {
+              setShowConfirmation(false);
+              navigation.navigate('PresidencyBoard');
+            }}
+            style={styles.confirmationLink}
+          >
+            <Text style={styles.confirmationLinkText}>{t('spBoard.title') ?? 'Go to SP Board'}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
   }
 
   return (
@@ -585,4 +601,23 @@ const styles = StyleSheet.create({
   modalItemText: { fontSize: FontSize.md, color: Colors.gray[800] },
   modalItemTextSelected: { color: Colors.primary, fontWeight: '700' },
   modalItemAbbr: { fontSize: FontSize.sm, color: Colors.gray[400], fontWeight: '600' },
+  confirmationContainer: {
+    flex: 1, alignItems: 'center', justifyContent: 'center',
+    paddingHorizontal: Spacing.xl,
+  },
+  confirmationIcon: { marginBottom: Spacing.md },
+  confirmationTitle: {
+    fontSize: FontSize.xxl, fontWeight: '800', color: Colors.gray[900],
+    marginBottom: Spacing.sm,
+  },
+  confirmationMessage: {
+    fontSize: FontSize.md, color: Colors.gray[600],
+    textAlign: 'center', lineHeight: 22,
+  },
+  confirmationLink: {
+    marginTop: Spacing.lg, paddingVertical: Spacing.sm,
+  },
+  confirmationLinkText: {
+    fontSize: FontSize.md, color: Colors.primary, fontWeight: '600',
+  },
 });
