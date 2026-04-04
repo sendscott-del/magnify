@@ -119,7 +119,8 @@ export function NewCallingScreen({ navigation }: any) {
       return;
     }
 
-    await supabase.from('calling_log').insert({
+    // Audit log (non-blocking)
+    supabase.from('calling_log').insert({
       calling_id: newCalling.id,
       action: stage === 'hc_approval'
         ? t('log.mpCreated')
@@ -128,9 +129,9 @@ export function NewCallingScreen({ navigation }: any) {
           : t('log.callingIdeas'),
       to_stage: stage,
       performed_by: user?.id,
-    });
+    }).then(() => {});
 
-    // Notify SP channel that a new calling was submitted (no names for confidentiality)
+    // Notify SP Slack channel (fire and forget)
     const wardData = wards.find(w => w.id === wardId);
     notifyNewCallingPosted({
       memberName: memberName.trim(),
@@ -138,7 +139,7 @@ export function NewCallingScreen({ navigation }: any) {
       wardName: wardData?.name,
       submittedBy: profile?.full_name ?? 'Unknown',
       stage: STAGE_LABELS[stage] ?? stage,
-    });
+    }).catch(() => {});
 
     setLoading(null);
     resetForm();
