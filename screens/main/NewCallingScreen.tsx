@@ -153,30 +153,24 @@ export function NewCallingScreen({ navigation }: any) {
   // Confirmation screen after successful submission
   if (showConfirmation) {
     return (
-      <View style={[styles.container, { paddingTop: insets.top }]}>
-        <View style={styles.confirmationContainer}>
-          <View style={styles.confirmationIcon}>
-            <Ionicons name="checkmark-circle" size={64} color={Colors.success} />
-          </View>
-          <Text style={styles.confirmationTitle}>{t('common.success')}</Text>
-          <Text style={styles.confirmationMessage}>
-            Your calling recommendation has been submitted to the Stake Presidency for review.
-          </Text>
-          <Button
-            title="Submit Another"
-            onPress={() => setShowConfirmation(false)}
-            style={{ marginTop: Spacing.lg }}
-          />
-          <TouchableOpacity
-            onPress={() => {
-              setShowConfirmation(false);
-              navigation.navigate('HC');
-            }}
-            style={styles.confirmationLink}
-          >
-            <Text style={styles.confirmationLinkText}>Go to HC Board</Text>
-          </TouchableOpacity>
-        </View>
+      <View style={{ flex: 1, backgroundColor: Colors.gray[50], paddingTop: insets.top, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}>
+        <Ionicons name="checkmark-circle" size={64} color={Colors.success} />
+        <Text style={{ fontSize: 22, fontWeight: '800', color: Colors.gray[900], marginTop: 16 }}>Submitted</Text>
+        <Text style={{ fontSize: 15, color: Colors.gray[600], textAlign: 'center', marginTop: 8, lineHeight: 22 }}>
+          Your calling recommendation has been submitted to the Stake Presidency for review.
+        </Text>
+        <TouchableOpacity
+          onPress={() => setShowConfirmation(false)}
+          style={{ marginTop: 24, backgroundColor: Colors.primary, paddingVertical: 12, paddingHorizontal: 24, borderRadius: 8 }}
+        >
+          <Text style={{ color: 'white', fontWeight: '600', fontSize: 15 }}>Submit Another</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => { setShowConfirmation(false); navigation.navigate('HC'); }}
+          style={{ marginTop: 16 }}
+        >
+          <Text style={{ color: Colors.primary, fontWeight: '600', fontSize: 15 }}>Go to HC Board</Text>
+        </TouchableOpacity>
       </View>
     );
   }
