@@ -108,20 +108,20 @@ export function NewCallingScreen({ navigation }: any) {
       payload.ordination_type = ordinationType;
     }
 
-    try {
-      const { data: newCalling, error: insertErr } = await supabase
-        .from('callings')
-        .insert(payload)
-        .select()
-        .single();
+    const { data: newCalling, error: insertErr } = await supabase
+      .from('callings')
+      .insert(payload)
+      .select()
+      .single();
 
-      if (insertErr) {
-        setError(insertErr.message);
-        setLoading(null);
-        return;
-      }
+    if (insertErr) {
+      setError(insertErr.message);
+      setLoading(null);
+      return;
+    }
 
-      // Audit log (non-blocking)
+    // Audit log (non-blocking)
+    if (newCalling) {
       supabase.from('calling_log').insert({
         calling_id: newCalling.id,
         action: stage === 'hc_approval'
@@ -132,49 +132,39 @@ export function NewCallingScreen({ navigation }: any) {
         to_stage: stage,
         performed_by: user?.id,
       }).then(() => {});
+    }
 
-      // Notify SP Slack channel (fire and forget)
+    // Notify SP Slack channel (fire and forget)
+    try {
       const wardData = wards.find(w => w.id === wardId);
       notifyNewCallingPosted({
         memberName: memberName.trim(),
         callingName: finalCallingName.trim(),
-        wardName: wardData?.name,
+        wardName: wardData?.name ?? '',
         submittedBy: profile?.full_name ?? 'Unknown',
-        stage: STAGE_LABELS[stage] ?? stage,
+        stage: STAGE_LABELS[stage as keyof typeof STAGE_LABELS] ?? stage,
       }).catch(() => {});
-    } catch (e) {
-      console.warn('[NewCalling] unexpected error:', e);
-    }
+    } catch (_) {}
 
     setLoading(null);
     resetForm();
-    setShowConfirmation(true);
+
+    // Show confirmation — use Alert on native, inline on web
+    if (Platform.OS === 'web') {
+      setShowConfirmation(true);
+    } else {
+      Alert.alert(
+        'Submitted',
+        'Your calling recommendation has been submitted to the Stake Presidency for review.',
+        [
+          { text: 'Submit Another', onPress: () => {} },
+          { text: 'Go to HC Board', onPress: () => navigation.navigate('HC') },
+        ]
+      );
+    }
   }
 
-  // Confirmation screen after successful submission
-  if (showConfirmation) {
-    return (
-      <View style={{ flex: 1, backgroundColor: Colors.gray[50], paddingTop: insets.top, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}>
-        <Ionicons name="checkmark-circle" size={64} color={Colors.success} />
-        <Text style={{ fontSize: 22, fontWeight: '800', color: Colors.gray[900], marginTop: 16 }}>Submitted</Text>
-        <Text style={{ fontSize: 15, color: Colors.gray[600], textAlign: 'center', marginTop: 8, lineHeight: 22 }}>
-          Your calling recommendation has been submitted to the Stake Presidency for review.
-        </Text>
-        <TouchableOpacity
-          onPress={() => setShowConfirmation(false)}
-          style={{ marginTop: 24, backgroundColor: Colors.primary, paddingVertical: 12, paddingHorizontal: 24, borderRadius: 8 }}
-        >
-          <Text style={{ color: 'white', fontWeight: '600', fontSize: 15 }}>Submit Another</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => { setShowConfirmation(false); navigation.navigate('HC'); }}
-          style={{ marginTop: 16 }}
-        >
-          <Text style={{ color: Colors.primary, fontWeight: '600', fontSize: 15 }}>Go to HC Board</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
+  // (confirmation banner rendered inline below)
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -188,6 +178,31 @@ export function NewCallingScreen({ navigation }: any) {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
+        {/* Confirmation banner */}
+        {showConfirmation && (
+          <View style={{ backgroundColor: '#ecfdf5', borderWidth: 1, borderColor: '#a7f3d0', borderRadius: 12, padding: 16, marginBottom: 16, alignItems: 'center' }}>
+            <Ionicons name="checkmark-circle" size={40} color={Colors.success} />
+            <Text style={{ fontSize: 16, fontWeight: '700', color: Colors.gray[900], marginTop: 8 }}>Submitted</Text>
+            <Text style={{ fontSize: 13, color: Colors.gray[600], textAlign: 'center', marginTop: 4 }}>
+              Your calling recommendation has been submitted to the Stake Presidency for review.
+            </Text>
+            <View style={{ flexDirection: 'row', gap: 12, marginTop: 12 }}>
+              <TouchableOpacity
+                onPress={() => setShowConfirmation(false)}
+                style={{ backgroundColor: Colors.primary, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 6 }}
+              >
+                <Text style={{ color: 'white', fontWeight: '600', fontSize: 13 }}>Submit Another</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => { setShowConfirmation(false); navigation.navigate('HC'); }}
+                style={{ paddingVertical: 8, paddingHorizontal: 16 }}
+              >
+                <Text style={{ color: Colors.primary, fontWeight: '600', fontSize: 13 }}>HC Board</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
         {/* Type Selector */}
         <Text style={styles.sectionLabel}>{t('new.typeLabel')}</Text>
         <View style={styles.typeRow}>
