@@ -160,3 +160,24 @@ export async function notifyAccessApproved({
     await postToWebhook(s.webhook_url, text);
   }
 }
+
+export async function notifySuggestion({
+  suggestion, submittedBy,
+}: {
+  suggestion: string;
+  submittedBy: string;
+}): Promise<void> {
+  const { data: settings } = await supabase
+    .from('slack_settings')
+    .select('webhook_url')
+    .eq('active', true)
+    .eq('event_type', 'sp_stage_change');
+
+  if (!settings || settings.length === 0) return;
+
+  const text = `💡 *Magnify: Suggestion*\nFrom *${submittedBy}*:\n> ${suggestion}`;
+
+  for (const s of settings) {
+    await postToWebhook(s.webhook_url, text);
+  }
+}
