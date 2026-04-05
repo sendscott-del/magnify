@@ -107,39 +107,43 @@ export function NewCallingScreen({ navigation }: any) {
       payload.ordination_type = ordinationType;
     }
 
-    const { data: newCalling, error: insertErr } = await supabase
-      .from('callings')
-      .insert(payload)
-      .select()
-      .single();
+    try {
+      const { data: newCalling, error: insertErr } = await supabase
+        .from('callings')
+        .insert(payload)
+        .select()
+        .single();
 
-    if (insertErr) {
-      setError(insertErr.message);
-      setLoading(null);
-      return;
+      if (insertErr) {
+        setError(insertErr.message);
+        setLoading(null);
+        return;
+      }
+
+      // Audit log (non-blocking)
+      supabase.from('calling_log').insert({
+        calling_id: newCalling.id,
+        action: stage === 'hc_approval'
+          ? t('log.mpCreated')
+          : stage === 'for_approval'
+            ? t('log.callingSubmitted')
+            : t('log.callingIdeas'),
+        to_stage: stage,
+        performed_by: user?.id,
+      }).then(() => {});
+
+      // Notify SP Slack channel (fire and forget)
+      const wardData = wards.find(w => w.id === wardId);
+      notifyNewCallingPosted({
+        memberName: memberName.trim(),
+        callingName: finalCallingName.trim(),
+        wardName: wardData?.name,
+        submittedBy: profile?.full_name ?? 'Unknown',
+        stage: STAGE_LABELS[stage] ?? stage,
+      }).catch(() => {});
+    } catch (e) {
+      console.warn('[NewCalling] unexpected error:', e);
     }
-
-    // Audit log (non-blocking)
-    supabase.from('calling_log').insert({
-      calling_id: newCalling.id,
-      action: stage === 'hc_approval'
-        ? t('log.mpCreated')
-        : stage === 'for_approval'
-          ? t('log.callingSubmitted')
-          : t('log.callingIdeas'),
-      to_stage: stage,
-      performed_by: user?.id,
-    }).then(() => {});
-
-    // Notify SP Slack channel (fire and forget)
-    const wardData = wards.find(w => w.id === wardId);
-    notifyNewCallingPosted({
-      memberName: memberName.trim(),
-      callingName: finalCallingName.trim(),
-      wardName: wardData?.name,
-      submittedBy: profile?.full_name ?? 'Unknown',
-      stage: STAGE_LABELS[stage] ?? stage,
-    }).catch(() => {});
 
     setLoading(null);
     resetForm();
