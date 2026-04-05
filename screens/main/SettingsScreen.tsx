@@ -347,56 +347,6 @@ export function SettingsScreen({ navigation }: any) {
           </View>
         </View>
 
-        {/* Suggestion / Enhancement */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Feedback</Text>
-          {suggestionSent && (
-            <View style={{ backgroundColor: '#ecfdf5', borderRadius: 8, padding: 12, marginBottom: 8, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Ionicons name="checkmark-circle" size={18} color={Colors.success} />
-              <Text style={{ fontSize: 13, color: Colors.success, fontWeight: '600' }}>Suggestion submitted. Thank you!</Text>
-            </View>
-          )}
-          {showSuggestion ? (
-            <View style={{ gap: 8 }}>
-              <TextInput
-                value={suggestionText}
-                onChangeText={setSuggestionText}
-                placeholder="Describe your suggestion or enhancement..."
-                multiline
-                numberOfLines={4}
-                style={{
-                  backgroundColor: Colors.white, borderWidth: 1, borderColor: Colors.gray[200],
-                  borderRadius: 8, padding: 12, fontSize: 14, color: Colors.gray[800],
-                  minHeight: 100, textAlignVertical: 'top',
-                }}
-              />
-              <View style={{ flexDirection: 'row', gap: 8 }}>
-                <Button
-                  title="Submit"
-                  onPress={handleSubmitSuggestion}
-                  loading={suggestionSending}
-                  disabled={!suggestionText.trim()}
-                  style={{ flex: 1 }}
-                />
-                <Button
-                  title="Cancel"
-                  onPress={() => { setShowSuggestion(false); setSuggestionText(''); }}
-                  variant="outline"
-                  style={{ flex: 1 }}
-                />
-              </View>
-            </View>
-          ) : (
-            <Button
-              title="Submit a Suggestion or Enhancement"
-              onPress={() => setShowSuggestion(true)}
-              variant="outline"
-              fullWidth
-              style={styles.actionBtn}
-            />
-          )}
-        </View>
-
         {/* App Actions */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('settings.app')}</Text>

@@ -1,10 +1,11 @@
 import React from 'react';
-import { Image } from 'react-native';
+import { View, Image } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/theme';
 import { useLanguage } from '../context/LanguageContext';
+import { SuggestionFAB } from '../components/ui/SuggestionFAB';
 
 const TAB_ICONS = {
   SP: require('../assets/icon_sp_board.png'),
@@ -72,6 +73,7 @@ export function MainTabNavigator() {
   const showPresidencyBoard = isPresidency || isClerk;
 
   return (
+    <View style={{ flex: 1 }}>
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
@@ -135,5 +137,7 @@ export function MainTabNavigator() {
         options={{ tabBarLabel: t('nav.settings') }}
       />
     </Tab.Navigator>
+    <SuggestionFAB />
+    </View>
   );
 }
