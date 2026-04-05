@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   Modal, FlatList, Platform, Alert, Image,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
@@ -18,7 +19,7 @@ import { STAGE_LABELS } from '../../constants/callings';
 
 export function NewCallingScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { t } = useLanguage();
 
   const TYPE_OPTIONS: { label: string; value: CallingType; icon: any }[] = [
