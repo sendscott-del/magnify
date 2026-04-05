@@ -160,10 +160,10 @@ export function NewCallingScreen({ navigation }: any) {
           </View>
           <Text style={styles.confirmationTitle}>{t('common.success')}</Text>
           <Text style={styles.confirmationMessage}>
-            {t('new.entryAdded')}{'\n\n'}Your calling recommendation has been submitted to the Stake Presidency for review.
+            Your calling recommendation has been submitted to the Stake Presidency for review.
           </Text>
           <Button
-            title={t('new.submitAnother') ?? 'Submit Another'}
+            title="Submit Another"
             onPress={() => setShowConfirmation(false)}
             style={{ marginTop: Spacing.lg }}
           />
@@ -174,7 +174,7 @@ export function NewCallingScreen({ navigation }: any) {
             }}
             style={styles.confirmationLink}
           >
-            <Text style={styles.confirmationLinkText}>{t('hcBoard.title') ?? 'Go to HC Board'}</Text>
+            <Text style={styles.confirmationLinkText}>Go to HC Board</Text>
           </TouchableOpacity>
         </View>
       </View>
