@@ -3,6 +3,7 @@
   "outputDirectory": "dist",
   "framework": null,
   "rewrites": [
+    { "source": "/reset-password", "destination": "/index.html" },
     { "source": "/calling/:callingId", "destination": "/index.html" },
     { "source": "/((?!apple-touch-icon\\.png|favicon\\.png|assets/.*).*)", "destination": "/index.html" }
   ]

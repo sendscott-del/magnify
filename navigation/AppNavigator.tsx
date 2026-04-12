@@ -5,6 +5,8 @@ import { View, ActivityIndicator, Platform } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { LoginScreen } from '../screens/auth/LoginScreen';
 import { RegisterScreen } from '../screens/auth/RegisterScreen';
+import { ForgotPasswordScreen } from '../screens/auth/ForgotPasswordScreen';
+import { ResetPasswordScreen } from '../screens/auth/ResetPasswordScreen';
 import { PendingApprovalScreen } from '../screens/auth/PendingApprovalScreen';
 import { MainTabNavigator } from './MainTabNavigator';
 import { IdleTimeoutGuard } from '../components/IdleTimeoutGuard';
@@ -35,7 +37,7 @@ function loadNavState(): any {
 }
 
 export function AppNavigator() {
-  const { session, profile, loading } = useAuth();
+  const { session, profile, loading, isRecovery, clearRecovery } = useAuth();
   const [navReady, setNavReady] = useState(false);
   const latestNavState = useRef<any>(undefined);
   const pendingLinkHandled = useRef(false);
@@ -101,10 +103,15 @@ export function AppNavigator() {
       }}
     >
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {!session ? (
+        {isRecovery ? (
+          <Stack.Screen name="ResetPassword">
+            {() => <ResetPasswordScreen onComplete={clearRecovery} />}
+          </Stack.Screen>
+        ) : !session ? (
           <>
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="Register" component={RegisterScreen} />
+            <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
           </>
         ) : profile?.status !== 'approved' ? (
           <Stack.Screen name="Pending" component={PendingApprovalScreen} />

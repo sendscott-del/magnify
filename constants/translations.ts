@@ -15,6 +15,27 @@ export const translations = {
     'login.noAccount': "Don't have an account?",
     'login.createAccount': 'Create Account',
     'login.fillAllFields': 'Please fill in all fields.',
+    'login.forgotPassword': 'Forgot password?',
+
+    // Auth - Forgot Password
+    'forgotPassword.title': 'Reset Password',
+    'forgotPassword.subtitle': 'Enter your email address and we\'ll send you a link to reset your password.',
+    'forgotPassword.enterEmail': 'Please enter your email address.',
+    'forgotPassword.sendLink': 'Send Reset Link',
+    'forgotPassword.sent': 'Check your email! We\'ve sent a password reset link. It may take a minute to arrive.',
+    'forgotPassword.backToSignIn': 'Back to Sign In',
+
+    // Auth - Reset Password
+    'resetPassword.title': 'Set New Password',
+    'resetPassword.subtitle': 'Enter your new password below.',
+    'resetPassword.newPassword': 'New Password',
+    'resetPassword.confirmPassword': 'Confirm Password',
+    'resetPassword.updatePassword': 'Update Password',
+    'resetPassword.fillAllFields': 'Please fill in both fields.',
+    'resetPassword.minLength': 'Password must be at least 8 characters.',
+    'resetPassword.noMatch': 'Passwords do not match.',
+    'resetPassword.success': 'Your password has been updated successfully!',
+    'resetPassword.continue': 'Continue',
 
     // Auth - Register
     'register.title': 'Create Account',
@@ -472,6 +493,27 @@ export const translations = {
     'login.noAccount': '\u00bfNo tiene una cuenta?',
     'login.createAccount': 'Crear Cuenta',
     'login.fillAllFields': 'Por favor complete todos los campos.',
+    'login.forgotPassword': '¿Olvidó su contraseña?',
+
+    // Auth - Forgot Password
+    'forgotPassword.title': 'Restablecer Contraseña',
+    'forgotPassword.subtitle': 'Ingrese su correo electrónico y le enviaremos un enlace para restablecer su contraseña.',
+    'forgotPassword.enterEmail': 'Por favor ingrese su correo electrónico.',
+    'forgotPassword.sendLink': 'Enviar Enlace',
+    'forgotPassword.sent': '¡Revise su correo! Hemos enviado un enlace para restablecer su contraseña. Puede tardar un minuto en llegar.',
+    'forgotPassword.backToSignIn': 'Volver a Iniciar Sesión',
+
+    // Auth - Reset Password
+    'resetPassword.title': 'Nueva Contraseña',
+    'resetPassword.subtitle': 'Ingrese su nueva contraseña a continuación.',
+    'resetPassword.newPassword': 'Nueva Contraseña',
+    'resetPassword.confirmPassword': 'Confirmar Contraseña',
+    'resetPassword.updatePassword': 'Actualizar Contraseña',
+    'resetPassword.fillAllFields': 'Por favor complete ambos campos.',
+    'resetPassword.minLength': 'La contraseña debe tener al menos 8 caracteres.',
+    'resetPassword.noMatch': 'Las contraseñas no coinciden.',
+    'resetPassword.success': '¡Su contraseña ha sido actualizada exitosamente!',
+    'resetPassword.continue': 'Continuar',
 
     // Auth - Register
     'register.title': 'Crear Cuenta',
