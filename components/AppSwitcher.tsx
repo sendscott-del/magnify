@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Linking, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Linking, Platform, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -9,14 +9,13 @@ interface AppInfo {
   name: string;
   label: string;
   url: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  color: string;
+  logo: string;
 }
 
 const APP_CATALOG: AppInfo[] = [
-  { name: 'magnify', label: 'Magnify', url: 'https://magnify-sendscott-dels-projects.vercel.app', icon: 'search', color: '#4f46e5' },
-  { name: 'steward', label: 'Steward', url: 'https://stewards-indeed.vercel.app', icon: 'shield-checkmark', color: '#059669' },
-  { name: 'duty', label: 'Duty', url: 'https://duty-app-sand.vercel.app', icon: 'checkbox', color: '#d97706' },
+  { name: 'magnify', label: 'Magnify', url: 'https://magnify-sendscott-dels-projects.vercel.app', logo: 'https://magnify-sendscott-dels-projects.vercel.app/favicon.png' },
+  { name: 'steward', label: 'Steward', url: 'https://stewards-indeed.vercel.app', logo: 'https://stewards-indeed.vercel.app/favicon.png' },
+  { name: 'duty', label: 'Duty', url: 'https://duty-app-sand.vercel.app', logo: 'https://duty-app-sand.vercel.app/favicon.png' },
 ];
 
 const CURRENT_APP = 'magnify';
@@ -59,7 +58,7 @@ export function AppSwitcher() {
         <View style={styles.leftGroup}>
           <Text style={styles.lflLabel}>Left Field Labs</Text>
           <View style={styles.divider} />
-          <Ionicons name={currentApp.icon} size={14} color={Colors.white} />
+          <Image source={{ uri: currentApp.logo }} style={styles.barLogo} />
           <Text style={styles.currentLabel}>{currentApp.label}</Text>
         </View>
         <View style={styles.rightGroup}>
@@ -76,9 +75,7 @@ export function AppSwitcher() {
           <Text style={styles.switchLabel}>Switch to</Text>
           {otherApps.map(app => (
             <TouchableOpacity key={app.name} style={styles.appRow} onPress={() => openApp(app.url)}>
-              <View style={[styles.appIconBg, { backgroundColor: app.color }]}>
-                <Ionicons name={app.icon} size={16} color={Colors.white} />
-              </View>
+              <Image source={{ uri: app.logo }} style={styles.appLogo} />
               <Text style={styles.appName}>{app.label}</Text>
               <Ionicons name="open-outline" size={14} color={Colors.gray[400]} />
             </TouchableOpacity>
@@ -118,6 +115,11 @@ const styles = StyleSheet.create({
     height: 12,
     backgroundColor: 'rgba(255,255,255,0.2)',
   },
+  barLogo: {
+    width: 18,
+    height: 18,
+    borderRadius: 4,
+  },
   currentLabel: {
     fontSize: FontSize.sm,
     fontWeight: '700',
@@ -149,12 +151,10 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     gap: Spacing.sm,
   },
-  appIconBg: {
+  appLogo: {
     width: 28,
     height: 28,
     borderRadius: Radius.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   appName: {
     flex: 1,
