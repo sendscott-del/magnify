@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Linking, Platform, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Linking, Platform, Image, ImageSourcePropType } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -9,13 +9,12 @@ interface AppInfo {
   name: string;
   label: string;
   url: string;
-  logo: string;
+  logo: ImageSourcePropType;
 }
 
 const APP_CATALOG: AppInfo[] = [
-  { name: 'magnify', label: 'Magnify', url: 'https://magnify-sendscott-dels-projects.vercel.app', logo: 'https://magnify-sendscott-dels-projects.vercel.app/apple-touch-icon.png' },
-  { name: 'steward', label: 'Steward', url: 'https://stewards-indeed.vercel.app', logo: 'https://stewards-indeed.vercel.app/favicon.png' },
-  { name: 'duty', label: 'Duty', url: 'https://duty-app-sand.vercel.app', logo: 'https://duty-app-sand.vercel.app/favicon.png' },
+  { name: 'magnify', label: 'Magnify', url: 'https://magnify-sendscott-dels-projects.vercel.app', logo: require('../assets/icon.png') },
+  { name: 'steward', label: 'Steward', url: 'https://stewards-indeed.vercel.app', logo: require('../assets/steward-icon.png') },
 ];
 
 const CURRENT_APP = 'magnify';
@@ -58,7 +57,7 @@ export function AppSwitcher() {
         <View style={styles.leftGroup}>
           <Text style={styles.lflLabel}>Gathered</Text>
           <View style={styles.divider} />
-          <Image source={{ uri: currentApp.logo }} style={styles.barLogo} />
+          <Image source={currentApp.logo} style={styles.barLogo} />
           <Text style={styles.currentLabel}>{currentApp.label}</Text>
         </View>
         <View style={styles.rightGroup}>
@@ -75,7 +74,7 @@ export function AppSwitcher() {
           <Text style={styles.switchLabel}>Switch to</Text>
           {otherApps.map(app => (
             <TouchableOpacity key={app.name} style={styles.appRow} onPress={() => openApp(app.url)}>
-              <Image source={{ uri: app.logo }} style={styles.appLogo} />
+              <Image source={app.logo} style={styles.appLogo} />
               <Text style={styles.appName}>{app.label}</Text>
               <Ionicons name="open-outline" size={14} color={Colors.gray[400]} />
             </TouchableOpacity>
