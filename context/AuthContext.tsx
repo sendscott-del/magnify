@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { Profile, UserRole } from '../lib/database.types';
@@ -28,8 +28,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isRecovery, setIsRecovery] = useState(false);
+  const isRecoveryRef = useRef(false);
 
   function clearRecovery() {
+    isRecoveryRef.current = false;
     setIsRecovery(false);
   }
 
@@ -43,12 +45,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY') {
+        isRecoveryRef.current = true;
         setIsRecovery(true);
       }
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        setLoading(true);
+        // Don't flash loading spinner during password recovery — the profile
+        // is already loaded and re-mounting the screen loses the success state
+        if (!isRecoveryRef.current) setLoading(true);
         fetchProfile(session.user.id);
       } else {
         setProfile(null);
