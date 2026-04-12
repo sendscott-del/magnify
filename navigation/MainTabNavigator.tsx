@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/theme';
 import { useLanguage } from '../context/LanguageContext';
 import { SuggestionFAB } from '../components/ui/SuggestionFAB';
+import { AppSwitcher } from '../components/AppSwitcher';
 
 const TAB_ICONS = {
   SP: require('../assets/icon_sp_board.png'),
@@ -74,6 +75,7 @@ export function MainTabNavigator() {
 
   return (
     <View style={{ flex: 1 }}>
+    <AppSwitcher />
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,

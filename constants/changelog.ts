@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.4.0',
+    date: '2026-04-12',
+    enhancements: [
+      'Left Field Labs app switcher — users with access to multiple apps (Magnify, Steward, Duty) see a toggle bar at the top to switch between them',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.3.0',
     date: '2026-04-12',
     enhancements: [
