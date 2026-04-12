@@ -56,7 +56,7 @@ export function AppSwitcher() {
     <View style={styles.container}>
       <TouchableOpacity style={styles.bar} onPress={() => setExpanded(!expanded)} activeOpacity={0.7}>
         <View style={styles.leftGroup}>
-          <Text style={styles.lflLabel}>Left Field Labs</Text>
+          <Text style={styles.lflLabel}>Gathered</Text>
           <View style={styles.divider} />
           <Image source={{ uri: currentApp.logo }} style={styles.barLogo} />
           <Text style={styles.currentLabel}>{currentApp.label}</Text>
