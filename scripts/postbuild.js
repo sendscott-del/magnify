@@ -21,9 +21,14 @@ if (!fs.existsSync(indexPath)) {
   process.exit(1);
 }
 
-// 1. Copy icon
+// 1. Copy icons
 fs.copyFileSync(iconSrc, iconDest);
 console.log('[postbuild] Copied apple-touch-icon.png to dist/');
+
+const faviconSrc = path.join(root, 'assets', 'favicon.png');
+const faviconDest = path.join(distDir, 'favicon.png');
+fs.copyFileSync(faviconSrc, faviconDest);
+console.log('[postbuild] Copied favicon.png to dist/');
 
 // 2. Inject meta tags into <head>
 let html = fs.readFileSync(indexPath, 'utf-8');
