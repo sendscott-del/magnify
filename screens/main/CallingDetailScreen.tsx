@@ -19,7 +19,9 @@ import { STAGE_LABELS } from '../../constants/callings';
 import {
   canAdvanceStage, canReject, canMoveback, canDelete,
   getNextStage, getPrevStage, getAdvanceLabel,
+  AdvanceContext,
 } from '../../lib/permissions';
+import { CALLING_GROUPS } from '../../constants/callings';
 import { notifyStageChange, notifyRejection } from '../../lib/slack';
 
 // TYPE_LABELS is built inside CallingDetailScreen using t()
@@ -599,6 +601,18 @@ export function CallingDetailScreen({ route, navigation }: any) {
   const [rejectionNotes, setRejectionNotes] = useState('');
   const [rejectLoading, setRejectLoading] = useState(false);
 
+  // Edit calling details state
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editMemberName, setEditMemberName] = useState('');
+  const [editCallingName, setEditCallingName] = useState('');
+  const [editWardId, setEditWardId] = useState('');
+  const [editWardName, setEditWardName] = useState('');
+  const [editBishopApproved, setEditBishopApproved] = useState(false);
+  const [editOrdinationType, setEditOrdinationType] = useState<'elder' | 'high_priest'>('elder');
+  const [editSaving, setEditSaving] = useState(false);
+  const [showEditWardPicker, setShowEditWardPicker] = useState(false);
+  const [showEditCallingPicker, setShowEditCallingPicker] = useState(false);
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     const [callingRes, logRes, wardsRes, spRes, hcMembersRes, hcApprovalsRes, profilesRes, spMembersRes, wardSustRes] = await Promise.all([
@@ -681,46 +695,10 @@ export function CallingDetailScreen({ route, navigation }: any) {
     setWardSustainingsList((data as WardSustaining[]) ?? []);
   }
 
-  function approvalsReady(userRole: string): boolean {
-    if (!calling) return false;
-    if (calling.stage === 'for_approval') {
-      // Stake President can advance unilaterally
-      if (userRole === 'stake_president') return true;
-      // All others (1st/2nd counselor, stake clerk) need all three required SP members to have approved
-      return SP_ROLES.filter(r => r.required).every(r => spApprovals.find(a => a.role === r.role)?.approved ?? false);
-    }
-    if (calling.stage === 'hc_approval') {
-      // SP, counselors, and stake clerk can advance at any time
-      if (['stake_president', 'first_counselor', 'second_counselor', 'stake_clerk'].includes(userRole)) return true;
-      // HC and others need more than 50% approval
-      const activeCount = hcMembers.filter(m => m.active).length;
-      if (activeCount === 0) return true;
-      return hcApprovals.filter(a => a.approved).length >= Math.ceil(activeCount / 2);
-    }
-    if (calling.stage === 'sustain' && calling.type === 'stake_calling') {
-      // SP, counselors, clerk, exec secretary can advance before all wards sustained
-      if (['stake_president', 'first_counselor', 'second_counselor', 'stake_clerk', 'exec_secretary'].includes(userRole)) return true;
-      // HC members must wait for all wards to be sustained
-      return allWards.every(w => wardSustainingsList.find(s => s.ward_id === w.id)?.sustained === true);
-    }
-    return true;
-  }
-
   async function handleAdvance() {
     if (!calling || !profile) return;
     const next = getNextStage(calling.stage, calling.type);
     if (!next) return;
-
-    if (!approvalsReady(profile.role)) {
-      const msg = calling.stage === 'for_approval'
-        ? t('detail.allThreeMustApprove')
-        : calling.stage === 'sustain' && calling.type === 'stake_calling'
-        ? t('detail.allWardsMustSustain')
-        : t('detail.halfHCMustApprove');
-      if (Platform.OS === 'web') window.alert(msg);
-      else Alert.alert(t('detail.approvalsNeeded'), msg);
-      return;
-    }
 
     setActionLoading(true);
     const label = getAdvanceLabel(calling.stage, calling.type);
@@ -848,6 +826,64 @@ export function CallingDetailScreen({ route, navigation }: any) {
     setActionLoading(false);
   }
 
+  function openEditModal() {
+    if (!calling) return;
+    setEditMemberName(calling.member_name);
+    setEditCallingName(calling.calling_name);
+    setEditWardId(calling.ward_id ?? '');
+    setEditWardName(calling.wards?.name ?? '');
+    setEditBishopApproved(calling.bishop_approved ?? false);
+    setEditOrdinationType(calling.ordination_type ?? 'elder');
+    setShowEditModal(true);
+  }
+
+  async function handleEditSave() {
+    if (!calling || !profile) return;
+    if (!editMemberName.trim() || !editCallingName.trim()) return;
+
+    setEditSaving(true);
+    const changes: string[] = [];
+    const update: any = {};
+
+    if (editMemberName.trim() !== calling.member_name) {
+      update.member_name = editMemberName.trim();
+      changes.push(`Name: "${calling.member_name}" → "${editMemberName.trim()}"`);
+    }
+    if (editCallingName.trim() !== calling.calling_name) {
+      update.calling_name = editCallingName.trim();
+      changes.push(`Calling: "${calling.calling_name}" → "${editCallingName.trim()}"`);
+    }
+    if ((editWardId || null) !== (calling.ward_id || null)) {
+      update.ward_id = editWardId || null;
+      const oldWard = calling.wards?.name ?? 'None';
+      const newWard = editWardName || 'None';
+      changes.push(`Ward: "${oldWard}" → "${newWard}"`);
+    }
+    if (calling.type === 'ward_calling' && editBishopApproved !== (calling.bishop_approved ?? false)) {
+      update.bishop_approved = editBishopApproved;
+      changes.push(`Bishop Approved: ${editBishopApproved ? 'Yes' : 'No'}`);
+    }
+    if (calling.type === 'mp_ordination' && editOrdinationType !== (calling.ordination_type ?? 'elder')) {
+      update.ordination_type = editOrdinationType;
+      changes.push(`Ordination: ${calling.ordination_type} → ${editOrdinationType}`);
+    }
+
+    if (Object.keys(update).length > 0) {
+      await supabase.from('callings').update(update).eq('id', calling.id);
+      await supabase.from('calling_log').insert({
+        calling_id: calling.id,
+        action: t('detail.editedDetails'),
+        from_stage: calling.stage,
+        performed_by: profile.id,
+        notes: changes.join('; '),
+      });
+      await fetchData();
+    }
+
+    setEditSaving(false);
+    setShowEditModal(false);
+  }
+
   if (loading) {
     return <View style={[styles.loading, { paddingTop: insets.top }]}><ActivityIndicator color={Colors.primary} size="large" /></View>;
   }
@@ -856,7 +892,25 @@ export function CallingDetailScreen({ route, navigation }: any) {
   }
 
   const role = profile?.role;
-  const canAdvance = role ? canAdvanceStage(role, calling.stage, calling.type) : false;
+
+  // Compute advance context for permission checks
+  const spAllApproved = SP_ROLES.filter(r => r.required).every(r => spApprovals.find(a => a.role === r.role)?.approved ?? false);
+  const activeHCCount = hcMembers.filter(m => m.active).length;
+  const hcApprovedCount = hcApprovals.filter(a => a.approved).length;
+  const hcThresholdMet = activeHCCount === 0 || hcApprovedCount >= Math.ceil(activeHCCount / 2);
+
+  // Determine if current user is the assigned person for this stage's task
+  const stageAssignmentField: Partial<Record<string, string | null | undefined>> = {
+    issue_calling: calling.extend_by,
+    ordained: calling.extend_by,
+    sustain: calling.sustain_by,
+    set_apart: calling.set_apart_by,
+  };
+  const assignedName = stageAssignmentField[calling.stage] ?? null;
+  const isAssignedUser = !!(assignedName && profile?.full_name && assignedName === profile.full_name);
+
+  const advanceCtx: AdvanceContext = { spAllApproved, hcThresholdMet, isAssignedUser };
+  const canAdvance = role ? canAdvanceStage(role, calling.stage, calling.type, advanceCtx) : false;
   const canRejectCalling = role ? canReject(role, calling.stage) : false;
   const canBack = role ? canMoveback(role) : false;
   const canDel = role ? canDelete(role) : false;
@@ -935,7 +989,14 @@ export function CallingDetailScreen({ route, navigation }: any) {
 
         {/* Details */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Details</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Details</Text>
+            {canAssign && !isComplete && (
+              <TouchableOpacity onPress={openEditModal}>
+                <Text style={styles.editLink}>{t('detail.edit')}</Text>
+              </TouchableOpacity>
+            )}
+          </View>
           <View style={styles.infoGrid}>
             <View style={styles.infoItem}>
               <Text style={styles.infoLabel}>{t('detail.ward')}</Text>
@@ -1123,6 +1184,157 @@ export function CallingDetailScreen({ route, navigation }: any) {
           </View>
         </TouchableOpacity>
       </Modal>
+
+      {/* Edit Calling Details Modal */}
+      <Modal visible={showEditModal} transparent animationType="slide" onRequestClose={() => setShowEditModal(false)}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowEditModal(false)}>
+          <View style={[styles.modalSheet, { maxHeight: '80%' }]} onStartShouldSetResponder={() => true}>
+            <ScrollView keyboardShouldPersistTaps="handled">
+              <Text style={styles.modalTitle}>{t('detail.editDetails')}</Text>
+              <Text style={styles.modalSubtitle}>{t('detail.editDetailsDesc')}</Text>
+
+              <Text style={styles.editFieldLabel}>{t('new.memberName')}</Text>
+              <TextInput
+                style={styles.editInput}
+                value={editMemberName}
+                onChangeText={setEditMemberName}
+                placeholder={t('new.memberNamePlaceholder')}
+                placeholderTextColor={Colors.gray[400]}
+              />
+
+              {calling.type !== 'mp_ordination' && (
+                <>
+                  <Text style={styles.editFieldLabel}>{t('new.callingLabel')}</Text>
+                  <TouchableOpacity style={styles.editPickerBtn} onPress={() => setShowEditCallingPicker(true)}>
+                    <Text style={editCallingName ? styles.editPickerText : styles.editPickerPlaceholder}>
+                      {editCallingName || t('new.selectCalling')}
+                    </Text>
+                    <Text style={styles.editPickerArrow}>▼</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+
+              {calling.type === 'mp_ordination' && (
+                <>
+                  <Text style={styles.editFieldLabel}>{t('new.ordinationType')}</Text>
+                  <View style={{ flexDirection: 'row', gap: Spacing.sm, marginBottom: Spacing.md }}>
+                    {[
+                      { label: t('ordination.elder'), value: 'elder' as const },
+                      { label: t('ordination.highPriest'), value: 'high_priest' as const },
+                    ].map(opt => (
+                      <TouchableOpacity
+                        key={opt.value}
+                        style={[styles.editTypeBtn, editOrdinationType === opt.value && styles.editTypeBtnActive]}
+                        onPress={() => setEditOrdinationType(opt.value)}
+                      >
+                        <Text style={[styles.editTypeLabel, editOrdinationType === opt.value && styles.editTypeLabelActive]}>
+                          {opt.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </>
+              )}
+
+              <Text style={styles.editFieldLabel}>{t('detail.ward')}</Text>
+              <TouchableOpacity style={styles.editPickerBtn} onPress={() => setShowEditWardPicker(true)}>
+                <Text style={editWardId ? styles.editPickerText : styles.editPickerPlaceholder}>
+                  {editWardId ? editWardName : t('new.selectWard')}
+                </Text>
+                <Text style={styles.editPickerArrow}>▼</Text>
+              </TouchableOpacity>
+
+              {calling.type === 'ward_calling' && (
+                <TouchableOpacity
+                  style={{ flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.md }}
+                  onPress={() => setEditBishopApproved(!editBishopApproved)}
+                >
+                  <View style={[styles.editCheckbox, editBishopApproved && styles.editCheckboxOn]}>
+                    {editBishopApproved && <Text style={styles.editCheckMark}>✓</Text>}
+                  </View>
+                  <Text style={{ fontSize: FontSize.md, color: Colors.gray[700] }}>{t('new.bishopApproved')}</Text>
+                </TouchableOpacity>
+              )}
+
+              <View style={styles.modalActions}>
+                <Button title={t('detail.cancel')} onPress={() => setShowEditModal(false)} variant="outline" style={styles.modalBtn} />
+                <Button title={editSaving ? t('detail.saving') : t('detail.save')} onPress={handleEditSave} loading={editSaving} style={styles.modalBtn} />
+              </View>
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Edit Ward Picker */}
+      <Modal visible={showEditWardPicker} transparent animationType="slide" onRequestClose={() => setShowEditWardPicker(false)}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowEditWardPicker(false)}>
+          <View style={styles.editPickerSheet} onStartShouldSetResponder={() => true}>
+            <Text style={styles.editPickerTitle}>{t('new.selectWardTitle')}</Text>
+            <TouchableOpacity
+              style={[styles.editPickerItem, !editWardId && styles.editPickerItemSelected]}
+              onPress={() => { setEditWardId(''); setEditWardName(''); setShowEditWardPicker(false); }}
+            >
+              <Text style={[styles.editPickerItemText, !editWardId && styles.editPickerItemTextSelected]}>{t('new.noWard')}</Text>
+            </TouchableOpacity>
+            <FlatList
+              data={allWards}
+              keyExtractor={w => w.id}
+              renderItem={({ item: w }) => (
+                <TouchableOpacity
+                  style={[styles.editPickerItem, editWardId === w.id && styles.editPickerItemSelected]}
+                  onPress={() => { setEditWardId(w.id); setEditWardName(w.name); setShowEditWardPicker(false); }}
+                >
+                  <Text style={[styles.editPickerItemText, editWardId === w.id && styles.editPickerItemTextSelected]}>{w.name}</Text>
+                  <Text style={styles.editPickerItemSub}>{w.abbreviation}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Edit Calling Picker */}
+      <Modal visible={showEditCallingPicker} transparent animationType="slide" onRequestClose={() => setShowEditCallingPicker(false)}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowEditCallingPicker(false)}>
+          <View style={styles.editPickerSheet} onStartShouldSetResponder={() => true}>
+            <Text style={styles.editPickerTitle}>{t('new.selectCallingTitle')}</Text>
+            <FlatList
+              data={[
+                ...CALLING_GROUPS.filter(g => {
+                  if (g.org === 'Other') return false;
+                  if (calling.type === 'ward_calling') return g.org === 'Bishopric' || g.org === 'Elders Quorum';
+                  if (calling.type === 'stake_calling') return g.org === 'Stake';
+                  return true;
+                }).flatMap(g => [
+                  { type: 'header' as const, label: g.org, value: `__header__${g.org}` },
+                  ...g.callings.map(c => ({ type: 'item' as const, label: c, value: c })),
+                ]),
+                { type: 'item' as const, label: 'Other', value: 'Other' },
+              ]}
+              keyExtractor={item => item.value}
+              renderItem={({ item }) => {
+                if (item.type === 'header') {
+                  return (
+                    <View style={styles.editPickerGroupHeader}>
+                      <Text style={styles.editPickerGroupText}>{item.label}</Text>
+                    </View>
+                  );
+                }
+                return (
+                  <TouchableOpacity
+                    style={[styles.editPickerItem, editCallingName === item.value && styles.editPickerItemSelected]}
+                    onPress={() => { setEditCallingName(item.value); setShowEditCallingPicker(false); }}
+                  >
+                    <Text style={[styles.editPickerItemText, editCallingName === item.value && styles.editPickerItemTextSelected]}>
+                      {item.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              }}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -1151,6 +1363,8 @@ const styles = StyleSheet.create({
   successBannerText: { fontSize: FontSize.sm, color: Colors.success, fontWeight: '600' },
   section: { backgroundColor: Colors.white, borderRadius: Radius.md, padding: Spacing.md, marginBottom: Spacing.md, borderWidth: 1, borderColor: Colors.gray[200] },
   sectionTitle: { fontSize: FontSize.md, fontWeight: '700', color: Colors.gray[800], marginBottom: Spacing.md },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.md },
+  editLink: { fontSize: FontSize.sm, color: Colors.primary, fontWeight: '600' },
   infoGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   infoItem: { minWidth: '45%', flex: 1 },
   infoLabel: { fontSize: FontSize.xs, color: Colors.gray[400], fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 2 },
@@ -1179,4 +1393,26 @@ const styles = StyleSheet.create({
   modalInput: { backgroundColor: Colors.gray[50], borderWidth: 1.5, borderColor: Colors.gray[200], borderRadius: Radius.md, padding: Spacing.md, fontSize: FontSize.md, color: Colors.black, minHeight: 100, textAlignVertical: 'top', marginBottom: Spacing.md },
   modalActions: { flexDirection: 'row', gap: Spacing.sm, paddingBottom: Spacing.md },
   modalBtn: { flex: 1 },
+  editFieldLabel: { fontSize: FontSize.sm, fontWeight: '600', color: Colors.gray[700], marginBottom: Spacing.xs },
+  editInput: { backgroundColor: Colors.gray[50], borderWidth: 1.5, borderColor: Colors.gray[200], borderRadius: Radius.md, padding: Spacing.md, fontSize: FontSize.md, color: Colors.black, marginBottom: Spacing.md },
+  editPickerBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: Colors.gray[50], borderWidth: 1.5, borderColor: Colors.gray[200], borderRadius: Radius.md, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm + 2, marginBottom: Spacing.md },
+  editPickerText: { fontSize: FontSize.md, color: Colors.black },
+  editPickerPlaceholder: { fontSize: FontSize.md, color: Colors.gray[400] },
+  editPickerArrow: { color: Colors.gray[400], fontSize: 12 },
+  editCheckbox: { width: 22, height: 22, borderRadius: 4, borderWidth: 2, borderColor: Colors.gray[300], marginRight: Spacing.sm, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.white },
+  editCheckboxOn: { backgroundColor: Colors.success, borderColor: Colors.success },
+  editCheckMark: { color: Colors.white, fontSize: 13, fontWeight: '800' },
+  editTypeBtn: { flex: 1, alignItems: 'center', paddingVertical: Spacing.sm, borderRadius: Radius.md, borderWidth: 1.5, borderColor: Colors.gray[200], backgroundColor: Colors.white },
+  editTypeBtnActive: { borderColor: Colors.primary, backgroundColor: Colors.primaryFade },
+  editTypeLabel: { fontSize: FontSize.sm, fontWeight: '600', color: Colors.gray[600] },
+  editTypeLabelActive: { color: Colors.primary },
+  editPickerSheet: { backgroundColor: Colors.white, borderTopLeftRadius: Radius.xl, borderTopRightRadius: Radius.xl, maxHeight: '70%', paddingTop: Spacing.lg },
+  editPickerTitle: { fontSize: FontSize.lg, fontWeight: '700', color: Colors.gray[900], paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.gray[100] },
+  editPickerItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.gray[100] },
+  editPickerItemSelected: { backgroundColor: Colors.primaryFade },
+  editPickerItemText: { fontSize: FontSize.md, color: Colors.gray[800] },
+  editPickerItemTextSelected: { color: Colors.primary, fontWeight: '700' },
+  editPickerItemSub: { fontSize: FontSize.sm, color: Colors.gray[400], fontWeight: '600' },
+  editPickerGroupHeader: { paddingHorizontal: Spacing.lg, paddingVertical: Spacing.xs, backgroundColor: Colors.gray[50] },
+  editPickerGroupText: { fontSize: FontSize.xs, fontWeight: '800', color: Colors.gray[500], textTransform: 'uppercase', letterSpacing: 0.5 },
 });

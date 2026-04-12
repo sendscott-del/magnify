@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.3.0',
+    date: '2026-04-12',
+    enhancements: [
+      'Edit calling details — member name, calling, ward, and more can now be updated after creation, with changes logged to the activity log',
+      'Comprehensive permissions rewrite — advance buttons now only appear for users who have authority to move a calling at each stage',
+      'New callings always start in Ideas — only the Stake President can submit for approval',
+      'HC board: advance buttons respect >50% HC approval threshold and task assignments',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.2.0',
     date: '2026-04-12',
     enhancements: [

@@ -48,6 +48,7 @@ export function NewCallingScreen({ navigation }: any) {
   const [releaseWardName, setReleaseWardName] = useState('');
   const [showReleaseWardPicker, setShowReleaseWardPicker] = useState(false);
   const [loading, setLoading] = useState<'ideas' | 'approval' | null>(null);
+  // All non-MP callings go to Ideas; MP goes to hc_approval
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [error, setError] = useState('');
 
@@ -86,8 +87,8 @@ export function NewCallingScreen({ navigation }: any) {
     setLoading(targetStage === 'ideas' ? 'ideas' : 'approval');
     setError('');
 
-    // MP ordinations skip straight to HC Approval
-    const stage = type === 'mp_ordination' ? 'hc_approval' : targetStage;
+    // MP ordinations skip straight to HC Approval; all others go to Ideas
+    const stage = type === 'mp_ordination' ? 'hc_approval' : 'ideas';
 
     const payload: any = {
       type,
@@ -124,11 +125,9 @@ export function NewCallingScreen({ navigation }: any) {
     if (newCalling) {
       supabase.from('calling_log').insert({
         calling_id: newCalling.id,
-        action: stage === 'hc_approval'
+        action: type === 'mp_ordination'
           ? t('log.mpCreated')
-          : stage === 'for_approval'
-            ? t('log.callingSubmitted')
-            : t('log.callingIdeas'),
+          : t('log.callingIdeas'),
         to_stage: stage,
         performed_by: user?.id,
       }).then(() => {});
@@ -347,39 +346,15 @@ export function NewCallingScreen({ navigation }: any) {
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
-        {type === 'mp_ordination' ? (
-          <Button
-            title={t('new.submitToHCApproval')}
-            onPress={() => handleSave('for_approval')}
-            loading={loading === 'approval'}
-            disabled={loading !== null}
-            fullWidth
-            size="lg"
-            style={styles.submitBtn}
-          />
-        ) : (
-          <>
-            <Button
-              title={t('new.submitIdea')}
-              onPress={() => handleSave('ideas')}
-              loading={loading === 'ideas'}
-              disabled={loading !== null}
-              variant="outline"
-              fullWidth
-              size="lg"
-              style={styles.submitBtn}
-            />
-            <Button
-              title={t('new.submitForSPApproval')}
-              onPress={() => handleSave('for_approval')}
-              loading={loading === 'approval'}
-              disabled={loading !== null}
-              fullWidth
-              size="lg"
-              style={styles.submitBtnSecondary}
-            />
-          </>
-        )}
+        <Button
+          title={type === 'mp_ordination' ? t('new.submitToHCApproval') : t('new.submitIdea')}
+          onPress={() => handleSave('ideas')}
+          loading={loading !== null}
+          disabled={loading !== null}
+          fullWidth
+          size="lg"
+          style={styles.submitBtn}
+        />
         <DisclaimerFooter />
       </ScrollView>
 

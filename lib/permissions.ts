@@ -8,30 +8,77 @@ export interface PermittedAction {
 }
 
 const PRESIDENCY: UserRole[] = ['stake_president', 'first_counselor', 'second_counselor'];
-const CLERK_GROUP: UserRole[] = ['stake_president', 'stake_clerk'];
 const ADMIN_GROUP: UserRole[] = ['stake_president', 'first_counselor', 'second_counselor', 'stake_clerk', 'exec_secretary'];
-const HC: UserRole[] = ['high_councilor'];
-const RECORD_GROUP: UserRole[] = ['stake_president', 'stake_clerk', 'exec_secretary'];
 const ALL_APPROVED: UserRole[] = ['stake_president', 'first_counselor', 'second_counselor', 'high_councilor', 'stake_clerk', 'exec_secretary'];
 
-// Roles that can advance from for_approval (SP president unilateral; others need all 3 approvals)
-const FOR_APPROVAL_GROUP: UserRole[] = ['stake_president', 'first_counselor', 'second_counselor', 'stake_clerk'];
+/** Context needed for conditional advance permissions */
+export interface AdvanceContext {
+  /** All 3 required SP members (president, 1st, 2nd counselor) have approved */
+  spAllApproved: boolean;
+  /** More than 50% of active HC members have approved */
+  hcThresholdMet: boolean;
+  /** Current user is the person assigned for this stage's task */
+  isAssignedUser: boolean;
+}
 
-// Roles that can advance from hc_approval (SP/counselors/clerk anytime; HC needs >50%)
-const HC_APPROVAL_ADVANCE: UserRole[] = ['stake_president', 'first_counselor', 'second_counselor', 'stake_clerk', 'high_councilor'];
-
-export function canAdvanceStage(role: UserRole, stage: Stage, type: CallingType): boolean {
+/**
+ * Determines whether the advance button should be VISIBLE for this user.
+ *
+ * SP Board rules:
+ *   ideas → for_approval:        Only Stake President
+ *   for_approval → stake_approved: SP only before all 3 approved; ADMIN_GROUP after all 3
+ *   stake_approved → hc_approval: Any user
+ *
+ * HC Board rules:
+ *   hc_approval → extend/sustain: SP only before >50% HC; ADMIN_GROUP after >50%. HC never.
+ *   issue_calling → sustain:      ADMIN_GROUP or assigned extend_by user
+ *   sustain → set_apart:          ADMIN_GROUP or assigned sustain_by user
+ *   set_apart → record:           ADMIN_GROUP or assigned set_apart_by user
+ *   record → complete:            ADMIN_GROUP only
+ */
+export function canAdvanceStage(role: UserRole, stage: Stage, _type: CallingType, ctx?: AdvanceContext): boolean {
   switch (stage) {
-    case 'ideas': return ALL_APPROVED.includes(role);
-    case 'for_approval': return FOR_APPROVAL_GROUP.includes(role);
-    case 'stake_approved': return CLERK_GROUP.includes(role);
-    case 'hc_approval': return HC_APPROVAL_ADVANCE.includes(role);
-    case 'issue_calling': return HC.includes(role) || CLERK_GROUP.includes(role);
-    case 'ordained': return HC.includes(role) || CLERK_GROUP.includes(role);
-    case 'sustain': return HC.includes(role) || CLERK_GROUP.includes(role);
-    case 'set_apart': return HC.includes(role) || CLERK_GROUP.includes(role);
-    case 'record': return RECORD_GROUP.includes(role);
-    default: return false;
+    case 'ideas':
+      // Only the Stake President can move from Ideas to For Approval
+      return role === 'stake_president';
+
+    case 'for_approval':
+      // Stake President can always advance
+      if (role === 'stake_president') return true;
+      // Others only see the button after all 3 SP have approved
+      return ctx?.spAllApproved === true && ADMIN_GROUP.includes(role);
+
+    case 'stake_approved':
+      // Any user can move from Stake Approved to HC Approval
+      return ALL_APPROVED.includes(role);
+
+    case 'hc_approval':
+      // High councilors NEVER see the advance button
+      if (role === 'high_councilor') return false;
+      // Stake President can always advance
+      if (role === 'stake_president') return true;
+      // Others only after >50% HC have approved
+      return ctx?.hcThresholdMet === true && ADMIN_GROUP.includes(role);
+
+    case 'issue_calling':
+    case 'ordained':
+      // ADMIN_GROUP or the assigned extend_by user
+      return ADMIN_GROUP.includes(role) || ctx?.isAssignedUser === true;
+
+    case 'sustain':
+      // ADMIN_GROUP or the assigned sustain_by user
+      return ADMIN_GROUP.includes(role) || ctx?.isAssignedUser === true;
+
+    case 'set_apart':
+      // ADMIN_GROUP or the assigned set_apart_by user
+      return ADMIN_GROUP.includes(role) || ctx?.isAssignedUser === true;
+
+    case 'record':
+      // Only ADMIN_GROUP (stake presidency + clerk + exec secretary)
+      return ADMIN_GROUP.includes(role);
+
+    default:
+      return false;
   }
 }
 
