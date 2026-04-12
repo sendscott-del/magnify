@@ -13,7 +13,7 @@ interface AppInfo {
 }
 
 const APP_CATALOG: AppInfo[] = [
-  { name: 'magnify', label: 'Magnify', url: 'https://magnify-sendscott-dels-projects.vercel.app', logo: 'https://magnify-sendscott-dels-projects.vercel.app/favicon.png' },
+  { name: 'magnify', label: 'Magnify', url: 'https://magnify-sendscott-dels-projects.vercel.app', logo: 'https://magnify-sendscott-dels-projects.vercel.app/apple-touch-icon.png' },
   { name: 'steward', label: 'Steward', url: 'https://stewards-indeed.vercel.app', logo: 'https://stewards-indeed.vercel.app/favicon.png' },
   { name: 'duty', label: 'Duty', url: 'https://duty-app-sand.vercel.app', logo: 'https://duty-app-sand.vercel.app/favicon.png' },
 ];
