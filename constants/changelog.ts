@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.5.0',
+    date: '2026-04-18',
+    enhancements: [
+      'Sustaining script groups multiple MP ordinations of the same office into a single proposal — e.g., "It is proposed that Brothers A and B receive the Melchizedek Priesthood and be ordained to the office of Elder" followed by one vote instead of separate motions per person',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.4.0',
     date: '2026-04-12',
     enhancements: [

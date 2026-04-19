@@ -187,15 +187,32 @@ export function HCKanbanScreen({ navigation }: any) {
       lines.push('');
     }
 
-    // MP ORDINATIONS — individual, with correct wording per office
+    // MP ORDINATIONS — grouped by office (elders together, high priests together)
     if (ordinations.length > 0) {
       lines.push(t('script.ordinationsHeader'));
       lines.push('');
-      for (const c of ordinations) {
-        if (c.ordination_type === 'high_priest') {
-          lines.push(t('script.proposeOrdainHighPriest').replace('{name}', c.member_name));
+
+      const elders = ordinations.filter(c => c.ordination_type !== 'high_priest');
+      const highPriests = ordinations.filter(c => c.ordination_type === 'high_priest');
+
+      if (elders.length > 0) {
+        const names = elders.map(c => c.member_name);
+        if (names.length === 1) {
+          lines.push(t('script.proposeOrdainElder').replace('{name}', names[0]));
         } else {
-          lines.push(t('script.proposeOrdainElder').replace('{name}', c.member_name));
+          lines.push(t('script.proposeOrdainElderPlural').replace('{list}', joinList(names)));
+        }
+        lines.push(t('script.thoseInFavor'));
+        lines.push(t('script.thoseOpposed'));
+        lines.push('');
+      }
+
+      if (highPriests.length > 0) {
+        const names = highPriests.map(c => c.member_name);
+        if (names.length === 1) {
+          lines.push(t('script.proposeOrdainHighPriest').replace('{name}', names[0]));
+        } else {
+          lines.push(t('script.proposeOrdainHighPriestPlural').replace('{list}', joinList(names)));
         }
         lines.push(t('script.thoseInFavor'));
         lines.push(t('script.thoseOpposed'));
