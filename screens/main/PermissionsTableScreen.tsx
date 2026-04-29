@@ -221,7 +221,7 @@ export function PermissionsTableScreen({ navigation }: any) {
           </View>
           <View style={styles.legendRow}>
             <View style={[styles.legendCell, styles.cellPartial]}>
-              <Text style={styles.cellPartialText}>Cond.</Text>
+              <Text style={styles.cellPartialText}>{t('permissions.condShort')}</Text>
             </View>
             <Text style={styles.legendText}>{t('permissions.conditionalPermit')}</Text>
           </View>

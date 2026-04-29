@@ -37,6 +37,11 @@ export const Colors = {
     record: '#F97316',
     complete: '#10B981',
   },
+  type: {
+    ward: '#3B82F6',
+    stake: '#8B5CF6',
+    mp: '#10B981',
+  },
 };
 
 export const Spacing = {

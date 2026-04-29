@@ -17,6 +17,22 @@ export const CHANGELOG: ChangelogEntry[] = [
     bugFixes: [],
   },
   {
+    version: '2.5.2',
+    date: '2026-04-29',
+    enhancements: [
+      'Spanish coverage filled in for the remaining English-only labels: Calling Detail (Details / Type / Bishop / Approved ✓ / Created / Completed / Actions / no-actions message), the Release Member edit form (Cancel / Save / Saving / Select ward), the New Entry confirmation banner (Submitted / Submit Another / HC Board), the Suggestion FAB modal, and the Permissions table "Cond." cell',
+    ],
+    bugFixes: [],
+  },
+  {
+    version: '2.5.1',
+    date: '2026-04-29',
+    enhancements: [
+      'Calling-type colors (ward / stake / MP) now live as named tokens on the theme so the three boards stay in sync — no more hex literals duplicated across CallingCard, CallingDetail, and Completed screens',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.5.0',
     date: '2026-04-18',
     enhancements: [

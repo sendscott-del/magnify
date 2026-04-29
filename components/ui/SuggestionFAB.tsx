@@ -5,11 +5,13 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { notifySuggestion } from '../../lib/slack';
 import { Colors, Spacing, Radius, FontSize } from '../../constants/theme';
 
 export function SuggestionFAB() {
   const { profile } = useAuth();
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
@@ -37,7 +39,7 @@ export function SuggestionFAB() {
       {sent && (
         <View style={styles.toast}>
           <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
-          <Text style={styles.toastText}>Suggestion submitted!</Text>
+          <Text style={styles.toastText}>{t('suggestion.toastSent')}</Text>
         </View>
       )}
 
@@ -60,11 +62,11 @@ export function SuggestionFAB() {
           <View style={styles.modal}>
             <View style={styles.modalHeader}>
               <Ionicons name="bulb" size={22} color={Colors.warning} />
-              <Text style={styles.modalTitle}>Suggestion or Enhancement</Text>
+              <Text style={styles.modalTitle}>{t('suggestion.modalTitle')}</Text>
               <TouchableOpacity
                 onPress={() => setOpen(false)}
                 style={styles.closeBtn}
-                accessibilityLabel="Close"
+                accessibilityLabel={t('common.close')}
                 accessibilityRole="button"
                 hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               >
@@ -74,7 +76,7 @@ export function SuggestionFAB() {
             <TextInput
               value={text}
               onChangeText={setText}
-              placeholder="What would make Magnify better?"
+              placeholder={t('suggestion.placeholder')}
               placeholderTextColor={Colors.gray[400]}
               multiline
               numberOfLines={4}
@@ -86,14 +88,14 @@ export function SuggestionFAB() {
                 style={[styles.cancelBtn]}
                 onPress={() => { setOpen(false); setText(''); }}
               >
-                <Text style={styles.cancelText}>Cancel</Text>
+                <Text style={styles.cancelText}>{t('suggestion.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.submitBtn, (!text.trim() || sending) && styles.submitDisabled]}
                 onPress={handleSubmit}
                 disabled={!text.trim() || sending}
               >
-                <Text style={styles.submitText}>{sending ? 'Sending...' : 'Submit'}</Text>
+                <Text style={styles.submitText}>{sending ? t('suggestion.sending') : t('suggestion.submit')}</Text>
               </TouchableOpacity>
             </View>
           </View>
