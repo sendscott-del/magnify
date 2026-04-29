@@ -181,22 +181,22 @@ export function NewCallingScreen({ navigation }: any) {
         {showConfirmation && (
           <View style={{ backgroundColor: '#ecfdf5', borderWidth: 1, borderColor: '#a7f3d0', borderRadius: 12, padding: 16, marginBottom: 16, alignItems: 'center' }}>
             <Ionicons name="checkmark-circle" size={40} color={Colors.success} />
-            <Text style={{ fontSize: 16, fontWeight: '700', color: Colors.gray[900], marginTop: 8 }}>Submitted</Text>
+            <Text style={{ fontSize: 16, fontWeight: '700', color: Colors.gray[900], marginTop: 8 }}>{t('new.submitted')}</Text>
             <Text style={{ fontSize: 13, color: Colors.gray[600], textAlign: 'center', marginTop: 4 }}>
-              Your calling recommendation has been submitted to the Stake Presidency for review.
+              {t('new.submittedDesc')}
             </Text>
             <View style={{ flexDirection: 'row', gap: 12, marginTop: 12 }}>
               <TouchableOpacity
                 onPress={() => setShowConfirmation(false)}
                 style={{ backgroundColor: Colors.primary, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 6 }}
               >
-                <Text style={{ color: 'white', fontWeight: '600', fontSize: 13 }}>Submit Another</Text>
+                <Text style={{ color: 'white', fontWeight: '600', fontSize: 13 }}>{t('new.submitAnother')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => { setShowConfirmation(false); navigation.navigate('HC'); }}
                 style={{ paddingVertical: 8, paddingHorizontal: 16 }}
               >
-                <Text style={{ color: Colors.primary, fontWeight: '600', fontSize: 13 }}>HC Board</Text>
+                <Text style={{ color: Colors.primary, fontWeight: '600', fontSize: 13 }}>{t('new.goHCBoard')}</Text>
               </TouchableOpacity>
             </View>
           </View>

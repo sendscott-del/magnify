@@ -481,6 +481,34 @@ export const translations = {
     'permissions.moveBack': 'Move Back Stage',
     'permissions.manageUsers': 'Manage Users & Settings',
     'permissions.manageUsersNote': 'Includes approving/rejecting user accounts, Slack settings, and managing SP/HC rosters.',
+    'permissions.condShort': 'Cond.',
+
+    // Detail screen — info section
+    'detail.detailsTitle': 'Details',
+    'detail.typeLabel': 'Type',
+    'detail.bishop': 'Bishop',
+    'detail.bishopApproved': 'Approved ✓',
+    'detail.created': 'Created',
+    'detail.completedDate': 'Completed',
+    'detail.actionsTitle': 'Actions',
+    'detail.noActions': 'No actions available at this stage for your role.',
+
+    // Release member subform
+    'release.selectWardOptional': 'Select ward (optional)',
+
+    // New screen — confirmation banner
+    'new.submitted': 'Submitted',
+    'new.submittedDesc': 'Your calling recommendation has been submitted to the Stake Presidency for review.',
+    'new.submitAnother': 'Submit Another',
+    'new.goHCBoard': 'HC Board',
+
+    // Suggestion FAB
+    'suggestion.toastSent': 'Suggestion submitted!',
+    'suggestion.modalTitle': 'Suggestion or Enhancement',
+    'suggestion.placeholder': 'What would make Magnify better?',
+    'suggestion.cancel': 'Cancel',
+    'suggestion.submit': 'Submit',
+    'suggestion.sending': 'Sending…',
   },
   es: {
     // App general
@@ -964,6 +992,34 @@ export const translations = {
     'permissions.moveBack': 'Retroceder Etapa',
     'permissions.manageUsers': 'Administrar Usuarios y Configuraci\u00f3n',
     'permissions.manageUsersNote': 'Incluye aprobar/rechazar cuentas de usuario, configuraci\u00f3n de Slack y gesti\u00f3n de listas de PE/CH.',
+    'permissions.condShort': 'Cond.',
+
+    // Detail screen \u2014 info section
+    'detail.detailsTitle': 'Detalles',
+    'detail.typeLabel': 'Tipo',
+    'detail.bishop': 'Obispo',
+    'detail.bishopApproved': 'Aprobado \u2713',
+    'detail.created': 'Creado',
+    'detail.completedDate': 'Completado',
+    'detail.actionsTitle': 'Acciones',
+    'detail.noActions': 'No hay acciones disponibles en esta etapa para su rol.',
+
+    // Release member subform
+    'release.selectWardOptional': 'Seleccionar barrio (opcional)',
+
+    // New screen \u2014 confirmation banner
+    'new.submitted': 'Enviado',
+    'new.submittedDesc': 'Su recomendaci\u00f3n de llamamiento ha sido enviada a la Presidencia de Estaca para su revisi\u00f3n.',
+    'new.submitAnother': 'Enviar Otro',
+    'new.goHCBoard': 'Tablero CH',
+
+    // Suggestion FAB
+    'suggestion.toastSent': '\u00a1Sugerencia enviada!',
+    'suggestion.modalTitle': 'Sugerencia o Mejora',
+    'suggestion.placeholder': '\u00bfQu\u00e9 har\u00eda Magnify mejor?',
+    'suggestion.cancel': 'Cancelar',
+    'suggestion.submit': 'Enviar',
+    'suggestion.sending': 'Enviando\u2026',
   },
 };
 

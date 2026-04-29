@@ -360,16 +360,16 @@ function ReleaseMemberSection({ calling, wards, canEdit, onSave, onToggleDone }:
           />
           <TouchableOpacity style={rmStyles.wardBtn} onPress={() => setShowWardPicker(true)}>
             <Text style={wardId ? rmStyles.wardBtnText : rmStyles.wardBtnPlaceholder}>
-              {wardId ? wardName : 'Select ward (optional)'}
+              {wardId ? wardName : t('release.selectWardOptional')}
             </Text>
             <Text style={rmStyles.wardArrow}>▼</Text>
           </TouchableOpacity>
           <View style={rmStyles.btnRow}>
             <TouchableOpacity style={rmStyles.cancelBtn} onPress={cancel}>
-              <Text style={rmStyles.cancelText}>Cancel</Text>
+              <Text style={rmStyles.cancelText}>{t('detail.cancel')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={rmStyles.saveBtn} onPress={save} disabled={saving}>
-              <Text style={rmStyles.saveText}>{saving ? 'Saving…' : 'Save'}</Text>
+              <Text style={rmStyles.saveText}>{saving ? t('detail.saving') : t('detail.save')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -990,7 +990,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
         {/* Details */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Details</Text>
+            <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>{t('detail.detailsTitle')}</Text>
             {canAssign && !isComplete && (
               <TouchableOpacity onPress={openEditModal}>
                 <Text style={styles.editLink}>{t('detail.edit')}</Text>
@@ -1003,7 +1003,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
               <Text style={styles.infoValue}>{calling.wards?.name ?? 'TBD'}</Text>
             </View>
             <View style={styles.infoItem}>
-              <Text style={styles.infoLabel}>Type</Text>
+              <Text style={styles.infoLabel}>{t('detail.typeLabel')}</Text>
               <Text style={styles.infoValue}>{TYPE_LABELS[calling.type]}</Text>
             </View>
             {calling.ordination_type && (
@@ -1014,8 +1014,8 @@ export function CallingDetailScreen({ route, navigation }: any) {
             )}
             {calling.bishop_approved && (
               <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>Bishop</Text>
-                <Text style={[styles.infoValue, { color: Colors.success }]}>Approved ✓</Text>
+                <Text style={styles.infoLabel}>{t('detail.bishop')}</Text>
+                <Text style={[styles.infoValue, { color: Colors.success }]}>{t('detail.bishopApproved')}</Text>
               </View>
             )}
             <View style={styles.infoItem}>
@@ -1023,12 +1023,12 @@ export function CallingDetailScreen({ route, navigation }: any) {
               <Text style={styles.infoValue}>{calling.profiles?.full_name ?? '—'}</Text>
             </View>
             <View style={styles.infoItem}>
-              <Text style={styles.infoLabel}>Created</Text>
+              <Text style={styles.infoLabel}>{t('detail.created')}</Text>
               <Text style={styles.infoValue}>{formatDate(calling.created_at)}</Text>
             </View>
             {calling.completed_at && (
               <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>Completed</Text>
+                <Text style={styles.infoLabel}>{t('detail.completedDate')}</Text>
                 <Text style={styles.infoValue}>{formatDate(calling.completed_at)}</Text>
               </View>
             )}
@@ -1112,7 +1112,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
         {/* Actions */}
         {(!isComplete || (canBack && prevStage)) && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Actions</Text>
+            <Text style={styles.sectionTitle}>{t('detail.actionsTitle')}</Text>
             {canAdvance && !calling.rejected && (
               <Button title={advanceLabel} onPress={handleAdvance} loading={actionLoading} fullWidth size="lg" style={styles.advanceBtn} />
             )}
@@ -1130,7 +1130,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
               />
             )}
             {!canAdvance && !canRejectCalling && !canBack && (
-              <Text style={styles.noActionsText}>No actions available at this stage for your role.</Text>
+              <Text style={styles.noActionsText}>{t('detail.noActions')}</Text>
             )}
           </View>
         )}

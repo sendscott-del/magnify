@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.5.2',
+    date: '2026-04-29',
+    enhancements: [
+      'Spanish coverage filled in for the remaining English-only labels: Calling Detail (Details / Type / Bishop / Approved ✓ / Created / Completed / Actions / no-actions message), the Release Member edit form (Cancel / Save / Saving / Select ward), the New Entry confirmation banner (Submitted / Submit Another / HC Board), the Suggestion FAB modal, and the Permissions table "Cond." cell',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.5.0',
     date: '2026-04-18',
     enhancements: [
