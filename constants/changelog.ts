@@ -17,6 +17,14 @@ export const CHANGELOG: ChangelogEntry[] = [
     bugFixes: [],
   },
   {
+    version: '2.5.1',
+    date: '2026-04-29',
+    enhancements: [
+      'Calling-type colors (ward / stake / MP) now live as named tokens on the theme so the three boards stay in sync — no more hex literals duplicated across CallingCard, CallingDetail, and Completed screens',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.5.0',
     date: '2026-04-18',
     enhancements: [
