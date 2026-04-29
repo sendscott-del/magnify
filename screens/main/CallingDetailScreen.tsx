@@ -26,9 +26,9 @@ import { notifyStageChange, notifyRejection } from '../../lib/slack';
 
 // TYPE_LABELS is built inside CallingDetailScreen using t()
 const TYPE_COLORS: Record<string, string> = {
-  ward_calling: Colors.info,
-  stake_calling: '#8B5CF6',
-  mp_ordination: Colors.success,
+  ward_calling: Colors.type.ward,
+  stake_calling: Colors.type.stake,
+  mp_ordination: Colors.type.mp,
 };
 const TYPE_ICONS: Record<string, any> = {
   ward_calling: require('../../assets/icon_ward.png'),
