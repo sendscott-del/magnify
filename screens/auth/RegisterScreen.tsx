@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView,
-  TouchableOpacity,
+  View, Text, StyleSheet, ScrollView, Image,
+  TouchableOpacity, KeyboardAvoidingView, Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
-import { Colors, FontSize, Spacing } from '../../constants/theme';
+import { Colors, FontSize, Spacing, Radius } from '../../constants/theme';
 import { notifyAccessRequest } from '../../lib/slack';
 
 export function RegisterScreen({ navigation }: any) {
   const { signUp } = useAuth();
   const { t } = useLanguage();
+  const insets = useSafeAreaInsets();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -54,69 +56,126 @@ export function RegisterScreen({ navigation }: any) {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>{t('register.title')}</Text>
-      <Text style={styles.subtitle}>{t('register.subtitle')}</Text>
-
-      <Input
-        label={t('register.fullName')}
-        value={fullName}
-        onChangeText={setFullName}
-        placeholder={t('register.fullNamePlaceholder')}
-      />
-      <Input
-        label={t('login.email')}
-        value={email}
-        onChangeText={setEmail}
-        placeholder={t('register.emailPlaceholder')}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-      <Input
-        label={t('login.password')}
-        value={password}
-        onChangeText={setPassword}
-        isPassword
-        placeholder={t('register.passwordPlaceholder')}
-      />
-
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-
-      <Button
-        title={t('register.requestAccess')}
-        onPress={handleRegister}
-        loading={loading}
-        fullWidth
-        size="lg"
-        style={styles.btn}
-      />
-
-      <TouchableOpacity
-        onPress={() => navigation.navigate('Login')}
-        style={styles.backLink}
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: Colors.gray[50] }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.backLinkText}>{t('register.haveAccount')}</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        {/* Navy hero band */}
+        <View style={[styles.hero, { paddingTop: insets.top + Spacing.xxl }]}>
+          <View style={styles.brandRow}>
+            <Image source={require('../../assets/icon.png')} style={styles.logoMark} />
+            <View>
+              <Text style={styles.brandName}>Magnify</Text>
+              <Text style={styles.brandTagline}>{t('app.tagline')}</Text>
+            </View>
+          </View>
+          <Text style={styles.heroHeading}>{t('register.title')}</Text>
+          <Text style={styles.heroSub}>{t('register.subtitle')}</Text>
+        </View>
+
+        {/* White card overlapping the hero */}
+        <View style={styles.card}>
+          <Input
+            label={t('register.fullName')}
+            value={fullName}
+            onChangeText={setFullName}
+            placeholder={t('register.fullNamePlaceholder')}
+            leftIcon="person-outline"
+          />
+          <Input
+            label={t('login.email')}
+            value={email}
+            onChangeText={setEmail}
+            placeholder={t('register.emailPlaceholder')}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            leftIcon="mail-outline"
+          />
+          <Input
+            label={t('login.password')}
+            value={password}
+            onChangeText={setPassword}
+            isPassword
+            placeholder={t('register.passwordPlaceholder')}
+            leftIcon="lock-closed-outline"
+          />
+
+          {error ? <Text style={styles.error}>{error}</Text> : null}
+
+          <Button
+            title={t('register.requestAccess')}
+            onPress={handleRegister}
+            loading={loading}
+            fullWidth
+            size="lg"
+            style={styles.btn}
+          />
+
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Login')}
+            style={styles.backLink}
+          >
+            <Text style={styles.backLinkText}>{t('register.haveAccount')}</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    padding: Spacing.lg,
-    paddingTop: Spacing.xxl,
-    minHeight: '100%' as any,
+  scroll: { flex: 1, backgroundColor: Colors.gray[50] },
+  scrollContent: { flexGrow: 1, paddingBottom: Spacing.xxl },
+  hero: {
+    backgroundColor: Colors.primaryDark,
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.xxl + Spacing.xl,
   },
-  title: {
-    fontSize: FontSize.xxxl,
-    fontWeight: '800',
-    color: Colors.primary,
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: FontSize.md,
-    color: Colors.gray[500],
+  brandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
     marginBottom: Spacing.lg,
+  },
+  logoMark: { width: 44, height: 44, borderRadius: Radius.md },
+  brandName: {
+    fontSize: FontSize.lg,
+    fontWeight: '800',
+    color: Colors.white,
+    letterSpacing: -0.2,
+  },
+  brandTagline: {
+    fontSize: FontSize.xs,
+    color: 'rgba(255,255,255,0.85)',
+    marginTop: 1,
+  },
+  heroHeading: {
+    fontSize: FontSize.xxxl,
+    fontWeight: '700',
+    color: Colors.white,
+    letterSpacing: -0.5,
+  },
+  heroSub: {
+    fontSize: FontSize.sm,
+    color: 'rgba(255,255,255,0.85)',
+    marginTop: 6,
+  },
+  card: {
+    marginTop: -Spacing.xxl,
+    marginHorizontal: Spacing.md,
+    backgroundColor: Colors.white,
+    borderRadius: Radius.lg,
+    padding: Spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    elevation: 8,
   },
   error: {
     color: Colors.error,
@@ -124,13 +183,14 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   btn: { marginTop: Spacing.md },
-  backLink: { alignItems: 'center', marginTop: Spacing.md },
-  backLinkText: { color: Colors.primary, fontSize: FontSize.sm },
+  backLink: { alignItems: 'center', marginTop: Spacing.lg },
+  backLinkText: { color: Colors.primary, fontSize: FontSize.sm, fontWeight: '600' },
   successContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     padding: Spacing.xl,
+    backgroundColor: Colors.white,
   },
   successIcon: { fontSize: 48 },
   successTitle: {

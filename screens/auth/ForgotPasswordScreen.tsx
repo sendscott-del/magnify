@@ -40,22 +40,27 @@ export function ForgotPasswordScreen({ navigation }: any) {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={{ flex: 1, backgroundColor: Colors.gray[50] }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={[styles.container, { paddingTop: insets.top + Spacing.xl }]}
+        contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.logoArea}>
-          <Image source={require('../../assets/icon.png')} style={styles.logoImage} />
-          <Text style={styles.appName}>Magnify</Text>
+        <View style={[styles.hero, { paddingTop: insets.top + Spacing.xxl }]}>
+          <View style={styles.brandRow}>
+            <Image source={require('../../assets/icon.png')} style={styles.logoMark} />
+            <View>
+              <Text style={styles.brandName}>Magnify</Text>
+              <Text style={styles.brandTagline}>{t('app.tagline')}</Text>
+            </View>
+          </View>
+          <Text style={styles.heroHeading}>{t('forgotPassword.title')}</Text>
+          <Text style={styles.heroSub}>{t('forgotPassword.subtitle')}</Text>
         </View>
 
-        <View style={styles.form}>
-          <Text style={styles.heading}>{t('forgotPassword.title')}</Text>
-
+        <View style={styles.card}>
           {sent ? (
             <View>
               <View style={styles.successBanner}>
@@ -71,7 +76,6 @@ export function ForgotPasswordScreen({ navigation }: any) {
             </View>
           ) : (
             <View>
-              <Text style={styles.subtitle}>{t('forgotPassword.subtitle')}</Text>
               {error ? <Text style={styles.errorBanner}>{error}</Text> : null}
 
               <Input
@@ -99,9 +103,7 @@ export function ForgotPasswordScreen({ navigation }: any) {
             onPress={() => navigation.navigate('Login')}
             style={styles.switchRow}
           >
-            <Text style={styles.switchText}>
-              <Text style={styles.switchLink}>{t('forgotPassword.backToSignIn')}</Text>
-            </Text>
+            <Text style={styles.switchLink}>{t('forgotPassword.backToSignIn')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -110,27 +112,53 @@ export function ForgotPasswordScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  scroll: { flex: 1, backgroundColor: Colors.white },
-  container: { padding: Spacing.lg, flexGrow: 1 },
-  logoArea: { alignItems: 'center', marginBottom: Spacing.xl },
-  logoImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 20,
-    marginBottom: Spacing.md,
+  scroll: { flex: 1, backgroundColor: Colors.gray[50] },
+  scrollContent: { flexGrow: 1, paddingBottom: Spacing.xxl },
+  hero: {
+    backgroundColor: Colors.primaryDark,
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.xxl + Spacing.xl,
   },
-  appName: { fontSize: FontSize.xxxl, fontWeight: '800', color: Colors.primary },
-  form: { flex: 1 },
-  heading: {
-    fontSize: FontSize.xxl,
-    fontWeight: '700',
-    color: Colors.gray[900],
-    marginBottom: Spacing.sm,
-  },
-  subtitle: {
-    fontSize: FontSize.sm,
-    color: Colors.gray[500],
+  brandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
     marginBottom: Spacing.lg,
+  },
+  logoMark: { width: 44, height: 44, borderRadius: Radius.md },
+  brandName: {
+    fontSize: FontSize.lg,
+    fontWeight: '800',
+    color: Colors.white,
+    letterSpacing: -0.2,
+  },
+  brandTagline: {
+    fontSize: FontSize.xs,
+    color: 'rgba(255,255,255,0.85)',
+    marginTop: 1,
+  },
+  heroHeading: {
+    fontSize: FontSize.xxxl,
+    fontWeight: '700',
+    color: Colors.white,
+    letterSpacing: -0.5,
+  },
+  heroSub: {
+    fontSize: FontSize.sm,
+    color: 'rgba(255,255,255,0.85)',
+    marginTop: 6,
+  },
+  card: {
+    marginTop: -Spacing.xxl,
+    marginHorizontal: Spacing.md,
+    backgroundColor: Colors.white,
+    borderRadius: Radius.lg,
+    padding: Spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    elevation: 8,
   },
   errorBanner: {
     backgroundColor: '#FEE2E2',
@@ -152,6 +180,5 @@ const styles = StyleSheet.create({
   },
   btn: { marginTop: Spacing.sm },
   switchRow: { alignItems: 'center', marginTop: Spacing.lg },
-  switchText: { fontSize: FontSize.sm, color: Colors.gray[500] },
-  switchLink: { color: Colors.primary, fontWeight: '600' },
+  switchLink: { color: Colors.primary, fontWeight: '600', fontSize: FontSize.sm },
 });

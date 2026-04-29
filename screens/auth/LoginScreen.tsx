@@ -12,7 +12,7 @@ import { Colors, FontSize, Spacing, Radius } from '../../constants/theme';
 
 export function LoginScreen({ navigation }: any) {
   const { signIn } = useAuth();
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -33,24 +33,29 @@ export function LoginScreen({ navigation }: any) {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={{ flex: 1, backgroundColor: Colors.gray[50] }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={[styles.container, { paddingTop: insets.top + Spacing.xl }]}
+        contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Logo */}
-        <View style={styles.logoArea}>
-          <Image source={require('../../assets/icon.png')} style={styles.logoImage} />
-          <Text style={styles.appName}>Magnify</Text>
-          <Text style={styles.tagline}>{t('app.tagline')}</Text>
+        {/* Navy hero band */}
+        <View style={[styles.hero, { paddingTop: insets.top + Spacing.xxl }]}>
+          <View style={styles.brandRow}>
+            <Image source={require('../../assets/icon.png')} style={styles.logoMark} />
+            <View>
+              <Text style={styles.brandName}>Magnify</Text>
+              <Text style={styles.brandTagline}>{t('app.tagline')}</Text>
+            </View>
+          </View>
+          <Text style={styles.heroHeading}>{t('login.welcomeBack')}</Text>
+          <Text style={styles.heroSub}>{t('login.signInToContinue')}</Text>
         </View>
 
-        {/* Form */}
-        <View style={styles.form}>
-          <Text style={styles.heading}>{t('login.welcomeBack')}</Text>
+        {/* White card overlapping the hero */}
+        <View style={styles.card}>
           {error ? <Text style={styles.errorBanner}>{error}</Text> : null}
 
           <Input
@@ -96,6 +101,28 @@ export function LoginScreen({ navigation }: any) {
               <Text style={styles.switchLink}>{t('login.createAccount')}</Text>
             </Text>
           </TouchableOpacity>
+
+          {/* Language toggle */}
+          <View style={styles.langRow}>
+            <TouchableOpacity
+              onPress={() => setLanguage('en')}
+              style={[styles.langSeg, language === 'en' && styles.langSegOn]}
+              accessibilityLabel="English"
+              accessibilityRole="button"
+              accessibilityState={{ selected: language === 'en' }}
+            >
+              <Text style={[styles.langText, language === 'en' && styles.langTextOn]}>English</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setLanguage('es')}
+              style={[styles.langSeg, language === 'es' && styles.langSegOn]}
+              accessibilityLabel="Español"
+              accessibilityRole="button"
+              accessibilityState={{ selected: language === 'es' }}
+            >
+              <Text style={[styles.langText, language === 'es' && styles.langTextOn]}>Español</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -103,23 +130,57 @@ export function LoginScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  scroll: { flex: 1, backgroundColor: Colors.white },
-  container: { padding: Spacing.lg, flexGrow: 1 },
-  logoArea: { alignItems: 'center', marginBottom: Spacing.xl },
-  logoImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 20,
-    marginBottom: Spacing.md,
+  scroll: { flex: 1, backgroundColor: Colors.gray[50] },
+  scrollContent: { flexGrow: 1, paddingBottom: Spacing.xxl },
+  hero: {
+    backgroundColor: Colors.primaryDark,
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.xxl + Spacing.xl,
   },
-  appName: { fontSize: FontSize.xxxl, fontWeight: '800', color: Colors.primary },
-  tagline: { fontSize: FontSize.sm, color: Colors.gray[500], marginTop: 4 },
-  form: { flex: 1 },
-  heading: {
-    fontSize: FontSize.xxl,
-    fontWeight: '700',
-    color: Colors.gray[900],
+  brandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
     marginBottom: Spacing.lg,
+  },
+  logoMark: {
+    width: 44,
+    height: 44,
+    borderRadius: Radius.md,
+  },
+  brandName: {
+    fontSize: FontSize.lg,
+    fontWeight: '800',
+    color: Colors.white,
+    letterSpacing: -0.2,
+  },
+  brandTagline: {
+    fontSize: FontSize.xs,
+    color: 'rgba(255,255,255,0.85)',
+    marginTop: 1,
+  },
+  heroHeading: {
+    fontSize: FontSize.xxxl,
+    fontWeight: '700',
+    color: Colors.white,
+    letterSpacing: -0.5,
+  },
+  heroSub: {
+    fontSize: FontSize.sm,
+    color: 'rgba(255,255,255,0.85)',
+    marginTop: 6,
+  },
+  card: {
+    marginTop: -Spacing.xxl,
+    marginHorizontal: Spacing.md,
+    backgroundColor: Colors.white,
+    borderRadius: Radius.lg,
+    padding: Spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    elevation: 8,
   },
   errorBanner: {
     backgroundColor: '#FEE2E2',
@@ -134,4 +195,27 @@ const styles = StyleSheet.create({
   switchRow: { alignItems: 'center', marginTop: Spacing.lg },
   switchText: { fontSize: FontSize.sm, color: Colors.gray[500] },
   switchLink: { color: Colors.primary, fontWeight: '600' },
+  langRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: Spacing.lg,
+  },
+  langSeg: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: Radius.full,
+  },
+  langSegOn: {
+    backgroundColor: Colors.primaryFade,
+  },
+  langText: {
+    fontSize: FontSize.xs,
+    color: Colors.gray[500],
+    fontWeight: '600',
+  },
+  langTextOn: {
+    color: Colors.primary,
+    fontWeight: '700',
+  },
 });
