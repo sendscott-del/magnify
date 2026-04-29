@@ -16,9 +16,9 @@ import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme
 import { useLanguage } from '../../context/LanguageContext';
 
 const TYPE_COLORS: Record<string, string> = {
-  ward_calling: Colors.info,
-  stake_calling: '#8B5CF6',
-  mp_ordination: Colors.success,
+  ward_calling: Colors.type.ward,
+  stake_calling: Colors.type.stake,
+  mp_ordination: Colors.type.mp,
 };
 
 export function CompletedCallingsScreen({ navigation }: any) {
