@@ -943,7 +943,13 @@ export function CallingDetailScreen({ route, navigation }: any) {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.headerBar}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backBtn}
+          accessibilityLabel={t('common.goBack')}
+          accessibilityRole="button"
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
           <Ionicons name="chevron-back" size={24} color={Colors.gray[700]} />
         </TouchableOpacity>
         <View style={styles.headerBadges}>
@@ -953,7 +959,14 @@ export function CallingDetailScreen({ route, navigation }: any) {
           <Badge label={STAGE_LABELS[calling.stage]} stage={calling.stage} />
         </View>
         {canDel && (
-          <TouchableOpacity onPress={handleDelete} style={styles.deleteHeaderBtn} disabled={actionLoading}>
+          <TouchableOpacity
+            onPress={handleDelete}
+            style={styles.deleteHeaderBtn}
+            disabled={actionLoading}
+            accessibilityLabel={t('detail.delete')}
+            accessibilityRole="button"
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          >
             <Ionicons name="trash-outline" size={20} color={Colors.error} />
           </TouchableOpacity>
         )}

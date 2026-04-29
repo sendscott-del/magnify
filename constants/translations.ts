@@ -321,6 +321,10 @@ export const translations = {
     'common.error': 'Error',
     'common.success': 'Success',
     'common.ok': 'OK',
+    'common.close': 'Close',
+    'common.clearSearch': 'Clear search',
+    'common.setSlackId': 'Set Slack ID',
+    'common.goBack': 'Go back',
 
     // Ordination
     'ordination.elder': 'Elder',
@@ -832,6 +836,10 @@ export const translations = {
     'common.error': 'Error',
     'common.success': '\u00c9xito',
     'common.ok': 'OK',
+    'common.close': 'Cerrar',
+    'common.clearSearch': 'Borrar b\u00fasqueda',
+    'common.setSlackId': 'Configurar ID de Slack',
+    'common.goBack': 'Volver',
 
     // Ordination
     'ordination.elder': '\u00c9lder',

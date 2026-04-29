@@ -192,6 +192,9 @@ export function SPAdminScreen({ navigation }: any) {
                 <TouchableOpacity
                   style={styles.slackBtn}
                   onPress={() => setSlackModal({ id: member.id, name: member.name, value: member.slack_user_id ?? '' })}
+                  accessibilityLabel={t('common.setSlackId')}
+                  accessibilityRole="button"
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                 >
                   <Ionicons
                     name="at-outline"
@@ -199,7 +202,13 @@ export function SPAdminScreen({ navigation }: any) {
                     color={member.slack_user_id ? Colors.primary : Colors.gray[400]}
                   />
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.deleteBtn} onPress={() => handleDelete(member)}>
+                <TouchableOpacity
+                  style={styles.deleteBtn}
+                  onPress={() => handleDelete(member)}
+                  accessibilityLabel={t('spAdmin.remove')}
+                  accessibilityRole="button"
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                >
                   <Ionicons name="trash-outline" size={18} color={Colors.error} />
                 </TouchableOpacity>
               </View>

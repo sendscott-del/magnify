@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.5.3',
+    date: '2026-04-29',
+    enhancements: [
+      'Accessibility — icon-only buttons (delete, close, set Slack ID, clear search, back) now have larger 50×50 hit areas and screen-reader labels, so they meet the design system\'s 44×44 minimum without changing the visual layout',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.5.2',
     date: '2026-04-29',
     enhancements: [
