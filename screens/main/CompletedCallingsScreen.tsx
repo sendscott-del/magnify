@@ -96,7 +96,12 @@ export function CompletedCallingsScreen({ navigation }: any) {
             placeholderTextColor={Colors.gray[400]}
           />
           {search.length > 0 && (
-            <TouchableOpacity onPress={() => setSearch('')}>
+            <TouchableOpacity
+              onPress={() => setSearch('')}
+              accessibilityLabel={t('common.clearSearch')}
+              accessibilityRole="button"
+              hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
+            >
               <Ionicons name="close-circle" size={16} color={Colors.gray[400]} />
             </TouchableOpacity>
           )}

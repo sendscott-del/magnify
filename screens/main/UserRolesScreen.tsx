@@ -281,10 +281,22 @@ function SPTab() {
               {member.slack_user_id && <Text style={styles.slackIdText}>@ {member.slack_user_id}</Text>}
             </View>
             {!member.active && <Text style={styles.inactiveLabel}>{t('spAdmin.inactive')}</Text>}
-            <TouchableOpacity style={styles.iconBtn} onPress={() => setSlackModal({ id: member.id, name: member.name, value: member.slack_user_id ?? '' })}>
+            <TouchableOpacity
+              style={styles.iconBtn}
+              onPress={() => setSlackModal({ id: member.id, name: member.name, value: member.slack_user_id ?? '' })}
+              accessibilityLabel={t('common.setSlackId')}
+              accessibilityRole="button"
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            >
               <Ionicons name="at-outline" size={18} color={member.slack_user_id ? Colors.primary : Colors.gray[400]} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.iconBtn} onPress={() => handleDelete(member)}>
+            <TouchableOpacity
+              style={styles.iconBtn}
+              onPress={() => handleDelete(member)}
+              accessibilityLabel={t('detail.delete')}
+              accessibilityRole="button"
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            >
               <Ionicons name="trash-outline" size={18} color={Colors.error} />
             </TouchableOpacity>
           </View>
@@ -403,10 +415,22 @@ function HCTab() {
               {member.slack_user_id && <Text style={styles.slackIdText}>@ {member.slack_user_id}</Text>}
             </View>
             {!member.active && <Text style={styles.inactiveLabel}>{t('hcAdmin.inactive')}</Text>}
-            <TouchableOpacity style={styles.iconBtn} onPress={() => setSlackModal({ id: member.id, name: member.name, value: member.slack_user_id ?? '' })}>
+            <TouchableOpacity
+              style={styles.iconBtn}
+              onPress={() => setSlackModal({ id: member.id, name: member.name, value: member.slack_user_id ?? '' })}
+              accessibilityLabel={t('common.setSlackId')}
+              accessibilityRole="button"
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            >
               <Ionicons name="at-outline" size={18} color={member.slack_user_id ? Colors.primary : Colors.gray[400]} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.iconBtn} onPress={() => handleDelete(member)}>
+            <TouchableOpacity
+              style={styles.iconBtn}
+              onPress={() => handleDelete(member)}
+              accessibilityLabel={t('detail.delete')}
+              accessibilityRole="button"
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            >
               <Ionicons name="trash-outline" size={18} color={Colors.error} />
             </TouchableOpacity>
           </View>

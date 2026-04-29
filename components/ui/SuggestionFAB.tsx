@@ -61,7 +61,13 @@ export function SuggestionFAB() {
             <View style={styles.modalHeader}>
               <Ionicons name="bulb" size={22} color={Colors.warning} />
               <Text style={styles.modalTitle}>Suggestion or Enhancement</Text>
-              <TouchableOpacity onPress={() => setOpen(false)} style={styles.closeBtn}>
+              <TouchableOpacity
+                onPress={() => setOpen(false)}
+                style={styles.closeBtn}
+                accessibilityLabel="Close"
+                accessibilityRole="button"
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              >
                 <Ionicons name="close" size={20} color={Colors.gray[400]} />
               </TouchableOpacity>
             </View>

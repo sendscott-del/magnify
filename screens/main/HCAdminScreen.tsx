@@ -174,6 +174,9 @@ export function HCAdminScreen({ navigation }: any) {
                 <TouchableOpacity
                   style={styles.slackBtn}
                   onPress={() => setSlackModal({ id: member.id, name: member.name, value: member.slack_user_id ?? '' })}
+                  accessibilityLabel={t('common.setSlackId')}
+                  accessibilityRole="button"
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                 >
                   <Ionicons
                     name="at-outline"
@@ -184,6 +187,9 @@ export function HCAdminScreen({ navigation }: any) {
                 <TouchableOpacity
                   style={styles.deleteBtn}
                   onPress={() => handleDelete(member)}
+                  accessibilityLabel={t('hcAdmin.remove')}
+                  accessibilityRole="button"
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                 >
                   <Ionicons name="trash-outline" size={18} color={Colors.error} />
                 </TouchableOpacity>
