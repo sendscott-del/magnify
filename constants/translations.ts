@@ -7,6 +7,7 @@ export const translations = {
 
     // Auth - Login
     'login.welcomeBack': 'Welcome back',
+    'login.signInToContinue': 'Sign in to continue.',
     'login.email': 'Email',
     'login.password': 'Password',
     'login.emailPlaceholder': 'you@example.com',
@@ -522,6 +523,7 @@ export const translations = {
 
     // Auth - Login
     'login.welcomeBack': 'Bienvenido de nuevo',
+    'login.signInToContinue': 'Inicie sesi\u00f3n para continuar.',
     'login.email': 'Correo electr\u00f3nico',
     'login.password': 'Contrase\u00f1a',
     'login.emailPlaceholder': 'usted@ejemplo.com',

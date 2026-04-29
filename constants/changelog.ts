@@ -9,6 +9,15 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.6.0',
+    date: '2026-04-29',
+    enhancements: [
+      'Auth screens redesigned to match the design system: Login, Register, Forgot Password, and Reset Password now lead with a deep navy hero band (logo + Magnify name + tagline + screen heading), with the white form card overlapping the bottom of the hero. Replaces the previous plain-white treatment',
+      'Login screen now has an English / Español language toggle directly below the form so users can switch language before signing in (previously buried in Settings)',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.5.3',
     date: '2026-04-29',
     enhancements: [
