@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, Image,
+  View, Text, StyleSheet, ScrollView,
   TouchableOpacity, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,6 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import { MagnifyLogo } from '../../components/icons/MagnifyLogo';
 import { Colors, FontSize, Spacing, Radius } from '../../constants/theme';
 import { notifyAccessRequest } from '../../lib/slack';
 
@@ -68,7 +69,7 @@ export function RegisterScreen({ navigation }: any) {
         {/* Navy hero band */}
         <View style={[styles.hero, { paddingTop: insets.top + Spacing.xxl }]}>
           <View style={styles.brandRow}>
-            <Image source={require('../../assets/icon.png')} style={styles.logoMark} />
+            <MagnifyLogo size={44} />
             <View>
               <Text style={styles.brandName}>Magnify</Text>
               <Text style={styles.brandTagline}>{t('app.tagline')}</Text>

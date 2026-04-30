@@ -9,6 +9,16 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.7.0',
+    date: '2026-04-29',
+    enhancements: [
+      'New Magnify logo — clean "M" letterform with the magnifying lens nested in the upper-right counter, rendered as a crisp SVG instead of the old photographic PNG. Used across Login / Register / Forgot Password / Reset Password',
+      'New product icons — Ward (chapel), Stake (larger chapel), MP Ordination (priesthood key), SP Board (stacked workflow cards), HC Board (12-dot council grid). Flat SVG glyphs in dark navy squircles, replacing the old photographic icons. Visible on the bottom-tab navigator (SP Board / HC Board), the New Calling type selector, and the Calling Detail header',
+      'Calling cards on the kanban boards have been redesigned: the photographic icon is replaced with a 40×40 ward-abbreviation badge (e.g., "HP1" in monospace) — navy for ward callings, dark navy for stake callings, gold for MP ordinations. The "NEW" red badge becomes a small gold dot. The footer adds a top-border divider with the type label (mono uppercase) on the left and a colored stage dot + plain-text stage on the right',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.6.0',
     date: '2026-04-29',
     enhancements: [

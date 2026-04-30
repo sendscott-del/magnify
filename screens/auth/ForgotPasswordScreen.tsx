@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, Image,
+  View, Text, StyleSheet, ScrollView,
   TouchableOpacity, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,6 +8,7 @@ import { supabase } from '../../lib/supabase';
 import { useLanguage } from '../../context/LanguageContext';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
+import { MagnifyLogo } from '../../components/icons/MagnifyLogo';
 import { Colors, FontSize, Spacing, Radius } from '../../constants/theme';
 
 const APP_URL = process.env.EXPO_PUBLIC_APP_URL ?? '';
@@ -50,7 +51,7 @@ export function ForgotPasswordScreen({ navigation }: any) {
       >
         <View style={[styles.hero, { paddingTop: insets.top + Spacing.xxl }]}>
           <View style={styles.brandRow}>
-            <Image source={require('../../assets/icon.png')} style={styles.logoMark} />
+            <MagnifyLogo size={44} />
             <View>
               <Text style={styles.brandName}>Magnify</Text>
               <Text style={styles.brandTagline}>{t('app.tagline')}</Text>

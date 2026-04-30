@@ -14,6 +14,7 @@ import { Calling, CallingLogEntry, WardSustaining, Ward, Stage, Profile } from '
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { DisclaimerFooter } from '../../components/ui/DisclaimerFooter';
+import { ProductIcon } from '../../components/icons/ProductIcon';
 import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme';
 import { STAGE_LABELS } from '../../constants/callings';
 import {
@@ -30,10 +31,10 @@ const TYPE_COLORS: Record<string, string> = {
   stake_calling: Colors.type.stake,
   mp_ordination: Colors.type.mp,
 };
-const TYPE_ICONS: Record<string, any> = {
-  ward_calling: require('../../assets/icon_ward.png'),
-  stake_calling: require('../../assets/icon_stake.png'),
-  mp_ordination: require('../../assets/icon_mp.png'),
+const TYPE_ICON_KIND: Record<string, 'ward' | 'stake' | 'mp'> = {
+  ward_calling: 'ward',
+  stake_calling: 'stake',
+  mp_ordination: 'mp',
 };
 
 // SP roles in order — stake_clerk and exec_secretary are optional (informational only)
@@ -953,7 +954,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
           <Ionicons name="chevron-back" size={24} color={Colors.gray[700]} />
         </TouchableOpacity>
         <View style={styles.headerBadges}>
-          <Image source={TYPE_ICONS[calling.type]} style={styles.typeIcon} />
+          <ProductIcon kind={TYPE_ICON_KIND[calling.type]} size={28} />
           <Badge label={TYPE_LABELS[calling.type]} color={TYPE_COLORS[calling.type]} />
           <View style={{ width: Spacing.xs }} />
           <Badge label={STAGE_LABELS[calling.stage]} stage={calling.stage} />

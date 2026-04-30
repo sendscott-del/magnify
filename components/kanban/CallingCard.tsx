@@ -1,20 +1,26 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Radius, FontSize, Shadow } from '../../constants/theme';
-import { Badge } from '../ui/Badge';
 import { Calling } from '../../lib/database.types';
 import { useLanguage } from '../../context/LanguageContext';
 
-const TYPE_COLORS: Record<string, string> = {
-  ward_calling: Colors.type.ward,
-  stake_calling: Colors.type.stake,
-  mp_ordination: Colors.type.mp,
+const TYPE_BADGE_BG: Record<string, string> = {
+  ward_calling: Colors.primary,
+  stake_calling: Colors.primaryDark,
+  mp_ordination: Colors.accent,
 };
 
-const TYPE_ICONS: Record<string, any> = {
-  ward_calling: require('../../assets/icon_ward.png'),
-  stake_calling: require('../../assets/icon_stake.png'),
-  mp_ordination: require('../../assets/icon_mp.png'),
+const TYPE_BADGE_TEXT: Record<string, string> = {
+  ward_calling: Colors.white,
+  stake_calling: Colors.white,
+  mp_ordination: '#3A2E0E', // dark warm tone for legibility on gold
+};
+
+const TYPE_GLYPH: Record<string, keyof typeof Ionicons.glyphMap> = {
+  ward_calling: 'people-outline',
+  stake_calling: 'business-outline',
+  mp_ordination: 'key-outline',
 };
 
 interface Props {
@@ -25,6 +31,7 @@ interface Props {
 
 export function CallingCard({ calling, onPress, isNew }: Props) {
   const { t } = useLanguage();
+
   const STAGE_LABELS: Record<string, string> = {
     ideas: t('stage.ideas'),
     for_approval: t('stage.for_approval'),
@@ -37,6 +44,18 @@ export function CallingCard({ calling, onPress, isNew }: Props) {
     record: t('stage.record'),
     complete: t('stage.complete'),
   };
+
+  const TYPE_LABELS: Record<string, string> = {
+    ward_calling: t('type.ward_calling'),
+    stake_calling: t('type.stake_calling'),
+    mp_ordination: t('type.mp_ordination'),
+  };
+
+  const STAGE_COLOR: Record<string, string> = (Colors.stage as any) ?? {};
+  const stageColor = STAGE_COLOR[calling.stage] ?? Colors.gray[500];
+
+  const wardLabel = calling.wards?.abbreviation || calling.wards?.name?.slice(0, 3).toUpperCase() || '—';
+
   return (
     <TouchableOpacity
       style={[styles.card, calling.rejected && styles.rejected]}
@@ -44,19 +63,34 @@ export function CallingCard({ calling, onPress, isNew }: Props) {
       activeOpacity={0.8}
     >
       <View style={styles.row}>
-        <Image source={TYPE_ICONS[calling.type]} style={styles.typeIcon} />
-        <Text style={styles.name} numberOfLines={1}>{calling.member_name}</Text>
-        {isNew && (
-          <View style={styles.newBadge}>
-            <Text style={styles.newBadgeText}>NEW</Text>
+        <View style={[styles.wardBadge, { backgroundColor: TYPE_BADGE_BG[calling.type] }]}>
+          <Text style={[styles.wardBadgeText, { color: TYPE_BADGE_TEXT[calling.type] }]} numberOfLines={1}>
+            {wardLabel}
+          </Text>
+        </View>
+        <View style={styles.who}>
+          <Text style={styles.name} numberOfLines={1}>{calling.member_name}</Text>
+          <View style={styles.callingRow}>
+            <Ionicons
+              name={TYPE_GLYPH[calling.type] ?? 'document-outline'}
+              size={11}
+              color={Colors.gray[500]}
+              style={styles.callingGlyph}
+            />
+            <Text style={styles.callingName} numberOfLines={1}>{calling.calling_name}</Text>
           </View>
-        )}
+        </View>
+        {isNew && <View style={styles.newDot} />}
       </View>
-      <Text style={styles.callingName} numberOfLines={1}>{calling.calling_name}</Text>
-      <View style={styles.footer}>
-        {calling.wards && <Text style={styles.ward}>{calling.wards.abbreviation}</Text>}
-        <Badge label={STAGE_LABELS[calling.stage]} stage={calling.stage} />
+
+      <View style={styles.foot}>
+        <Text style={styles.typeLabel}>{(TYPE_LABELS[calling.type] ?? '').toUpperCase()}</Text>
+        <View style={styles.stageRow}>
+          <View style={[styles.stageDot, { backgroundColor: stageColor }]} />
+          <Text style={styles.stageText}>{STAGE_LABELS[calling.stage]}</Text>
+        </View>
       </View>
+
       {calling.rejected && (
         <View style={styles.rejectedBanner}>
           <Text style={styles.rejectedText}>{t('detail.declined').toUpperCase()}</Text>
@@ -70,7 +104,9 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.white,
     borderRadius: Radius.md,
-    padding: Spacing.md,
+    paddingHorizontal: Spacing.md - 2,
+    paddingTop: Spacing.md - 2,
+    paddingBottom: Spacing.sm + 4,
     marginBottom: Spacing.sm,
     borderWidth: 1,
     borderColor: Colors.gray[200],
@@ -83,47 +119,82 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
-    gap: Spacing.xs,
+    gap: Spacing.sm + 4,
+    marginBottom: Spacing.sm + 2,
   },
-  typeIcon: {
-    width: 30,
-    height: 30,
-    borderRadius: 7,
+  wardBadge: {
+    width: 40,
+    height: 40,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
     flexShrink: 0,
   },
-  name: {
-    fontSize: FontSize.md,
+  wardBadgeText: {
+    fontFamily: 'Menlo',
     fontWeight: '700',
-    color: Colors.gray[900],
-    flex: 1,
-  },
-  newBadge: {
-    backgroundColor: Colors.error,
-    borderRadius: Radius.full,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  newBadgeText: {
-    color: Colors.white,
-    fontSize: 9,
-    fontWeight: '800',
+    fontSize: FontSize.sm,
     letterSpacing: 0.5,
   },
+  who: { flex: 1, minWidth: 0 },
+  name: {
+    fontSize: FontSize.md,
+    fontWeight: '600',
+    color: Colors.gray[900],
+    letterSpacing: -0.1,
+  },
+  callingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 3,
+  },
+  callingGlyph: { opacity: 0.7 },
   callingName: {
     fontSize: FontSize.sm,
-    color: Colors.gray[600],
-    marginBottom: Spacing.xs,
+    color: Colors.gray[500],
+    flex: 1,
   },
-  footer: {
+  newDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.accent,
+    flexShrink: 0,
+    shadowColor: Colors.accent,
+    shadowOpacity: 0.4,
+    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 0 },
+  },
+  foot: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingTop: Spacing.sm + 2,
+    borderTopWidth: 1,
+    borderTopColor: Colors.gray[100],
   },
-  ward: {
-    fontSize: FontSize.xs,
+  typeLabel: {
+    fontFamily: 'Menlo',
+    fontSize: 10,
     color: Colors.gray[500],
     fontWeight: '600',
+    letterSpacing: 0.6,
+  },
+  stageRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  stageDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  stageText: {
+    fontSize: FontSize.sm - 1,
+    fontWeight: '600',
+    color: Colors.gray[700],
   },
   rejectedBanner: {
     marginTop: Spacing.xs,
