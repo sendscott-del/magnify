@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.7.3',
+    date: '2026-04-29',
+    enhancements: [
+      'Steward icon in the Gathered AppSwitcher now uses the new Steward mark (white S with a gold checkmark) instead of the old logo, so cross-app navigation matches the rebrand',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.7.2',
     date: '2026-04-29',
     enhancements: [
