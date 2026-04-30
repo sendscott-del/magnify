@@ -4,18 +4,29 @@ import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { Colors, FontSize, Spacing, Radius } from '../constants/theme';
+import { MagnifyLogo } from './icons/MagnifyLogo';
 
 interface AppInfo {
   name: string;
   label: string;
   url: string;
-  logo: ImageSourcePropType;
+  logo: ImageSourcePropType | null; // null when rendered as a component
 }
 
 const APP_CATALOG: AppInfo[] = [
-  { name: 'magnify', label: 'Magnify', url: 'https://magnify-sendscott-dels-projects.vercel.app', logo: require('../assets/icon.png') },
+  { name: 'magnify', label: 'Magnify', url: 'https://magnify-sendscott-dels-projects.vercel.app', logo: null },
   { name: 'steward', label: 'Steward', url: 'https://stewards-indeed.vercel.app', logo: require('../assets/steward-icon.png') },
 ];
+
+function AppLogo({ app, size }: { app: AppInfo; size: number }) {
+  if (app.name === 'magnify') {
+    return <MagnifyLogo size={size} />;
+  }
+  if (app.logo) {
+    return <Image source={app.logo} style={{ width: size, height: size, borderRadius: Radius.sm }} />;
+  }
+  return null;
+}
 
 const CURRENT_APP = 'magnify';
 
@@ -57,7 +68,7 @@ export function AppSwitcher() {
         <View style={styles.leftGroup}>
           <Text style={styles.lflLabel}>Gathered</Text>
           <View style={styles.divider} />
-          <Image source={currentApp.logo} style={styles.barLogo} />
+          <AppLogo app={currentApp} size={20} />
           <Text style={styles.currentLabel}>{currentApp.label}</Text>
         </View>
         <View style={styles.rightGroup}>
@@ -74,7 +85,7 @@ export function AppSwitcher() {
           <Text style={styles.switchLabel}>Switch to</Text>
           {otherApps.map(app => (
             <TouchableOpacity key={app.name} style={styles.appRow} onPress={() => openApp(app.url)}>
-              <Image source={app.logo} style={styles.appLogo} />
+              <AppLogo app={app} size={28} />
               <Text style={styles.appName}>{app.label}</Text>
               <Ionicons name="open-outline" size={14} color={Colors.gray[400]} />
             </TouchableOpacity>

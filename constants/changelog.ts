@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.7.1',
+    date: '2026-04-29',
+    enhancements: [
+      'AppSwitcher (the Gathered bar at the top showing other apps you have access to) now uses the new SVG Magnify logo for the Magnify entry instead of the old photographic PNG',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.7.0',
     date: '2026-04-29',
     enhancements: [
