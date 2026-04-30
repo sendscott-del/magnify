@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.7.2',
+    date: '2026-04-29',
+    enhancements: [
+      'Home-screen icon, favicon, splash screen, and Android adaptive icon all updated to the new Magnify mark — clean white "M" letterform with a gold magnifying lens on the deep navy brand background. Replaces the older photographic logo at every OS-level surface',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.7.1',
     date: '2026-04-29',
     enhancements: [
