@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Image } from 'react-native';
+import { View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,11 +7,7 @@ import { Colors } from '../constants/theme';
 import { useLanguage } from '../context/LanguageContext';
 import { SuggestionFAB } from '../components/ui/SuggestionFAB';
 import { AppSwitcher } from '../components/AppSwitcher';
-
-const TAB_ICONS = {
-  SP: require('../assets/icon_sp_board.png'),
-  HC: require('../assets/icon_hc_board.png'),
-};
+import { ProductIcon } from '../components/icons/ProductIcon';
 import { useAuth } from '../context/AuthContext';
 import { PresidencyKanbanScreen } from '../screens/main/PresidencyKanbanScreen';
 import { HCKanbanScreen } from '../screens/main/HCKanbanScreen';
@@ -84,10 +80,18 @@ export function MainTabNavigator() {
         tabBarStyle: { borderTopColor: Colors.gray[200] },
         tabBarIcon: ({ color, size, focused }) => {
           if (route.name === 'PresidencyBoard') {
-            return <Image source={TAB_ICONS.SP} style={{ width: size + 6, height: size + 6, opacity: focused ? 1 : 0.5, borderRadius: 5 }} />;
+            return (
+              <View style={{ opacity: focused ? 1 : 0.5 }}>
+                <ProductIcon kind="sp_board" size={size + 6} />
+              </View>
+            );
           }
           if (route.name === 'HC') {
-            return <Image source={TAB_ICONS.HC} style={{ width: size + 6, height: size + 6, opacity: focused ? 1 : 0.5, borderRadius: 5 }} />;
+            return (
+              <View style={{ opacity: focused ? 1 : 0.5 }}>
+                <ProductIcon kind="hc_board" size={size + 6} />
+              </View>
+            );
           }
           const icons: Record<string, keyof typeof Ionicons.glyphMap> = {
             New: 'add-circle',

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Modal, FlatList, Platform, Alert, Image,
+  Modal, FlatList, Platform, Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,6 +11,7 @@ import { Ward, CallingType } from '../../lib/database.types';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { DisclaimerFooter } from '../../components/ui/DisclaimerFooter';
+import { ProductIcon } from '../../components/icons/ProductIcon';
 import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme';
 import { CALLING_GROUPS } from '../../constants/callings';
 import { useLanguage } from '../../context/LanguageContext';
@@ -22,10 +23,10 @@ export function NewCallingScreen({ navigation }: any) {
   const { user, profile } = useAuth();
   const { t } = useLanguage();
 
-  const TYPE_OPTIONS: { label: string; value: CallingType; icon: any }[] = [
-    { label: t('type.ward_calling'), value: 'ward_calling', icon: require('../../assets/icon_ward.png') },
-    { label: t('type.stake_calling'), value: 'stake_calling', icon: require('../../assets/icon_stake.png') },
-    { label: t('type.mp_ordination'), value: 'mp_ordination', icon: require('../../assets/icon_mp.png') },
+  const TYPE_OPTIONS: { label: string; value: CallingType; kind: 'ward' | 'stake' | 'mp' }[] = [
+    { label: t('type.ward_calling'), value: 'ward_calling', kind: 'ward' },
+    { label: t('type.stake_calling'), value: 'stake_calling', kind: 'stake' },
+    { label: t('type.mp_ordination'), value: 'mp_ordination', kind: 'mp' },
   ];
 
   const ORDINATION_OPTIONS = [
@@ -216,7 +217,7 @@ export function NewCallingScreen({ navigation }: any) {
                 setBishopApproved(false);
               }}
             >
-              <Image source={opt.icon} style={styles.typeIconImg} />
+              <ProductIcon kind={opt.kind} size={32} style={styles.typeIconImg} />
               <Text style={[styles.typeLabel, type === opt.value && styles.typeLabelActive]}>
                 {opt.label}
               </Text>
