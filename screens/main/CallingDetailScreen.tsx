@@ -10,7 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { Calling, CallingLogEntry, WardSustaining, Ward, Stage, Profile } from '../../lib/database.types';
+import { Calling, CallingLogEntry, WardSustaining, Ward, Stage, Profile, CallingType } from '../../lib/database.types';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { DisclaimerFooter } from '../../components/ui/DisclaimerFooter';
@@ -604,6 +604,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
 
   // Edit calling details state
   const [showEditModal, setShowEditModal] = useState(false);
+  const [editType, setEditType] = useState<CallingType>('ward_calling');
   const [editMemberName, setEditMemberName] = useState('');
   const [editCallingName, setEditCallingName] = useState('');
   const [editWardId, setEditWardId] = useState('');
@@ -829,8 +830,9 @@ export function CallingDetailScreen({ route, navigation }: any) {
 
   function openEditModal() {
     if (!calling) return;
+    setEditType(calling.type);
     setEditMemberName(calling.member_name);
-    setEditCallingName(calling.calling_name);
+    setEditCallingName(calling.type === 'mp_ordination' ? '' : calling.calling_name);
     setEditWardId(calling.ward_id ?? '');
     setEditWardName(calling.wards?.name ?? '');
     setEditBishopApproved(calling.bishop_approved ?? false);
@@ -838,19 +840,62 @@ export function CallingDetailScreen({ route, navigation }: any) {
     setShowEditModal(true);
   }
 
+  function handleEditTypeChange(next: CallingType) {
+    if (next === editType) return;
+    setEditType(next);
+    // Clear the calling-name selection when leaving / entering MP, or when
+    // the picker filter changes (ward ↔ stake show different orgs).
+    setEditCallingName('');
+    if (next !== 'ward_calling') setEditBishopApproved(false);
+    if (next === 'mp_ordination' && !editOrdinationType) setEditOrdinationType('elder');
+  }
+
   async function handleEditSave() {
     if (!calling || !profile) return;
-    if (!editMemberName.trim() || !editCallingName.trim()) return;
+    if (!editMemberName.trim()) return;
+    // Non-MP types require a chosen calling name. MP auto-generates it.
+    if (editType !== 'mp_ordination' && !editCallingName.trim()) return;
 
     setEditSaving(true);
     const changes: string[] = [];
     const update: any = {};
 
+    // Type change — apply first so dependent field/stage logic below is correct
+    const typeChanged = editType !== calling.type;
+    if (typeChanged) {
+      update.type = editType;
+      changes.push(`Type: ${t(`type.${calling.type}` as any)} → ${t(`type.${editType}` as any)}`);
+
+      // MP auto-generates its calling name; clear bishop_approved off MP/stake
+      if (editType === 'mp_ordination') {
+        update.calling_name = `Melchizedek Priesthood Ordination (${editOrdinationType === 'elder' ? t('ordination.elder') : t('ordination.highPriest')})`;
+        update.ordination_type = editOrdinationType;
+        update.bishop_approved = false;
+      } else {
+        update.ordination_type = null;
+        if (editType !== 'ward_calling') update.bishop_approved = false;
+      }
+
+      // Re-align stage if the current stage doesn't exist in the new type's flow.
+      // Non-MP stages skipped by MP: ideas, for_approval, stake_approved, issue_calling, ordained.
+      if (editType === 'mp_ordination') {
+        if (['ideas', 'for_approval', 'stake_approved'].includes(calling.stage)) {
+          update.stage = 'hc_approval';
+          changes.push(`Stage: ${STAGE_LABELS[calling.stage]} → ${STAGE_LABELS['hc_approval']}`);
+        } else if (['issue_calling', 'ordained'].includes(calling.stage)) {
+          update.stage = 'sustain';
+          changes.push(`Stage: ${STAGE_LABELS[calling.stage]} → ${STAGE_LABELS['sustain']}`);
+        }
+      }
+    }
+
     if (editMemberName.trim() !== calling.member_name) {
       update.member_name = editMemberName.trim();
       changes.push(`Name: "${calling.member_name}" → "${editMemberName.trim()}"`);
     }
-    if (editCallingName.trim() !== calling.calling_name) {
+
+    // Calling name: only track for non-MP. MP's name is set above when the type changes.
+    if (editType !== 'mp_ordination' && editCallingName.trim() !== calling.calling_name) {
       update.calling_name = editCallingName.trim();
       changes.push(`Calling: "${calling.calling_name}" → "${editCallingName.trim()}"`);
     }
@@ -860,12 +905,14 @@ export function CallingDetailScreen({ route, navigation }: any) {
       const newWard = editWardName || 'None';
       changes.push(`Ward: "${oldWard}" → "${newWard}"`);
     }
-    if (calling.type === 'ward_calling' && editBishopApproved !== (calling.bishop_approved ?? false)) {
+    if (editType === 'ward_calling' && editBishopApproved !== (calling.bishop_approved ?? false)) {
       update.bishop_approved = editBishopApproved;
       changes.push(`Bishop Approved: ${editBishopApproved ? 'Yes' : 'No'}`);
     }
-    if (calling.type === 'mp_ordination' && editOrdinationType !== (calling.ordination_type ?? 'elder')) {
+    if (editType === 'mp_ordination' && !typeChanged && editOrdinationType !== (calling.ordination_type ?? 'elder')) {
       update.ordination_type = editOrdinationType;
+      // The calling name embeds the ordination type, so keep it in sync.
+      update.calling_name = `Melchizedek Priesthood Ordination (${editOrdinationType === 'elder' ? t('ordination.elder') : t('ordination.highPriest')})`;
       changes.push(`Ordination: ${calling.ordination_type} → ${editOrdinationType}`);
     }
 
@@ -875,6 +922,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
         calling_id: calling.id,
         action: t('detail.editedDetails'),
         from_stage: calling.stage,
+        to_stage: update.stage ?? calling.stage,
         performed_by: profile.id,
         notes: changes.join('; '),
       });
@@ -1207,6 +1255,26 @@ export function CallingDetailScreen({ route, navigation }: any) {
               <Text style={styles.modalTitle}>{t('detail.editDetails')}</Text>
               <Text style={styles.modalSubtitle}>{t('detail.editDetailsDesc')}</Text>
 
+              <Text style={styles.editFieldLabel}>{t('new.typeLabel')}</Text>
+              <View style={{ flexDirection: 'row', gap: Spacing.sm, marginBottom: Spacing.md }}>
+                {([
+                  { label: t('type.ward_calling'), value: 'ward_calling', kind: 'ward' },
+                  { label: t('type.stake_calling'), value: 'stake_calling', kind: 'stake' },
+                  { label: t('type.mp_ordination'), value: 'mp_ordination', kind: 'mp' },
+                ] as { label: string; value: CallingType; kind: 'ward' | 'stake' | 'mp' }[]).map(opt => (
+                  <TouchableOpacity
+                    key={opt.value}
+                    style={[styles.editTypeBtn, editType === opt.value && styles.editTypeBtnActive]}
+                    onPress={() => handleEditTypeChange(opt.value)}
+                  >
+                    <ProductIcon kind={opt.kind} size={28} style={{ marginBottom: 4 }} />
+                    <Text style={[styles.editTypeLabel, editType === opt.value && styles.editTypeLabelActive]}>
+                      {opt.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
               <Text style={styles.editFieldLabel}>{t('new.memberName')}</Text>
               <TextInput
                 style={styles.editInput}
@@ -1216,7 +1284,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
                 placeholderTextColor={Colors.gray[400]}
               />
 
-              {calling.type !== 'mp_ordination' && (
+              {editType !== 'mp_ordination' && (
                 <>
                   <Text style={styles.editFieldLabel}>{t('new.callingLabel')}</Text>
                   <TouchableOpacity style={styles.editPickerBtn} onPress={() => setShowEditCallingPicker(true)}>
@@ -1228,7 +1296,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
                 </>
               )}
 
-              {calling.type === 'mp_ordination' && (
+              {editType === 'mp_ordination' && (
                 <>
                   <Text style={styles.editFieldLabel}>{t('new.ordinationType')}</Text>
                   <View style={{ flexDirection: 'row', gap: Spacing.sm, marginBottom: Spacing.md }}>
@@ -1258,7 +1326,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
                 <Text style={styles.editPickerArrow}>▼</Text>
               </TouchableOpacity>
 
-              {calling.type === 'ward_calling' && (
+              {editType === 'ward_calling' && (
                 <TouchableOpacity
                   style={{ flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.md }}
                   onPress={() => setEditBishopApproved(!editBishopApproved)}
@@ -1316,8 +1384,8 @@ export function CallingDetailScreen({ route, navigation }: any) {
               data={[
                 ...CALLING_GROUPS.filter(g => {
                   if (g.org === 'Other') return false;
-                  if (calling.type === 'ward_calling') return g.org === 'Bishopric' || g.org === 'Elders Quorum';
-                  if (calling.type === 'stake_calling') return g.org === 'Stake';
+                  if (editType === 'ward_calling') return g.org === 'Bishopric' || g.org === 'Elders Quorum';
+                  if (editType === 'stake_calling') return g.org === 'Stake';
                   return true;
                 }).flatMap(g => [
                   { type: 'header' as const, label: g.org, value: `__header__${g.org}` },
