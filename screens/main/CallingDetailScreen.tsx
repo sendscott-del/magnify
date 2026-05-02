@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, Pressable,
   Modal, TextInput, Alert, Platform, ActivityIndicator, FlatList, Image,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -375,8 +375,8 @@ function ReleaseMemberSection({ calling, wards, canEdit, onSave, onToggleDone }:
           </View>
 
           <Modal visible={showWardPicker} transparent animationType="slide" onRequestClose={() => setShowWardPicker(false)}>
-            <TouchableOpacity style={rmStyles.modalOverlay} activeOpacity={1} onPress={() => setShowWardPicker(false)}>
-              <View style={rmStyles.modalSheet} onStartShouldSetResponder={() => true}>
+            <Pressable style={rmStyles.modalOverlay} onPress={() => setShowWardPicker(false)}>
+              <Pressable style={rmStyles.modalSheet} onPress={() => {}}>
                 <Text style={rmStyles.modalTitle}>{t('release.selectWardTitle')}</Text>
                 <TouchableOpacity
                   style={[rmStyles.modalItem, !wardId && rmStyles.modalItemSelected]}
@@ -397,8 +397,8 @@ function ReleaseMemberSection({ calling, wards, canEdit, onSave, onToggleDone }:
                     </TouchableOpacity>
                   )}
                 />
-              </View>
-            </TouchableOpacity>
+              </Pressable>
+            </Pressable>
           </Modal>
         </>
       ) : hasData ? (
@@ -518,8 +518,8 @@ function TaskAssignmentsSection({ calling, assignees, clerkName, canEdit, onAssi
       })}
 
       <Modal visible={!!pickerField} transparent animationType="slide" onRequestClose={() => setPickerField(null)}>
-        <TouchableOpacity style={taStyles.modalOverlay} activeOpacity={1} onPress={() => setPickerField(null)}>
-          <View style={taStyles.modalSheet} onStartShouldSetResponder={() => true}>
+        <Pressable style={taStyles.modalOverlay} onPress={() => setPickerField(null)}>
+          <Pressable style={taStyles.modalSheet} onPress={() => {}}>
             <Text style={taStyles.modalTitle}>{t('detail.assignLabel')} {TASK_FIELDS.find(f => f.key === pickerField)?.label}</Text>
             <TouchableOpacity
               style={taStyles.modalItem}
@@ -540,8 +540,8 @@ function TaskAssignmentsSection({ calling, assignees, clerkName, canEdit, onAssi
                 </TouchableOpacity>
               )}
             />
-          </View>
-        </TouchableOpacity>
+          </Pressable>
+        </Pressable>
       </Modal>
     </View>
   );
@@ -1227,8 +1227,8 @@ export function CallingDetailScreen({ route, navigation }: any) {
 
       {/* Decline Modal */}
       <Modal visible={showRejectModal} transparent animationType="slide" onRequestClose={() => setShowRejectModal(false)}>
-        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowRejectModal(false)}>
-          <View style={styles.modalSheet} onStartShouldSetResponder={() => true}>
+        <Pressable style={styles.modalOverlay} onPress={() => setShowRejectModal(false)}>
+          <Pressable style={styles.modalSheet} onPress={() => {}}>
             <Text style={styles.modalTitle}>{t('detail.declineCalling')}</Text>
             <Text style={styles.modalSubtitle}>{t('detail.declineCallingDesc')}</Text>
             <TextInput
@@ -1243,14 +1243,14 @@ export function CallingDetailScreen({ route, navigation }: any) {
               <Button title={t('detail.cancel')} onPress={() => { setShowRejectModal(false); setRejectionNotes(''); }} variant="outline" style={styles.modalBtn} />
               <Button title={t('detail.confirmDecline')} onPress={handleReject} variant="danger" loading={rejectLoading} style={styles.modalBtn} />
             </View>
-          </View>
-        </TouchableOpacity>
+          </Pressable>
+        </Pressable>
       </Modal>
 
       {/* Edit Calling Details Modal */}
       <Modal visible={showEditModal} transparent animationType="slide" onRequestClose={() => setShowEditModal(false)}>
-        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowEditModal(false)}>
-          <View style={[styles.modalSheet, { maxHeight: '80%' }]} onStartShouldSetResponder={() => true}>
+        <Pressable style={styles.modalOverlay} onPress={() => setShowEditModal(false)}>
+          <Pressable style={[styles.modalSheet, { maxHeight: '80%' }]} onPress={() => {}}>
             <ScrollView keyboardShouldPersistTaps="handled">
               <Text style={styles.modalTitle}>{t('detail.editDetails')}</Text>
               <Text style={styles.modalSubtitle}>{t('detail.editDetailsDesc')}</Text>
@@ -1343,14 +1343,14 @@ export function CallingDetailScreen({ route, navigation }: any) {
                 <Button title={editSaving ? t('detail.saving') : t('detail.save')} onPress={handleEditSave} loading={editSaving} style={styles.modalBtn} />
               </View>
             </ScrollView>
-          </View>
-        </TouchableOpacity>
+          </Pressable>
+        </Pressable>
       </Modal>
 
       {/* Edit Ward Picker */}
       <Modal visible={showEditWardPicker} transparent animationType="slide" onRequestClose={() => setShowEditWardPicker(false)}>
-        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowEditWardPicker(false)}>
-          <View style={styles.editPickerSheet} onStartShouldSetResponder={() => true}>
+        <Pressable style={styles.modalOverlay} onPress={() => setShowEditWardPicker(false)}>
+          <Pressable style={styles.editPickerSheet} onPress={() => {}}>
             <Text style={styles.editPickerTitle}>{t('new.selectWardTitle')}</Text>
             <TouchableOpacity
               style={[styles.editPickerItem, !editWardId && styles.editPickerItemSelected]}
@@ -1371,14 +1371,14 @@ export function CallingDetailScreen({ route, navigation }: any) {
                 </TouchableOpacity>
               )}
             />
-          </View>
-        </TouchableOpacity>
+          </Pressable>
+        </Pressable>
       </Modal>
 
       {/* Edit Calling Picker */}
       <Modal visible={showEditCallingPicker} transparent animationType="slide" onRequestClose={() => setShowEditCallingPicker(false)}>
-        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowEditCallingPicker(false)}>
-          <View style={styles.editPickerSheet} onStartShouldSetResponder={() => true}>
+        <Pressable style={styles.modalOverlay} onPress={() => setShowEditCallingPicker(false)}>
+          <Pressable style={styles.editPickerSheet} onPress={() => {}}>
             <Text style={styles.editPickerTitle}>{t('new.selectCallingTitle')}</Text>
             <FlatList
               data={[
@@ -1414,8 +1414,8 @@ export function CallingDetailScreen({ route, navigation }: any) {
                 );
               }}
             />
-          </View>
-        </TouchableOpacity>
+          </Pressable>
+        </Pressable>
       </Modal>
     </View>
   );

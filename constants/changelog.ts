@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.8.1',
+    date: '2026-05-02',
+    enhancements: [],
+    bugFixes: [
+      'Fixed a long-standing bug where clicking inside any bottom-sheet modal on the calling-detail screen — Edit Calling Details, Decline, the ward picker, the calling picker, the task-assignee picker, and the release ward picker — would dismiss the modal and (on web) sometimes pop you all the way back to the kanban board. Replaced the brittle dismissal pattern (`onStartShouldSetResponder`) with `Pressable`-based click absorption, which works reliably on both native and react-native-web. You can now tap into form fields without the modal closing on you',
+    ],
+  },
+  {
     version: '2.8.0',
     date: '2026-05-02',
     enhancements: [
