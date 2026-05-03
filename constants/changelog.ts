@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.11.0',
+    date: '2026-05-03',
+    enhancements: [
+      'Settings now has a "Manage Gather user access ↗" button (Stake President / Stake Clerk only) that opens the canonical /admin/gather screen in Steward in a new tab. Magnify is React Native and the cross-app admin UI lives in the Tailwind-based suite apps; pointing super-admins at the version in Steward keeps everyone managing access from one place',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.10.0',
     date: '2026-05-03',
     enhancements: [

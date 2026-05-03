@@ -368,6 +368,19 @@ export function SettingsScreen({ navigation }: any) {
             fullWidth
             style={styles.actionBtn}
           />
+          {(profile?.role === 'stake_president' || profile?.role === 'stake_clerk') && (
+            <Button
+              title="Manage Gather user access ↗"
+              onPress={() => {
+                const url = 'https://stewards-indeed.vercel.app/admin/gather';
+                if (Platform.OS === 'web') window.open(url, '_blank');
+                else import('react-native').then(rn => rn.Linking.openURL(url));
+              }}
+              variant="outline"
+              fullWidth
+              style={styles.actionBtn}
+            />
+          )}
           <Button
             title={t('settings.signOut')}
             onPress={handleSignOut}
