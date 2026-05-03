@@ -9,6 +9,15 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.13.1',
+    date: '2026-05-03',
+    enhancements: [],
+    bugFixes: [
+      'Edit Calling Details: the Save button now disables itself when required fields are empty instead of silently ignoring the tap. Switching the Type chip (Ward / Stake / MP) deliberately clears the Calling field — ward and stake have different available callings — but the previous version just dropped the click on the floor when Save was pressed with no calling chosen, with no feedback. Save now visibly greys out until you pick a new calling',
+      'Sustaining script on the High Council board now includes stake callings in every ward’s script, not just the member’s home ward. Stake callings (and their releases) are sustained in all wards in the stake, so each ward’s sacrament-meeting script now lists them alongside that ward’s own callings. The calling-count badge on the ward picker reflects this too — picking any ward shows the combined total of that ward’s callings plus all stake-wide ones',
+    ],
+  },
+  {
     version: '2.13.0',
     date: '2026-05-03',
     enhancements: [

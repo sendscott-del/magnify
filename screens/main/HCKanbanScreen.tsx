@@ -188,7 +188,11 @@ export function HCKanbanScreen({ navigation }: any) {
   }
 
   function generateScript(ward: Ward): string {
-    const sustaining = callings.filter(c => c.stage === 'sustain' && c.ward_id === ward.id);
+    // Stake callings are sustained in every ward in the stake, not only the
+    // member's home ward — include them regardless of ward_id.
+    const sustaining = callings.filter(c =>
+      c.stage === 'sustain' && (c.ward_id === ward.id || c.type === 'stake_calling')
+    );
     const locale = language === 'es' ? 'es-US' : 'en-US';
     const date = new Date().toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' });
 
@@ -449,7 +453,9 @@ export function HCKanbanScreen({ navigation }: any) {
                   data={wards}
                   keyExtractor={w => w.id}
                   renderItem={({ item: w }) => {
-                    const count = callings.filter(c => c.stage === 'sustain' && c.ward_id === w.id).length;
+                    const count = callings.filter(c =>
+                      c.stage === 'sustain' && (c.ward_id === w.id || c.type === 'stake_calling')
+                    ).length;
                     return (
                       <TouchableOpacity
                         style={styles.scriptWardItem}

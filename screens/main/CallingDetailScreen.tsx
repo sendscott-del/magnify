@@ -9,6 +9,8 @@ import { format } from 'date-fns';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+import { useDemoMode } from '../../context/DemoModeContext';
+import { getDemoAllCallings } from '../../lib/demoCallings';
 import { useLanguage } from '../../context/LanguageContext';
 import { Calling, CallingLogEntry, WardSustaining, Ward, Stage, Profile, CallingType } from '../../lib/database.types';
 import { Badge } from '../../components/ui/Badge';
@@ -573,6 +575,11 @@ export function CallingDetailScreen({ route, navigation }: any) {
   const insets = useSafeAreaInsets();
   const { profile } = useAuth();
   const { t } = useLanguage();
+  const { demoMode } = useDemoMode();
+  // True when the calling we're rendering is a fixture (id like demo-call-NNN).
+  // In that state we still render the screen, but every Supabase write is a
+  // no-op so demo activity never pollutes the real database.
+  const isDemo = demoMode || (typeof callingId === 'string' && callingId.startsWith('demo-call-'));
 
   const TYPE_LABELS: Record<string, string> = {
     ward_calling: t('type.ward_calling'),
@@ -667,6 +674,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
   }
 
   async function toggleHCApproval(memberId: string, current: boolean) {
+    if (isDemo) return;
     const newVal = !current;
     await supabase.from('hc_approvals').upsert({
       calling_id: callingId, hc_member_id: memberId, approved: newVal,
@@ -681,12 +689,17 @@ export function CallingDetailScreen({ route, navigation }: any) {
 
   async function handleAssign(field: string, name: string | null) {
     if (!calling) return;
+    if (isDemo) {
+      setCalling(prev => prev ? { ...prev, [field]: name } : prev);
+      return;
+    }
     await supabase.from('callings').update({ [field]: name }).eq('id', calling.id);
     setCalling(prev => prev ? { ...prev, [field]: name } : prev);
   }
 
   async function handleWardSustainingToggle(wardId: string, existing: WardSustaining | undefined) {
     if (!calling) return;
+    if (isDemo) return;
     if (existing) {
       const nv = !existing.sustained;
       await supabase.from('ward_sustainings').update({ sustained: nv, sustained_at: nv ? new Date().toISOString() : null, sustained_by: profile?.id ?? null }).eq('id', existing.id);
@@ -701,6 +714,13 @@ export function CallingDetailScreen({ route, navigation }: any) {
     if (!calling || !profile) return;
     const next = getNextStage(calling.stage, calling.type);
     if (!next) return;
+    if (isDemo) {
+      // Demo: update local state only — never call supabase or Slack.
+      setCalling(prev => prev ? ({ ...prev, stage: next, completed_at: next === 'complete' ? new Date().toISOString() : null } as Calling) : prev);
+      setSuccessMsg(`${t('detail.movedTo')} ${STAGE_LABELS[next]} (demo)`);
+      setTimeout(() => setSuccessMsg(''), 3000);
+      return;
+    }
 
     setActionLoading(true);
     const label = getAdvanceLabel(calling.stage, calling.type);
@@ -740,6 +760,12 @@ export function CallingDetailScreen({ route, navigation }: any) {
     if (!calling || !profile) return;
     const prev = getPrevStage(calling.stage, calling.type);
     if (!prev) return;
+    if (isDemo) {
+      setCalling(p => p ? ({ ...p, stage: prev } as Calling) : p);
+      setSuccessMsg(`${t('detail.movedBack')} ${STAGE_LABELS[prev]} (demo)`);
+      setTimeout(() => setSuccessMsg(''), 3000);
+      return;
+    }
 
     const confirm = Platform.OS === 'web'
       ? window.confirm(`${t('detail.moveBackConfirm')} "${STAGE_LABELS[prev]}"?`)
@@ -765,6 +791,10 @@ export function CallingDetailScreen({ route, navigation }: any) {
 
   async function handleDelete() {
     if (!calling || !profile) return;
+    if (isDemo) {
+      navigation.goBack();
+      return;
+    }
     const confirm = Platform.OS === 'web'
       ? window.confirm(`${t('detail.deleteConfirm')} ${calling.member_name}? ${t('detail.deleteCannotUndo')}`)
       : await new Promise<boolean>(resolve =>
@@ -788,6 +818,12 @@ export function CallingDetailScreen({ route, navigation }: any) {
 
   async function handleReject() {
     if (!calling || !profile) return;
+    if (isDemo) {
+      setCalling(p => p ? ({ ...p, rejected: true, rejection_notes: rejectionNotes || null } as Calling) : p);
+      setShowRejectModal(false);
+      setRejectionNotes('');
+      return;
+    }
 
     // If no notes, ask the user if they want to add some before proceeding
     if (!rejectionNotes.trim()) {
@@ -821,6 +857,10 @@ export function CallingDetailScreen({ route, navigation }: any) {
 
   async function handleUnreject() {
     if (!calling || !profile) return;
+    if (isDemo) {
+      setCalling(p => p ? ({ ...p, rejected: false, rejection_notes: null } as Calling) : p);
+      return;
+    }
     setActionLoading(true);
     await supabase.from('callings').update({ rejected: false, rejection_notes: null }).eq('id', calling.id);
     await supabase.from('calling_log').insert({ calling_id: calling.id, action: 'Rejection cleared', from_stage: calling.stage, performed_by: profile.id });
@@ -1340,7 +1380,13 @@ export function CallingDetailScreen({ route, navigation }: any) {
 
               <View style={styles.modalActions}>
                 <Button title={t('detail.cancel')} onPress={() => setShowEditModal(false)} variant="outline" style={styles.modalBtn} />
-                <Button title={editSaving ? t('detail.saving') : t('detail.save')} onPress={handleEditSave} loading={editSaving} style={styles.modalBtn} />
+                <Button
+                  title={editSaving ? t('detail.saving') : t('detail.save')}
+                  onPress={handleEditSave}
+                  loading={editSaving}
+                  disabled={!editMemberName.trim() || (editType !== 'mp_ordination' && !editCallingName.trim())}
+                  style={styles.modalBtn}
+                />
               </View>
             </ScrollView>
           </Pressable>
