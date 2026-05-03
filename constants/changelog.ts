@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.13.0',
+    date: '2026-05-03',
+    enhancements: [
+      'Demo mode is now read-only safe on the kanban: tapping a calling card from the SP Board, HC Board, or Completed Callings list now shows a small alert with the card\'s member, calling, ward, stage, and type instead of opening the detail screen. Detail screen has many mutation handlers (advance stage, decline, set apart, etc.) that would silently target the real DB if entered with a fixture id; this guards that path entirely. A demo-aware detail screen is a follow-up',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.12.0',
     date: '2026-05-03',
     enhancements: [

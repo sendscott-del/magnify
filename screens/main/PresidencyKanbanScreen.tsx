@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView,
-  RefreshControl, TouchableOpacity,
+  RefreshControl, TouchableOpacity, Alert, Platform,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -106,6 +106,21 @@ export function PresidencyKanbanScreen({ navigation }: any) {
     setRefreshing(false);
   }
 
+  function openCard(c: Calling) {
+    if (demoMode) {
+      // Demo: detail screen has many mutation handlers that would silently
+      // hit the real DB if entered with a fixture id. Show a read-only
+      // summary instead. A demo-aware detail screen is a follow-up.
+      const wardName = (c as unknown as { wards?: { name?: string } }).wards?.name ?? 'unknown';
+      const callingName = c.calling_name ?? (c as unknown as { name?: string }).name ?? 'unnamed';
+      const summary = `${c.member_name}\n${callingName}\n\nWard: ${wardName}\nStage: ${c.stage}\nType: ${c.type}`;
+      if (Platform.OS === 'web') window.alert('Demo card (read-only)\n\n' + summary);
+      else Alert.alert('Demo card (read-only)', summary);
+      return;
+    }
+    navigation.navigate('CallingDetail', { callingId: c.id });
+  }
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
@@ -143,7 +158,7 @@ export function PresidencyKanbanScreen({ navigation }: any) {
             color={col.color}
             callings={callings.filter(c => c.stage === col.stage)}
             viewedIds={viewedIds}
-            onCardPress={(c) => navigation.navigate('CallingDetail', { callingId: c.id })}
+            onCardPress={openCard}
           />
         ))}
         {canSeeRejected && (
@@ -152,7 +167,7 @@ export function PresidencyKanbanScreen({ navigation }: any) {
             color={Colors.error}
             callings={rejectedCallings}
             viewedIds={viewedIds}
-            onCardPress={(c) => navigation.navigate('CallingDetail', { callingId: c.id })}
+            onCardPress={openCard}
           />
         )}
       </ScrollView>
