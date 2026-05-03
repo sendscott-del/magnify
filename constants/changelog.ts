@@ -9,6 +9,15 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.9.0',
+    date: '2026-05-03',
+    enhancements: [
+      'Gather suite app switcher: the "Gathered" jump bar now lists all five sibling apps — Magnify, Steward, Glean, Tidings, and Knit — instead of just two. Each one renders as a brand-colored letter chip with a one-line blurb, and the bar only shows the apps you actually have access to (read from the shared user_apps table)',
+      'Cross-app super-admin: the Stake President and Stake Clerk now have a single source of truth for who can use which app, stored in the shared gather_super_admins + user_apps tables. The Gathered switcher in every app reads from these, so granting access in one place lights up the right apps everywhere',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.8.1',
     date: '2026-05-02',
     enhancements: [],
