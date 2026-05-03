@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { notifyAccessApproved, notifySuggestion } from '../../lib/slack';
 import { CHANGELOG } from '../../constants/changelog';
 import { useLanguage } from '../../context/LanguageContext';
+import { useDemoMode } from '../../context/DemoModeContext';
 
 interface SlackSetting { id: string; event_type: string; webhook_url: string; active: boolean; }
 
@@ -23,6 +24,7 @@ export function SettingsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { profile, signOut, isAdmin } = useAuth();
   const { t, language, setLanguage } = useLanguage();
+  const { demoMode, setDemoMode } = useDemoMode();
   const [pendingUsers, setPendingUsers] = useState<Profile[]>([]);
   const [pendingRoles, setPendingRoles] = useState<Record<string, UserRole>>({});
   const [approving, setApproving] = useState<Record<string, boolean>>({});
@@ -359,6 +361,13 @@ export function SettingsScreen({ navigation }: any) {
               style={styles.actionBtn}
             />
           )}
+          <Button
+            title={demoMode ? 'Exit demo mode' : 'Enable demo mode'}
+            onPress={() => setDemoMode(!demoMode)}
+            variant="outline"
+            fullWidth
+            style={styles.actionBtn}
+          />
           <Button
             title={t('settings.signOut')}
             onPress={handleSignOut}

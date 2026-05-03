@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.10.0',
+    date: '2026-05-03',
+    enhancements: [
+      'Demo mode: a striped amber banner appears at the top of every Magnify screen when demo mode is on, with a tappable role pill that cycles through every leadership role (Stake President, 1st/2nd Counselor, High Councilor, Stake Clerk, Executive Secretary, member) so trainers can talk through what each role experiences without exposing real ward data. Toggle it from Settings → "Enable demo mode" / "Exit demo mode". State persists in AsyncStorage so demo and real coexist on the same device',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.9.0',
     date: '2026-05-03',
     enhancements: [
