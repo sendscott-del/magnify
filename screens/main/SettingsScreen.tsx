@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { notifyAccessApproved, notifySuggestion } from '../../lib/slack';
 import { CHANGELOG } from '../../constants/changelog';
 import { useLanguage } from '../../context/LanguageContext';
+import { useDemoMode } from '../../context/DemoModeContext';
 
 interface SlackSetting { id: string; event_type: string; webhook_url: string; active: boolean; }
 
@@ -23,6 +24,7 @@ export function SettingsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { profile, signOut, isAdmin } = useAuth();
   const { t, language, setLanguage } = useLanguage();
+  const { demoMode, setDemoMode } = useDemoMode();
   const [pendingUsers, setPendingUsers] = useState<Profile[]>([]);
   const [pendingRoles, setPendingRoles] = useState<Record<string, UserRole>>({});
   const [approving, setApproving] = useState<Record<string, boolean>>({});
@@ -354,6 +356,26 @@ export function SettingsScreen({ navigation }: any) {
             <Button
               title={t('settings.refreshApp')}
               onPress={handleReload}
+              variant="outline"
+              fullWidth
+              style={styles.actionBtn}
+            />
+          )}
+          <Button
+            title={demoMode ? 'Exit demo mode' : 'Enable demo mode'}
+            onPress={() => setDemoMode(!demoMode)}
+            variant="outline"
+            fullWidth
+            style={styles.actionBtn}
+          />
+          {(profile?.role === 'stake_president' || profile?.role === 'stake_clerk') && (
+            <Button
+              title="Manage Gather user access ↗"
+              onPress={() => {
+                const url = 'https://stewards-indeed.vercel.app/admin/gather';
+                if (Platform.OS === 'web') window.open(url, '_blank');
+                else import('react-native').then(rn => rn.Linking.openURL(url));
+              }}
               variant="outline"
               fullWidth
               style={styles.actionBtn}

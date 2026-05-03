@@ -1,34 +1,45 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Linking, Platform, Image, ImageSourcePropType } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Linking, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { Colors, FontSize, Spacing, Radius } from '../constants/theme';
-import { MagnifyLogo } from './icons/MagnifyLogo';
 
 interface AppInfo {
   name: string;
   label: string;
   url: string;
-  logo: ImageSourcePropType | null; // null when rendered as a component
+  color: string;
+  blurb: string;
 }
 
+// Canonical Gather suite catalog. Mirror this list across all five apps.
 const APP_CATALOG: AppInfo[] = [
-  { name: 'magnify', label: 'Magnify', url: 'https://magnify-sendscott-dels-projects.vercel.app', logo: null },
-  { name: 'steward', label: 'Steward', url: 'https://stewards-indeed.vercel.app', logo: require('../assets/steward-icon.png') },
+  { name: 'magnify', label: 'Magnify', url: 'https://magnify-sendscott-dels-projects.vercel.app', color: '#1B3A6B', blurb: 'Calling administration' },
+  { name: 'steward', label: 'Steward', url: 'https://stewards-indeed.vercel.app',                color: '#2563EB', blurb: 'Leader standard work' },
+  { name: 'glean',   label: 'Glean',   url: 'https://glean-blue.vercel.app',                     color: '#C9A84C', blurb: 'Welfare & self-reliance' },
+  { name: 'tidings', label: 'Tidings', url: 'https://tidings-sendscott-dels-projects.vercel.app', color: '#F59E0B', blurb: 'Two-way SMS' },
+  { name: 'knit',    label: 'Knit',    url: 'https://knit-together.vercel.app',                   color: '#E11D48', blurb: 'Fellowship matching' },
 ];
 
-function AppLogo({ app, size }: { app: AppInfo; size: number }) {
-  if (app.name === 'magnify') {
-    return <MagnifyLogo size={size} />;
-  }
-  if (app.logo) {
-    return <Image source={app.logo} style={{ width: size, height: size, borderRadius: Radius.sm }} />;
-  }
-  return null;
-}
-
 const CURRENT_APP = 'magnify';
+
+function AppMark({ app, size }: { app: AppInfo; size: number }) {
+  return (
+    <View
+      style={{
+        width: size,
+        height: size,
+        borderRadius: 7,
+        backgroundColor: app.color,
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <Text style={{ color: 'white', fontWeight: '800', fontSize: size * 0.5 }}>{app.label[0]}</Text>
+    </View>
+  );
+}
 
 export function AppSwitcher() {
   const { user } = useAuth();
@@ -68,7 +79,7 @@ export function AppSwitcher() {
         <View style={styles.leftGroup}>
           <Text style={styles.lflLabel}>Gathered</Text>
           <View style={styles.divider} />
-          <AppLogo app={currentApp} size={20} />
+          <AppMark app={currentApp} size={18} />
           <Text style={styles.currentLabel}>{currentApp.label}</Text>
         </View>
         <View style={styles.rightGroup}>
@@ -84,9 +95,12 @@ export function AppSwitcher() {
         <View style={styles.dropdown}>
           <Text style={styles.switchLabel}>Switch to</Text>
           {otherApps.map(app => (
-            <TouchableOpacity key={app.name} style={styles.appRow} onPress={() => openApp(app.url)}>
-              <AppLogo app={app} size={28} />
-              <Text style={styles.appName}>{app.label}</Text>
+            <TouchableOpacity key={app.name} style={styles.appRow} onPress={() => openApp(app.url)} activeOpacity={0.7}>
+              <AppMark app={app} size={28} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.appName}>{app.label}</Text>
+                <Text style={styles.appBlurb}>{app.blurb}</Text>
+              </View>
               <Ionicons name="open-outline" size={14} color={Colors.gray[400]} />
             </TouchableOpacity>
           ))}
@@ -125,11 +139,6 @@ const styles = StyleSheet.create({
     height: 12,
     backgroundColor: 'rgba(255,255,255,0.2)',
   },
-  barLogo: {
-    width: 18,
-    height: 18,
-    borderRadius: 4,
-  },
   currentLabel: {
     fontSize: FontSize.sm,
     fontWeight: '700',
@@ -161,15 +170,14 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     gap: Spacing.sm,
   },
-  appLogo: {
-    width: 28,
-    height: 28,
-    borderRadius: Radius.sm,
-  },
   appName: {
-    flex: 1,
     fontSize: FontSize.md,
     fontWeight: '600',
     color: Colors.gray[800],
+  },
+  appBlurb: {
+    fontSize: FontSize.xs,
+    color: Colors.gray[500],
+    marginTop: 2,
   },
 });

@@ -8,6 +8,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+import { useDemoMode } from '../../context/DemoModeContext';
+import { getDemoHCCallings } from '../../lib/demoCallings';
 import { Calling, CallingType, Ward } from '../../lib/database.types';
 import { KanbanColumn } from '../../components/kanban/KanbanColumn';
 import { DisclaimerFooter } from '../../components/ui/DisclaimerFooter';
@@ -66,7 +68,34 @@ export function HCKanbanScreen({ navigation }: any) {
     return [...spOptions, ...hcOptions];
   }, [rawSpMembers, rawHcMembers, t]);
 
+  const { demoMode } = useDemoMode();
+
   const fetchData = useCallback(async () => {
+    if (demoMode) {
+      // Demo: fixture HC-stage callings + a couple of fake HC members so
+      // the board has rows to render. Approval map left empty in demo.
+      setCallings(getDemoHCCallings());
+      setWards([
+        { id: 'demo-ward-1', name: 'Hyde Park 1st', abbreviation: 'HP1' },
+        { id: 'demo-ward-2', name: 'Hyde Park 2nd', abbreviation: 'HP2' },
+        { id: 'demo-ward-3', name: 'Midway',         abbreviation: 'MW'  },
+      ] as unknown as Ward[]);
+      setRawSpMembers([
+        { name: 'President Williams', role: 'stake_president' },
+        { name: 'Brother Andersen',   role: 'first_counselor' },
+        { name: 'Brother Park',       role: 'second_counselor' },
+      ]);
+      setRawHcMembers([
+        { name: 'Brother Reyes' },
+        { name: 'Brother Tanaka' },
+        { name: 'Brother Lopez' },
+        { name: 'Brother Kim' },
+      ]);
+      setHcMemberIdMap({});
+      setHcApprovalMap({});
+      setViewedIds(new Set());
+      return;
+    }
     const [callingsRes, wardsRes, spMembersRes, hcMembersRes, hcApprovalsRes] = await Promise.all([
       supabase
         .from('callings')
@@ -106,7 +135,7 @@ export function HCKanbanScreen({ navigation }: any) {
         setViewedIds(new Set(views.map((v: any) => v.calling_id)));
       }
     }
-  }, [profile?.id]);
+  }, [profile?.id, demoMode]);
 
   useFocusEffect(useCallback(() => { fetchData(); }, [fetchData]));
 

@@ -8,6 +8,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { format } from 'date-fns';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
+import { useDemoMode } from '../../context/DemoModeContext';
+import { getDemoCompletedCallings } from '../../lib/demoCallings';
 import { Calling, Ward } from '../../lib/database.types';
 import { Badge } from '../../components/ui/Badge';
 import { EmptyState } from '../../components/ui/EmptyState';
@@ -24,6 +26,7 @@ const TYPE_COLORS: Record<string, string> = {
 export function CompletedCallingsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { t } = useLanguage();
+  const { demoMode } = useDemoMode();
 
   const TYPE_LABELS: Record<string, string> = {
     ward_calling: t('type.ward_calling_short'),
@@ -39,18 +42,32 @@ export function CompletedCallingsScreen({ navigation }: any) {
   const [showWardPicker, setShowWardPicker] = useState(false);
 
   const fetchCallings = useCallback(async () => {
+    if (demoMode) {
+      setCallings(getDemoCompletedCallings());
+      return;
+    }
     const { data } = await supabase
       .from('callings')
       .select('*, wards!callings_ward_id_fkey(id,name,abbreviation,sort_order)')
       .eq('stage', 'complete')
       .order('completed_at', { ascending: false });
     setCallings((data as Calling[]) ?? []);
-  }, []);
+  }, [demoMode]);
 
   const fetchWards = useCallback(async () => {
+    if (demoMode) {
+      setWards([
+        { id: 'demo-ward-1', name: 'Hyde Park 1st', abbreviation: 'HP1', sort_order: 1 },
+        { id: 'demo-ward-2', name: 'Hyde Park 2nd', abbreviation: 'HP2', sort_order: 2 },
+        { id: 'demo-ward-3', name: 'Midway',         abbreviation: 'MW',  sort_order: 3 },
+        { id: 'demo-ward-4', name: 'Chicago 2nd',    abbreviation: 'CH2', sort_order: 4 },
+        { id: 'demo-ward-5', name: 'Wilmette 2nd',   abbreviation: 'WC2', sort_order: 5 },
+      ] as unknown as Ward[]);
+      return;
+    }
     const { data } = await supabase.from('wards').select('*').order('sort_order');
     setWards((data as Ward[]) ?? []);
-  }, []);
+  }, [demoMode]);
 
   useFocusEffect(
     useCallback(() => {

@@ -7,6 +7,7 @@ import { Colors } from '../constants/theme';
 import { useLanguage } from '../context/LanguageContext';
 import { SuggestionFAB } from '../components/ui/SuggestionFAB';
 import { AppSwitcher } from '../components/AppSwitcher';
+import { DemoModeBanner } from '../components/DemoModeBanner';
 import { ProductIcon } from '../components/icons/ProductIcon';
 import { useAuth } from '../context/AuthContext';
 import { PresidencyKanbanScreen } from '../screens/main/PresidencyKanbanScreen';
@@ -71,6 +72,7 @@ export function MainTabNavigator() {
 
   return (
     <View style={{ flex: 1 }}>
+    <DemoModeBanner />
     <AppSwitcher />
     <Tab.Navigator
       screenOptions={({ route }) => ({

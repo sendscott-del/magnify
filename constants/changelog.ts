@@ -9,6 +9,39 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.12.0',
+    date: '2026-05-03',
+    enhancements: [
+      'Demo mode now actually shows demo data: turning the banner on swaps the SP Board, HC Board, and Completed Callings screens to a fixture of 14 callings spread across all 9 workflow stages — Ideas through Complete — including one declined calling for the rejected list. Wards default to a five-ward fixture (HP1 / HP2 / MW / CH2 / WC2) and SP / HC member rosters get realistic placeholder names. The role pill in the banner cycles through every leadership role for storytelling. Real and demo coexist on the same device — demo data never touches the database',
+    ],
+    bugFixes: [],
+  },
+  {
+    version: '2.11.0',
+    date: '2026-05-03',
+    enhancements: [
+      'Settings now has a "Manage Gather user access ↗" button (Stake President / Stake Clerk only) that opens the canonical /admin/gather screen in Steward in a new tab. Magnify is React Native and the cross-app admin UI lives in the Tailwind-based suite apps; pointing super-admins at the version in Steward keeps everyone managing access from one place',
+    ],
+    bugFixes: [],
+  },
+  {
+    version: '2.10.0',
+    date: '2026-05-03',
+    enhancements: [
+      'Demo mode: a striped amber banner appears at the top of every Magnify screen when demo mode is on, with a tappable role pill that cycles through every leadership role (Stake President, 1st/2nd Counselor, High Councilor, Stake Clerk, Executive Secretary, member) so trainers can talk through what each role experiences without exposing real ward data. Toggle it from Settings → "Enable demo mode" / "Exit demo mode". State persists in AsyncStorage so demo and real coexist on the same device',
+    ],
+    bugFixes: [],
+  },
+  {
+    version: '2.9.0',
+    date: '2026-05-03',
+    enhancements: [
+      'Gather suite app switcher: the "Gathered" jump bar now lists all five sibling apps — Magnify, Steward, Glean, Tidings, and Knit — instead of just two. Each one renders as a brand-colored letter chip with a one-line blurb, and the bar only shows the apps you actually have access to (read from the shared user_apps table)',
+      'Cross-app super-admin: the Stake President and Stake Clerk now have a single source of truth for who can use which app, stored in the shared gather_super_admins + user_apps tables. The Gathered switcher in every app reads from these, so granting access in one place lights up the right apps everywhere',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.8.1',
     date: '2026-05-02',
     enhancements: [],
