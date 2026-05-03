@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import {
   View, Text, StyleSheet, ScrollView,
-  RefreshControl, TouchableOpacity, Modal, FlatList, Platform, Share,
+  RefreshControl, TouchableOpacity, Modal, FlatList, Platform, Share, Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -138,6 +138,18 @@ export function HCKanbanScreen({ navigation }: any) {
   }, [profile?.id, demoMode]);
 
   useFocusEffect(useCallback(() => { fetchData(); }, [fetchData]));
+
+  function openCard(c: Calling) {
+    if (demoMode) {
+      const wardName = (c as unknown as { wards?: { name?: string } }).wards?.name ?? 'unknown';
+      const callingName = c.calling_name ?? (c as unknown as { name?: string }).name ?? 'unnamed';
+      const summary = `${c.member_name}\n${callingName}\n\nWard: ${wardName}\nStage: ${c.stage}\nType: ${c.type}`;
+      if (Platform.OS === 'web') window.alert('Demo card (read-only)\n\n' + summary);
+      else Alert.alert('Demo card (read-only)', summary);
+      return;
+    }
+    navigation.navigate('CallingDetail', { callingId: c.id });
+  }
 
   async function onRefresh() {
     setRefreshing(true);
@@ -336,7 +348,7 @@ export function HCKanbanScreen({ navigation }: any) {
             color={col.color}
             callings={filteredCallings(col.stages)}
             viewedIds={viewedIds}
-            onCardPress={(c) => navigation.navigate('CallingDetail', { callingId: c.id })}
+            onCardPress={openCard}
             headerAction={col.stages.includes('sustain') ? (
               <TouchableOpacity
                 style={styles.scriptBtn}
