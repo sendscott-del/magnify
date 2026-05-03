@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.12.0',
+    date: '2026-05-03',
+    enhancements: [
+      'Demo mode now actually shows demo data: turning the banner on swaps the SP Board, HC Board, and Completed Callings screens to a fixture of 14 callings spread across all 9 workflow stages — Ideas through Complete — including one declined calling for the rejected list. Wards default to a five-ward fixture (HP1 / HP2 / MW / CH2 / WC2) and SP / HC member rosters get realistic placeholder names. The role pill in the banner cycles through every leadership role for storytelling. Real and demo coexist on the same device — demo data never touches the database',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.11.0',
     date: '2026-05-03',
     enhancements: [

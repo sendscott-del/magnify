@@ -7,6 +7,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+import { useDemoMode } from '../../context/DemoModeContext';
+import { getDemoActiveCallings, getDemoRejectedCallings } from '../../lib/demoCallings';
 import { Calling, CallingType } from '../../lib/database.types';
 import { KanbanColumn } from '../../components/kanban/KanbanColumn';
 import { DisclaimerFooter } from '../../components/ui/DisclaimerFooter';
@@ -19,6 +21,7 @@ export function PresidencyKanbanScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { profile } = useAuth();
   const { t } = useLanguage();
+  const { demoMode } = useDemoMode();
 
   const ACTIVE_COLUMNS = [
     { stage: 'ideas', label: t('stage.ideas'), color: Colors.stage.ideas },
@@ -41,6 +44,22 @@ export function PresidencyKanbanScreen({ navigation }: any) {
   const canSeeRejected = profile?.role === 'stake_president';
 
   const fetchCallings = useCallback(async () => {
+    if (demoMode) {
+      // Demo: short-circuit all reads to fixture callings. No DB writes
+      // happen from this screen, so no further demo-mode branching is
+      // needed — drag-to-advance / detail-page actions still flow through
+      // their own handlers, which can be guarded individually as needed.
+      const all = getDemoActiveCallings();
+      setCallings(typeFilter === 'all' ? all : all.filter(c => (c as unknown as { type: string }).type === typeFilter));
+      if (canSeeRejected) {
+        const rej = getDemoRejectedCallings();
+        setRejectedCallings(typeFilter === 'all' ? rej : rej.filter(c => (c as unknown as { type: string }).type === typeFilter));
+      } else {
+        setRejectedCallings([]);
+      }
+      setViewedIds(new Set());
+      return;
+    }
     let q = supabase
       .from('callings')
       .select('*, wards!callings_ward_id_fkey(id,name,abbreviation)')
@@ -73,7 +92,7 @@ export function PresidencyKanbanScreen({ navigation }: any) {
         setViewedIds(new Set(views.map((v: any) => v.calling_id)));
       }
     }
-  }, [typeFilter, canSeeRejected, profile?.id]);
+  }, [typeFilter, canSeeRejected, profile?.id, demoMode]);
 
   useFocusEffect(
     useCallback(() => {
