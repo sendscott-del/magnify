@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#1e1b4b',
+    backgroundColor: Colors.switcherChrome,
     paddingHorizontal: Spacing.md,
     paddingVertical: 6,
   },
