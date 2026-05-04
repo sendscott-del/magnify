@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.14.0',
+    date: '2026-05-03',
+    enhancements: [
+      'Demo-aware calling detail screen — tapping a card on the SP Board, HC Board, or Completed Callings list in demo mode now opens the full detail screen instead of a read-only Alert. The screen loads the fixture calling, renders the same UI as a real calling, and short-circuits every mutation handler (advance stage, decline, set apart, toggle SP/HC approval, assign, ward sustaining toggle, delete, unreject) so demo activity never reaches Supabase or Slack. A bold "DEMO — CHANGES STAY IN-MEMORY ONLY" strip across the top makes the mode visible. Trainers can now walk through the full calling workflow in demo, tap-by-tap, just like the real thing',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.13.1',
     date: '2026-05-03',
     enhancements: [],

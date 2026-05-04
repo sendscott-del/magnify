@@ -660,6 +660,15 @@ export function CallingDetailScreen({ route, navigation }: any) {
   }, [fetchData, callingId, profile?.id]));
 
   async function toggleSPApproval(role: string, current: boolean) {
+    if (isDemo) {
+      setSpApprovals(prev => {
+        const exists = prev.find(a => a.role === role);
+        const newVal = !current;
+        if (exists) return prev.map(a => a.role === role ? { ...a, approved: newVal } : a);
+        return [...prev, { id: `demo-sp-${role}`, calling_id: callingId, role, approved: newVal, approved_at: newVal ? new Date().toISOString() : null, approved_by: profile?.id ?? null }];
+      });
+      return;
+    }
     const newVal = !current;
     await supabase.from('stake_presidency_approvals').upsert({
       calling_id: callingId, role, approved: newVal,
@@ -858,7 +867,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
   async function handleUnreject() {
     if (!calling || !profile) return;
     if (isDemo) {
-      setCalling(p => p ? ({ ...p, rejected: false, rejection_notes: null } as Calling) : p);
+      setCalling(p => p ? ({ ...p, rejected: false, rejection_notes: undefined } as unknown as Calling) : p);
       return;
     }
     setActionLoading(true);
@@ -1031,6 +1040,13 @@ export function CallingDetailScreen({ route, navigation }: any) {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
+      {isDemo && (
+        <View style={{ backgroundColor: '#92400E', paddingHorizontal: 12, paddingVertical: 6 }}>
+          <Text style={{ color: '#FFFFFF', fontSize: 11, fontWeight: '800', letterSpacing: 0.5, textAlign: 'center' }}>
+            DEMO — CHANGES STAY IN-MEMORY ONLY
+          </Text>
+        </View>
+      )}
       <View style={styles.headerBar}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}

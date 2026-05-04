@@ -149,16 +149,7 @@ export function CompletedCallingsScreen({ navigation }: any) {
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.row}
-            onPress={() => {
-              if (demoMode) {
-                const wardName = (item as unknown as { wards?: { name?: string } }).wards?.name ?? 'unknown';
-                const summary = `${item.member_name}\n${item.calling_name}\n\nWard: ${wardName}\nStage: ${item.stage}\nType: ${item.type}`;
-                if (Platform.OS === 'web') window.alert('Demo calling (read-only)\n\n' + summary);
-                else Alert.alert('Demo calling (read-only)', summary);
-                return;
-              }
-              navigation.navigate('CallingDetail', { callingId: item.id });
-            }}
+            onPress={() => navigation.navigate('CallingDetail', { callingId: item.id })}
             activeOpacity={0.8}
           >
             <View style={styles.rowMain}>

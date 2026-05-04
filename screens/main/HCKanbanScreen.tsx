@@ -140,14 +140,8 @@ export function HCKanbanScreen({ navigation }: any) {
   useFocusEffect(useCallback(() => { fetchData(); }, [fetchData]));
 
   function openCard(c: Calling) {
-    if (demoMode) {
-      const wardName = (c as unknown as { wards?: { name?: string } }).wards?.name ?? 'unknown';
-      const callingName = c.calling_name ?? (c as unknown as { name?: string }).name ?? 'unnamed';
-      const summary = `${c.member_name}\n${callingName}\n\nWard: ${wardName}\nStage: ${c.stage}\nType: ${c.type}`;
-      if (Platform.OS === 'web') window.alert('Demo card (read-only)\n\n' + summary);
-      else Alert.alert('Demo card (read-only)', summary);
-      return;
-    }
+    // Demo cards now route to the detail screen — it loads the fixture
+    // and short-circuits mutations to keep the real DB clean.
     navigation.navigate('CallingDetail', { callingId: c.id });
   }
 
