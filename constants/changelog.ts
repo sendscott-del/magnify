@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.14.2',
+    date: '2026-05-03',
+    enhancements: [],
+    bugFixes: [
+      'Gathered switcher: tapping another app on the web build now navigates the current tab instead of opening a new browser tab. On native (iOS/Android) the behavior is unchanged — Linking.openURL still opens the system browser, which is correct since the other apps live on the web.',
+    ],
+  },
+  {
     version: '2.14.1',
     date: '2026-05-03',
     enhancements: [],

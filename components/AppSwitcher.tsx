@@ -64,7 +64,10 @@ export function AppSwitcher() {
 
   function openApp(url: string) {
     if (Platform.OS === 'web') {
-      window.open(url, '_blank');
+      // Same-tab navigation so the user doesn't accumulate one tab per
+      // app they hop between. The other apps live on their own domains
+      // so this is a full page load, but it replaces rather than stacks.
+      window.location.href = url;
     } else {
       Linking.openURL(url);
     }
