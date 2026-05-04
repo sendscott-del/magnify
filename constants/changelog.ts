@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.14.4',
+    date: '2026-05-04',
+    enhancements: [],
+    bugFixes: [
+      'Gathered switcher: use canonical short URLs for Magnify (magnify-eta.vercel.app) and Tidings (tidings.vercel.app) instead of the team-scoped URLs. Same destinations, cleaner links.',
+    ],
+  },
+  {
     version: '2.14.3',
     date: '2026-05-04',
     enhancements: [
