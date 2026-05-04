@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.14.1',
+    date: '2026-05-03',
+    enhancements: [],
+    bugFixes: [
+      'Edit Calling Details now lets you keep (or enter) a custom calling name. The Calling picker has always had an "Other" option for callings that aren\'t in the predefined list (e.g. "Assistant Camp Director"), but the edit modal was only honoring "Other" for the New Calling flow — in the edit modal it would either drop the original custom name or leave Save disabled with no way to recover. Now: when you open Edit Calling Details on a custom calling, the picker shows "Other" and a text input below it is pre-filled with the existing custom name. When you switch the Type chip (Ward / Stake / MP), pick "Other" from the new picker and the same text input appears so you can type the calling name. Save is enabled as soon as a name is filled in',
+    ],
+  },
+  {
     version: '2.14.0',
     date: '2026-05-03',
     enhancements: [

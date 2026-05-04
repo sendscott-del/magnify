@@ -614,6 +614,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
   const [editType, setEditType] = useState<CallingType>('ward_calling');
   const [editMemberName, setEditMemberName] = useState('');
   const [editCallingName, setEditCallingName] = useState('');
+  const [editCustomCallingName, setEditCustomCallingName] = useState('');
   const [editWardId, setEditWardId] = useState('');
   const [editWardName, setEditWardName] = useState('');
   const [editBishopApproved, setEditBishopApproved] = useState(false);
@@ -881,7 +882,16 @@ export function CallingDetailScreen({ route, navigation }: any) {
     if (!calling) return;
     setEditType(calling.type);
     setEditMemberName(calling.member_name);
-    setEditCallingName(calling.type === 'mp_ordination' ? '' : calling.calling_name);
+    if (calling.type === 'mp_ordination') {
+      setEditCallingName('');
+      setEditCustomCallingName('');
+    } else {
+      // If the saved calling name isn't in the predefined list for any org,
+      // treat it as a custom ("Other") calling so the input is editable.
+      const isPredefined = CALLING_GROUPS.some(g => g.callings.includes(calling.calling_name));
+      setEditCallingName(isPredefined ? calling.calling_name : 'Other');
+      setEditCustomCallingName(isPredefined ? '' : calling.calling_name);
+    }
     setEditWardId(calling.ward_id ?? '');
     setEditWardName(calling.wards?.name ?? '');
     setEditBishopApproved(calling.bishop_approved ?? false);
@@ -895,15 +905,22 @@ export function CallingDetailScreen({ route, navigation }: any) {
     // Clear the calling-name selection when leaving / entering MP, or when
     // the picker filter changes (ward ↔ stake show different orgs).
     setEditCallingName('');
+    setEditCustomCallingName('');
     if (next !== 'ward_calling') setEditBishopApproved(false);
     if (next === 'mp_ordination' && !editOrdinationType) setEditOrdinationType('elder');
   }
+
+  // Resolve the calling name the user means to save. "Other" means custom — use
+  // the typed-in name. MP types ignore this entirely (auto-generated below).
+  const effectiveCallingName = editCallingName === 'Other'
+    ? editCustomCallingName.trim()
+    : editCallingName.trim();
 
   async function handleEditSave() {
     if (!calling || !profile) return;
     if (!editMemberName.trim()) return;
     // Non-MP types require a chosen calling name. MP auto-generates it.
-    if (editType !== 'mp_ordination' && !editCallingName.trim()) return;
+    if (editType !== 'mp_ordination' && !effectiveCallingName) return;
 
     setEditSaving(true);
     const changes: string[] = [];
@@ -944,9 +961,9 @@ export function CallingDetailScreen({ route, navigation }: any) {
     }
 
     // Calling name: only track for non-MP. MP's name is set above when the type changes.
-    if (editType !== 'mp_ordination' && editCallingName.trim() !== calling.calling_name) {
-      update.calling_name = editCallingName.trim();
-      changes.push(`Calling: "${calling.calling_name}" → "${editCallingName.trim()}"`);
+    if (editType !== 'mp_ordination' && effectiveCallingName !== calling.calling_name) {
+      update.calling_name = effectiveCallingName;
+      changes.push(`Calling: "${calling.calling_name}" → "${effectiveCallingName}"`);
     }
     if ((editWardId || null) !== (calling.ward_id || null)) {
       update.ward_id = editWardId || null;
@@ -1349,6 +1366,18 @@ export function CallingDetailScreen({ route, navigation }: any) {
                     </Text>
                     <Text style={styles.editPickerArrow}>▼</Text>
                   </TouchableOpacity>
+                  {editCallingName === 'Other' && (
+                    <>
+                      <Text style={styles.editFieldLabel}>{t('new.customCallingName')}</Text>
+                      <TextInput
+                        style={styles.editInput}
+                        value={editCustomCallingName}
+                        onChangeText={setEditCustomCallingName}
+                        placeholder={t('new.customCallingPlaceholder')}
+                        placeholderTextColor={Colors.gray[400]}
+                      />
+                    </>
+                  )}
                 </>
               )}
 
@@ -1400,7 +1429,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
                   title={editSaving ? t('detail.saving') : t('detail.save')}
                   onPress={handleEditSave}
                   loading={editSaving}
-                  disabled={!editMemberName.trim() || (editType !== 'mp_ordination' && !editCallingName.trim())}
+                  disabled={!editMemberName.trim() || (editType !== 'mp_ordination' && !effectiveCallingName)}
                   style={styles.modalBtn}
                 />
               </View>
