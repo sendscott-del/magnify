@@ -9,6 +9,31 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.14.1',
+    date: '2026-05-03',
+    enhancements: [],
+    bugFixes: [
+      'Edit Calling Details now lets you keep (or enter) a custom calling name. The Calling picker has always had an "Other" option for callings that aren\'t in the predefined list (e.g. "Assistant Camp Director"), but the edit modal was only honoring "Other" for the New Calling flow — in the edit modal it would either drop the original custom name or leave Save disabled with no way to recover. Now: when you open Edit Calling Details on a custom calling, the picker shows "Other" and a text input below it is pre-filled with the existing custom name. When you switch the Type chip (Ward / Stake / MP), pick "Other" from the new picker and the same text input appears so you can type the calling name. Save is enabled as soon as a name is filled in',
+    ],
+  },
+  {
+    version: '2.14.0',
+    date: '2026-05-03',
+    enhancements: [
+      'Demo-aware calling detail screen — tapping a card on the SP Board, HC Board, or Completed Callings list in demo mode now opens the full detail screen instead of a read-only Alert. The screen loads the fixture calling, renders the same UI as a real calling, and short-circuits every mutation handler (advance stage, decline, set apart, toggle SP/HC approval, assign, ward sustaining toggle, delete, unreject) so demo activity never reaches Supabase or Slack. A bold "DEMO — CHANGES STAY IN-MEMORY ONLY" strip across the top makes the mode visible. Trainers can now walk through the full calling workflow in demo, tap-by-tap, just like the real thing',
+    ],
+    bugFixes: [],
+  },
+  {
+    version: '2.13.1',
+    date: '2026-05-03',
+    enhancements: [],
+    bugFixes: [
+      'Edit Calling Details: the Save button now disables itself when required fields are empty instead of silently ignoring the tap. Switching the Type chip (Ward / Stake / MP) deliberately clears the Calling field — ward and stake have different available callings — but the previous version just dropped the click on the floor when Save was pressed with no calling chosen, with no feedback. Save now visibly greys out until you pick a new calling',
+      'Sustaining script on the High Council board now includes stake callings in every ward’s script, not just the member’s home ward. Stake callings (and their releases) are sustained in all wards in the stake, so each ward’s sacrament-meeting script now lists them alongside that ward’s own callings. The calling-count badge on the ward picker reflects this too — picking any ward shows the combined total of that ward’s callings plus all stake-wide ones',
+    ],
+  },
+  {
     version: '2.13.0',
     date: '2026-05-03',
     enhancements: [

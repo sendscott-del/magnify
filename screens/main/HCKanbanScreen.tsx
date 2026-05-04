@@ -140,14 +140,8 @@ export function HCKanbanScreen({ navigation }: any) {
   useFocusEffect(useCallback(() => { fetchData(); }, [fetchData]));
 
   function openCard(c: Calling) {
-    if (demoMode) {
-      const wardName = (c as unknown as { wards?: { name?: string } }).wards?.name ?? 'unknown';
-      const callingName = c.calling_name ?? (c as unknown as { name?: string }).name ?? 'unnamed';
-      const summary = `${c.member_name}\n${callingName}\n\nWard: ${wardName}\nStage: ${c.stage}\nType: ${c.type}`;
-      if (Platform.OS === 'web') window.alert('Demo card (read-only)\n\n' + summary);
-      else Alert.alert('Demo card (read-only)', summary);
-      return;
-    }
+    // Demo cards now route to the detail screen — it loads the fixture
+    // and short-circuits mutations to keep the real DB clean.
     navigation.navigate('CallingDetail', { callingId: c.id });
   }
 
@@ -188,7 +182,11 @@ export function HCKanbanScreen({ navigation }: any) {
   }
 
   function generateScript(ward: Ward): string {
-    const sustaining = callings.filter(c => c.stage === 'sustain' && c.ward_id === ward.id);
+    // Stake callings are sustained in every ward in the stake, not only the
+    // member's home ward — include them regardless of ward_id.
+    const sustaining = callings.filter(c =>
+      c.stage === 'sustain' && (c.ward_id === ward.id || c.type === 'stake_calling')
+    );
     const locale = language === 'es' ? 'es-US' : 'en-US';
     const date = new Date().toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' });
 
@@ -449,7 +447,9 @@ export function HCKanbanScreen({ navigation }: any) {
                   data={wards}
                   keyExtractor={w => w.id}
                   renderItem={({ item: w }) => {
-                    const count = callings.filter(c => c.stage === 'sustain' && c.ward_id === w.id).length;
+                    const count = callings.filter(c =>
+                      c.stage === 'sustain' && (c.ward_id === w.id || c.type === 'stake_calling')
+                    ).length;
                     return (
                       <TouchableOpacity
                         style={styles.scriptWardItem}

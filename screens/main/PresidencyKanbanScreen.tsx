@@ -107,17 +107,8 @@ export function PresidencyKanbanScreen({ navigation }: any) {
   }
 
   function openCard(c: Calling) {
-    if (demoMode) {
-      // Demo: detail screen has many mutation handlers that would silently
-      // hit the real DB if entered with a fixture id. Show a read-only
-      // summary instead. A demo-aware detail screen is a follow-up.
-      const wardName = (c as unknown as { wards?: { name?: string } }).wards?.name ?? 'unknown';
-      const callingName = c.calling_name ?? (c as unknown as { name?: string }).name ?? 'unnamed';
-      const summary = `${c.member_name}\n${callingName}\n\nWard: ${wardName}\nStage: ${c.stage}\nType: ${c.type}`;
-      if (Platform.OS === 'web') window.alert('Demo card (read-only)\n\n' + summary);
-      else Alert.alert('Demo card (read-only)', summary);
-      return;
-    }
+    // Demo cards now route to the actual detail screen — it loads the
+    // fixture and short-circuits mutations to keep the real DB clean.
     navigation.navigate('CallingDetail', { callingId: c.id });
   }
 
