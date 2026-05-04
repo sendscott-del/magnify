@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.14.3',
+    date: '2026-05-04',
+    enhancements: [
+      'AppSwitcher chrome color moved from hardcoded #1e1b4b to Colors.switcherChrome in constants/theme.ts for consistent token-based theming.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.14.2',
     date: '2026-05-03',
     enhancements: [],

@@ -7,6 +7,7 @@ export const Colors = {
   primaryFade: '#E8EEF8',
   accent: '#C9A84C',
   accentLight: '#FFF8E7',
+  switcherChrome: '#1e1b4b',
   white: '#FFFFFF',
   black: '#111111',
   gray: {
