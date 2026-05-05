@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useDemoMode } from '../../context/DemoModeContext';
+import { useActionCounts } from '../../context/ActionCountsContext';
 import { getDemoHCCallings } from '../../lib/demoCallings';
 import { Calling, CallingType, Ward } from '../../lib/database.types';
 import { KanbanColumn } from '../../components/kanban/KanbanColumn';
@@ -69,6 +70,7 @@ export function HCKanbanScreen({ navigation }: any) {
   }, [rawSpMembers, rawHcMembers, t]);
 
   const { demoMode } = useDemoMode();
+  const { refresh: refreshActionCounts } = useActionCounts();
 
   const fetchData = useCallback(async () => {
     if (demoMode) {
@@ -135,7 +137,9 @@ export function HCKanbanScreen({ navigation }: any) {
         setViewedIds(new Set(views.map((v: any) => v.calling_id)));
       }
     }
-  }, [profile?.id, demoMode]);
+
+    refreshActionCounts();
+  }, [profile?.id, demoMode, refreshActionCounts]);
 
   useFocusEffect(useCallback(() => { fetchData(); }, [fetchData]));
 

@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.15.0',
+    date: '2026-05-04',
+    enhancements: [
+      'Tab badges for action items: the HC Board and SP Board tabs now show a red badge with the number of cards waiting on you. The HC badge counts cards where your name is in extend / sustain / set apart / record, plus HC Approval cards you have not yet checked off (HC members only). The SP badge counts cards in For Approval (visible to Stake Presidency and Clerks). Badges update automatically when a board refreshes.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.14.5',
     date: '2026-05-04',
     enhancements: [],

@@ -85,12 +85,14 @@ export function HelpScreen({ navigation }: any) {
         <Section title={t('help.spBoard')}>
           <Text style={styles.body}>{t('help.spBoardBody1')}</Text>
           <Text style={[styles.body, { marginTop: Spacing.xs }]}>{t('help.spBoardBody2')}</Text>
+          <Text style={[styles.body, { marginTop: Spacing.xs }]}>{t('help.spBoardBody3')}</Text>
         </Section>
 
         <Section title={t('help.hcBoard')}>
           <Text style={styles.body}>{t('help.hcBoardBody1')}</Text>
           <Text style={[styles.body, { marginTop: Spacing.xs }]}>{t('help.hcBoardBody2')}</Text>
           <Text style={[styles.body, { marginTop: Spacing.xs }]}>{t('help.hcBoardBody3')}</Text>
+          <Text style={[styles.body, { marginTop: Spacing.xs }]}>{t('help.hcBoardBody4')}</Text>
         </Section>
 
         <Section title={t('help.slack')}>

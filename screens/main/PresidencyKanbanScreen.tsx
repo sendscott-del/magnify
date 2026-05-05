@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useDemoMode } from '../../context/DemoModeContext';
+import { useActionCounts } from '../../context/ActionCountsContext';
 import { getDemoActiveCallings, getDemoRejectedCallings } from '../../lib/demoCallings';
 import { Calling, CallingType } from '../../lib/database.types';
 import { KanbanColumn } from '../../components/kanban/KanbanColumn';
@@ -22,6 +23,7 @@ export function PresidencyKanbanScreen({ navigation }: any) {
   const { profile } = useAuth();
   const { t } = useLanguage();
   const { demoMode } = useDemoMode();
+  const { refresh: refreshActionCounts } = useActionCounts();
 
   const ACTIVE_COLUMNS = [
     { stage: 'ideas', label: t('stage.ideas'), color: Colors.stage.ideas },
@@ -92,7 +94,9 @@ export function PresidencyKanbanScreen({ navigation }: any) {
         setViewedIds(new Set(views.map((v: any) => v.calling_id)));
       }
     }
-  }, [typeFilter, canSeeRejected, profile?.id, demoMode]);
+
+    refreshActionCounts();
+  }, [typeFilter, canSeeRejected, profile?.id, demoMode, refreshActionCounts]);
 
   useFocusEffect(
     useCallback(() => {

@@ -10,6 +10,7 @@ import { AppSwitcher } from '../components/AppSwitcher';
 import { DemoModeBanner } from '../components/DemoModeBanner';
 import { ProductIcon } from '../components/icons/ProductIcon';
 import { useAuth } from '../context/AuthContext';
+import { useActionCounts } from '../context/ActionCountsContext';
 import { PresidencyKanbanScreen } from '../screens/main/PresidencyKanbanScreen';
 import { HCKanbanScreen } from '../screens/main/HCKanbanScreen';
 import { NewCallingScreen } from '../screens/main/NewCallingScreen';
@@ -68,6 +69,7 @@ function SettingsStack() {
 export function MainTabNavigator() {
   const { isPresidency, isClerk } = useAuth();
   const { t } = useLanguage();
+  const { hcCount, spCount } = useActionCounts();
   const showPresidencyBoard = isPresidency || isClerk;
 
   return (
@@ -114,7 +116,10 @@ export function MainTabNavigator() {
         <Tab.Screen
           name="PresidencyBoard"
           component={PresidencyStack}
-          options={{ tabBarLabel: t('nav.spBoard') }}
+          options={{
+            tabBarLabel: t('nav.spBoard'),
+            tabBarBadge: spCount > 0 ? spCount : undefined,
+          }}
           listeners={({ navigation }) => ({
             tabPress: (e) => {
               e.preventDefault();
@@ -126,7 +131,10 @@ export function MainTabNavigator() {
       <Tab.Screen
         name="HC"
         component={HCStack}
-        options={{ tabBarLabel: t('nav.hcBoard') }}
+        options={{
+          tabBarLabel: t('nav.hcBoard'),
+          tabBarBadge: hcCount > 0 ? hcCount : undefined,
+        }}
         listeners={({ navigation }) => ({
           tabPress: (e) => {
             e.preventDefault();
