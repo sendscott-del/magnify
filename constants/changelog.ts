@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.14.5',
+    date: '2026-05-04',
+    enhancements: [],
+    bugFixes: [
+      'Gathered switcher: Tidings URL corrected from tidings.vercel.app to glad-tidings.vercel.app (the previous URL pointed at someone else\'s project).',
+    ],
+  },
+  {
     version: '2.14.4',
     date: '2026-05-04',
     enhancements: [],
