@@ -5,6 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { DemoModeProvider } from './context/DemoModeContext';
+import { ActionCountsProvider } from './context/ActionCountsContext';
 import { AppNavigator } from './navigation/AppNavigator';
 
 export default function App() {
@@ -14,7 +15,9 @@ export default function App() {
         <LanguageProvider>
           <AuthProvider>
             <DemoModeProvider>
-              <AppNavigator />
+              <ActionCountsProvider>
+                <AppNavigator />
+              </ActionCountsProvider>
             </DemoModeProvider>
           </AuthProvider>
         </LanguageProvider>
