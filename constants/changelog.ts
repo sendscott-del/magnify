@@ -9,6 +9,16 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.16.0',
+    date: '2026-05-05',
+    enhancements: [
+      'Home-screen badge notifications: when a calling needs your action, a red number badge now appears on the Magnify icon on your phone home screen, even when the app is closed. Tap the new "Get a home-screen alert" banner on the HC board to enable. Counts the same cards as the in-app HC and SP badges (extend / sustain / set apart / record assignees, plus HC Approval cards you haven\'t checked off, plus For Approval for Presidency/Clerks).',
+      'PWA basics: Magnify now ships a real web app manifest and service worker, so "Add to Home Screen" produces a proper installed app on iOS and Android. Theme color, app name, and standalone display are all wired up.',
+      'Help screen: new "Home-screen badge" section explains how to install the PWA and enable notifications on iPhone vs. Android.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.15.0',
     date: '2026-05-04',
     enhancements: [

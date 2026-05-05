@@ -95,6 +95,12 @@ export function HelpScreen({ navigation }: any) {
           <Text style={[styles.body, { marginTop: Spacing.xs }]}>{t('help.hcBoardBody4')}</Text>
         </Section>
 
+        <Section title={t('help.notifications')}>
+          <Text style={styles.body}>{t('help.notificationsBody1')}</Text>
+          <Text style={[styles.body, { marginTop: Spacing.xs }]}>{t('help.notificationsBody2')}</Text>
+          <Text style={[styles.body, { marginTop: Spacing.xs }]}>{t('help.notificationsBody3')}</Text>
+        </Section>
+
         <Section title={t('help.slack')}>
           <Text style={styles.body}>{t('help.slackBody')}</Text>
         </Section>

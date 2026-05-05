@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { setLocalAppBadge } from '../lib/push';
 import { useAuth } from './AuthContext';
 import { useDemoMode } from './DemoModeContext';
 
@@ -89,6 +90,9 @@ export function ActionCountsProvider({ children }: { children: React.ReactNode }
 
     setHcCount(hc);
     setSpCount(sp);
+    // Mirror the total to the home-screen icon while the app is open.
+    // Push events update it when the app is closed.
+    setLocalAppBadge(hc + sp);
   }, [profile?.full_name, isPresidency, isClerk, demoMode]);
 
   useEffect(() => {

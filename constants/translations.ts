@@ -457,6 +457,17 @@ export const translations = {
     'help.faq.deleteDesc': "Stake Clerk, Stake Executive Secretary, and Stake Presidency can delete callings. Open the card detail and tap the Delete button at the bottom.",
     'help.footer': 'Magnify \u00b7 Stake Callings Workflow',
 
+    // Push notifications
+    'push.bannerTitle': 'Get a home-screen alert when something needs you',
+    'push.bannerBody': 'Add Magnify to your home screen, then tap Enable to see a red badge on the icon when a calling is waiting on you.',
+    'push.bannerEnable': 'Enable',
+    'push.bannerEnabling': 'Asking\u2026',
+    'push.bannerLater': 'Not now',
+    'help.notifications': 'Home-screen badge',
+    'help.notificationsBody1': 'Magnify can put a red badge on your home-screen icon counting cards that need your action \u2014 the same number shown on the HC tab.',
+    'help.notificationsBody2': 'On iPhone: open Magnify in Safari, tap Share \u2192 Add to Home Screen, open it from the home screen, then tap Enable on the blue notifications banner. iOS only badges installed home-screen apps.',
+    'help.notificationsBody3': 'On Android: open Magnify in Chrome, tap Install (or Add to Home Screen) when prompted, then tap Enable on the banner. The badge updates whenever a calling is added or moved, even when the app is closed.',
+
     // Release Notes
     'releaseNotes.title': 'Release Notes',
     'releaseNotes.footer': 'Release notes are generated automatically on each deployment.',
@@ -971,6 +982,16 @@ export const translations = {
     'help.faq.slackDesc': 'Vaya a Configuraci\u00f3n \u2192 Notificaciones de Slack. Pegue la URL del Webhook entrante de su espacio de Slack para cada tipo de notificaci\u00f3n que desee habilitar.',
     'help.faq.undo': '\u00bfPuedo deshacer un cambio de etapa?',
     'help.faq.undoDesc': "El Secretario de Estaca, el Secretario Ejecutivo de Estaca y la Presidencia de Estaca pueden mover un llamamiento una etapa hacia atr\u00e1s usando el bot\u00f3n 'Retroceder' en la pantalla de detalles de la tarjeta.",
+    // Push notifications
+    'push.bannerTitle': 'Reciba una alerta en la pantalla de inicio cuando lo necesiten',
+    'push.bannerBody': 'Agregue Magnify a su pantalla de inicio, luego toque Activar para ver una insignia roja en el \u00edcono cuando un llamamiento lo est\u00e9 esperando.',
+    'push.bannerEnable': 'Activar',
+    'push.bannerEnabling': 'Solicitando\u2026',
+    'push.bannerLater': 'Ahora no',
+    'help.notifications': 'Insignia en la pantalla de inicio',
+    'help.notificationsBody1': 'Magnify puede mostrar una insignia roja en el \u00edcono de su pantalla de inicio con la cantidad de tarjetas que necesitan su acci\u00f3n \u2014 el mismo n\u00famero que aparece en la pesta\u00f1a CH.',
+    'help.notificationsBody2': 'En iPhone: abra Magnify en Safari, toque Compartir \u2192 Agregar a la pantalla de inicio, \u00e1bralo desde la pantalla de inicio, luego toque Activar en el banner azul. iOS solo muestra insignias en apps instaladas en la pantalla de inicio.',
+    'help.notificationsBody3': 'En Android: abra Magnify en Chrome, toque Instalar (o Agregar a la pantalla de inicio) cuando se le solicite, luego toque Activar en el banner. La insignia se actualiza cada vez que se agrega o mueve un llamamiento, incluso con la app cerrada.',
     'help.faq.delete': '\u00bfC\u00f3mo elimino un llamamiento?',
     'help.faq.deleteDesc': 'El Secretario de Estaca, el Secretario Ejecutivo de Estaca y la Presidencia de Estaca pueden eliminar llamamientos. Abra los detalles de la tarjeta y toque el bot\u00f3n Eliminar en la parte inferior.',
     'help.footer': 'Magnify \u00b7 Flujo de Trabajo de Llamamientos de Estaca',

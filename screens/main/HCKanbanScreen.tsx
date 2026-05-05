@@ -14,6 +14,7 @@ import { getDemoHCCallings } from '../../lib/demoCallings';
 import { Calling, CallingType, Ward } from '../../lib/database.types';
 import { KanbanColumn } from '../../components/kanban/KanbanColumn';
 import { DisclaimerFooter } from '../../components/ui/DisclaimerFooter';
+import { EnableNotificationsBanner } from '../../components/EnableNotificationsBanner';
 import { Colors, Spacing, FontSize, Radius } from '../../constants/theme';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -286,6 +287,8 @@ export function HCKanbanScreen({ navigation }: any) {
       <View style={styles.header}>
         <Text style={styles.title}>{t('hcBoard.title')}</Text>
       </View>
+
+      <EnableNotificationsBanner />
 
       {/* Filter rows */}
       <View style={styles.filterBar}>
