@@ -9,6 +9,15 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.16.1',
+    date: '2026-05-10',
+    enhancements: [
+      'HC Board "Just mine" toggle: a new pill at the top of the filter row instantly filters the board to cards assigned to you. Tap again to see everyone. Only shows up if your name is on the Stake Presidency or High Council list. Previously you had to open the assignee dropdown and find your own name — now it is one tap.',
+      'HC Board filter clarity: the assignee filter chip now reads "All people" instead of just "All", so it is obvious what the chip filters.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.16.0',
     date: '2026-05-05',
     enhancements: [

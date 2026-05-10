@@ -70,6 +70,14 @@ export function HCKanbanScreen({ navigation }: any) {
     return [...spOptions, ...hcOptions];
   }, [rawSpMembers, rawHcMembers, t]);
 
+  // "Just mine" toggle: only meaningful when the signed-in user appears in the assignee list.
+  const myAssigneeName = useMemo(() => {
+    const me = profile?.full_name;
+    if (!me) return null;
+    return assigneeOptions.some(o => o.name === me) ? me : null;
+  }, [profile?.full_name, assigneeOptions]);
+  const showingJustMine = myAssigneeName !== null && assigneeFilter === myAssigneeName;
+
   const { demoMode } = useDemoMode();
   const { refresh: refreshActionCounts } = useActionCounts();
 
@@ -309,6 +317,16 @@ export function HCKanbanScreen({ navigation }: any) {
 
         {/* Ward + Assignee filters */}
         <View style={styles.filterRow2}>
+          {myAssigneeName && (
+            <TouchableOpacity
+              style={[styles.filterChip, showingJustMine && styles.filterChipActive]}
+              onPress={() => setAssigneeFilter(showingJustMine ? 'all' : myAssigneeName)}
+            >
+              <Text style={[styles.filterChipText, showingJustMine && styles.filterChipTextActive]}>
+                {t('hcBoard.justMine')}
+              </Text>
+            </TouchableOpacity>
+          )}
           <TouchableOpacity
             style={[styles.filterChip, wardFilter !== 'all' && styles.filterChipActive]}
             onPress={() => setShowWardFilter(true)}
