@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.16.2',
+    date: '2026-05-10',
+    enhancements: [
+      'SP Board "Just mine" toggle: a matching pill on the Stake Presidency board collapses the view to cards that need your action — anything in For Approval (if you are presidency or a clerk), plus any card where your name is in extend / sustain / set apart / record. Same one-tap toggle as the HC board version.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.16.1',
     date: '2026-05-10',
     enhancements: [

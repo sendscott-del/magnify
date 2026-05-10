@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View, Text, StyleSheet, ScrollView,
   RefreshControl, TouchableOpacity, Alert, Platform,
@@ -20,7 +20,7 @@ const ACTIVE_STAGES = ['ideas', 'for_approval', 'stake_approved'];
 
 export function PresidencyKanbanScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const { profile } = useAuth();
+  const { profile, isPresidency, isClerk } = useAuth();
   const { t } = useLanguage();
   const { demoMode } = useDemoMode();
   const { refresh: refreshActionCounts } = useActionCounts();
@@ -42,8 +42,26 @@ export function PresidencyKanbanScreen({ navigation }: any) {
   const [viewedIds, setViewedIds] = useState<Set<string>>(new Set());
   const [refreshing, setRefreshing] = useState(false);
   const [typeFilter, setTypeFilter] = useState<CallingType | 'all'>('all');
+  const [mineOnly, setMineOnly] = useState(false);
 
   const canSeeRejected = profile?.role === 'stake_president';
+
+  // "Just mine" matches the SP badge logic: cards in for_approval (role-gated)
+  // or cards where my name is in extend / sustain / set_apart / record_by.
+  const myName = profile?.full_name ?? null;
+  const canFilterMine = !!myName && (isPresidency || isClerk);
+  const isMine = useCallback((c: Calling) => {
+    if (!myName) return false;
+    if (c.stage === 'for_approval' && (isPresidency || isClerk)) return true;
+    return [c.extend_by, c.sustain_by, c.set_apart_by, c.record_by].includes(myName);
+  }, [myName, isPresidency, isClerk]);
+
+  const visibleCallings = useMemo(() =>
+    mineOnly ? callings.filter(isMine) : callings,
+    [mineOnly, callings, isMine]);
+  const visibleRejected = useMemo(() =>
+    mineOnly ? rejectedCallings.filter(isMine) : rejectedCallings,
+    [mineOnly, rejectedCallings, isMine]);
 
   const fetchCallings = useCallback(async () => {
     if (demoMode) {
@@ -138,6 +156,16 @@ export function PresidencyKanbanScreen({ navigation }: any) {
             </Text>
           </TouchableOpacity>
         ))}
+        {canFilterMine && (
+          <TouchableOpacity
+            style={[styles.filter, mineOnly && styles.filterActive]}
+            onPress={() => setMineOnly(v => !v)}
+          >
+            <Text style={[styles.filterText, mineOnly && styles.filterTextActive]}>
+              {t('hcBoard.justMine')}
+            </Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
       <ScrollView
         horizontal
@@ -151,7 +179,7 @@ export function PresidencyKanbanScreen({ navigation }: any) {
             key={col.stage}
             title={col.label}
             color={col.color}
-            callings={callings.filter(c => c.stage === col.stage)}
+            callings={visibleCallings.filter(c => c.stage === col.stage)}
             viewedIds={viewedIds}
             onCardPress={openCard}
           />
@@ -160,7 +188,7 @@ export function PresidencyKanbanScreen({ navigation }: any) {
           <KanbanColumn
             title={t('detail.declined')}
             color={Colors.error}
-            callings={rejectedCallings}
+            callings={visibleRejected}
             viewedIds={viewedIds}
             onCardPress={openCard}
           />
