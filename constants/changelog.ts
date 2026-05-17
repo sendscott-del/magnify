@@ -9,6 +9,20 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.17.0',
+    date: '2026-05-10',
+    enhancements: [
+      'Demo mode now stays in demo mode: opening a demo card from either board renders the fixture detail without hitting the database (it was showing "not found"), and the New Calling form no longer secretly inserts a real row when you submit while demo mode is on.',
+      'Demo fixtures now show every column: cards across all six HC stages — including Ordained and Record — appear when demo mode is on, and every card finally shows the calling name (a field-name mismatch was leaving that slot blank).',
+      'Deep links land on the right tab: opening a /calling/:id link now drops you into the SP board for early-stage callings (ideas / for approval / stake approved), the HC board for HC-stage callings, and the Completed list for completed ones. Previously every deep link forced you under the HC tab.',
+    ],
+    bugFixes: [
+      'Fixed TypeScript 5.7+ type error on the VAPID key passed to PushManager.subscribe (web push subscribe path).',
+      'Fixed brittle "as never" cast on the deep-link navigate call that produced a strict-TS error.',
+      'Revoked anonymous and authenticated RPC EXECUTE on magnify_notify_push() — the trigger function should fire from the row trigger only, not be callable as a public REST RPC. Clears Supabase advisors 0028/0029.',
+    ],
+  },
+  {
     version: '2.16.2',
     date: '2026-05-10',
     enhancements: [

@@ -625,6 +625,28 @@ export function CallingDetailScreen({ route, navigation }: any) {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
+    if (isDemo) {
+      // Demo path: look the calling up in the fixture set, and seed empty
+      // arrays for everything else so the screen renders without DB I/O.
+      const demoCalling = getDemoAllCallings().find(c => c.id === callingId) ?? null;
+      setCalling(demoCalling);
+      setLog([]);
+      setAllWards([
+        { id: 'demo-ward-1', name: 'Hyde Park 1st', abbreviation: 'HP1' } as Ward,
+        { id: 'demo-ward-2', name: 'Hyde Park 2nd', abbreviation: 'HP2' } as Ward,
+        { id: 'demo-ward-3', name: 'Midway',         abbreviation: 'MW'  } as Ward,
+        { id: 'demo-ward-4', name: 'Chicago 2nd',    abbreviation: 'CH2' } as Ward,
+        { id: 'demo-ward-5', name: 'Wilmette 2nd',   abbreviation: 'WC2' } as Ward,
+      ]);
+      setSpApprovals([]);
+      setHcMembers([]);
+      setHcApprovals([]);
+      setAllProfiles([]);
+      setSpMembers([]);
+      setWardSustainingsList([]);
+      setLoading(false);
+      return;
+    }
     const [callingRes, logRes, wardsRes, spRes, hcMembersRes, hcApprovalsRes, profilesRes, spMembersRes, wardSustRes] = await Promise.all([
       supabase.from('callings').select('*, wards!callings_ward_id_fkey(id,name,abbreviation), profiles!created_by(id,full_name,email,role,status,created_at)').eq('id', callingId).single(),
       supabase.from('calling_log').select('*, profiles!performed_by(id,full_name,email,role,status,created_at)').eq('calling_id', callingId).order('created_at', { ascending: false }),
@@ -647,18 +669,18 @@ export function CallingDetailScreen({ route, navigation }: any) {
     setSpMembers((spMembersRes.data as any[]) ?? []);
     setWardSustainingsList((wardSustRes.data as WardSustaining[]) ?? []);
     setLoading(false);
-  }, [callingId]);
+  }, [callingId, isDemo]);
 
   useFocusEffect(useCallback(() => {
     fetchData();
-    // Mark this calling as viewed by the current user
-    if (profile?.id) {
+    // Mark this calling as viewed by the current user (real mode only).
+    if (!isDemo && profile?.id) {
       supabase.from('calling_views').upsert(
         { calling_id: callingId, user_id: profile.id },
         { onConflict: 'calling_id,user_id' }
       ).then(() => {});
     }
-  }, [fetchData, callingId, profile?.id]));
+  }, [fetchData, callingId, profile?.id, isDemo]));
 
   async function toggleSPApproval(role: string, current: boolean) {
     if (isDemo) {
@@ -1176,16 +1198,20 @@ export function CallingDetailScreen({ route, navigation }: any) {
           wards={allWards}
           canEdit={canAssign}
           onSave={async (name, currentCalling, wardId) => {
-            await supabase.from('callings').update({
-              release_member_name: name || null,
-              release_current_calling: currentCalling || null,
-              release_ward_id: wardId || null,
-            }).eq('id', calling.id);
+            if (!isDemo) {
+              await supabase.from('callings').update({
+                release_member_name: name || null,
+                release_current_calling: currentCalling || null,
+                release_ward_id: wardId || null,
+              }).eq('id', calling.id);
+            }
             setCalling(prev => prev ? { ...prev, release_member_name: name || null, release_current_calling: currentCalling || null, release_ward_id: wardId || null } : prev);
           }}
           onToggleDone={async () => {
             const newVal = !calling.release_done;
-            await supabase.from('callings').update({ release_done: newVal }).eq('id', calling.id);
+            if (!isDemo) {
+              await supabase.from('callings').update({ release_done: newVal }).eq('id', calling.id);
+            }
             setCalling(prev => prev ? { ...prev, release_done: newVal } : prev);
           }}
         />
@@ -1239,7 +1265,9 @@ export function CallingDetailScreen({ route, navigation }: any) {
           notes={calling.notes ?? ''}
           canEdit={canAssign}
           onSave={async (text) => {
-            await supabase.from('callings').update({ notes: text || null }).eq('id', calling.id);
+            if (!isDemo) {
+              await supabase.from('callings').update({ notes: text || null }).eq('id', calling.id);
+            }
             setCalling(prev => prev ? { ...prev, notes: text || undefined } : prev);
           }}
         />

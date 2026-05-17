@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+import { useDemoMode } from '../../context/DemoModeContext';
 import { Ward, CallingType } from '../../lib/database.types';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
@@ -22,6 +23,7 @@ export function NewCallingScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { user, profile } = useAuth();
   const { t } = useLanguage();
+  const { demoMode } = useDemoMode();
 
   const TYPE_OPTIONS: { label: string; value: CallingType; kind: 'ward' | 'stake' | 'mp' }[] = [
     { label: t('type.ward_calling'), value: 'ward_calling', kind: 'ward' },
@@ -90,6 +92,23 @@ export function NewCallingScreen({ navigation }: any) {
 
     // MP ordinations skip straight to HC Approval; all others go to Ideas
     const stage = type === 'mp_ordination' ? 'hc_approval' : 'ideas';
+
+    // Demo mode: don't write to the real DB. Show the success state with a
+    // synthetic calling so the trainer can walk the rest of the flow.
+    if (demoMode) {
+      setLoading(null);
+      resetForm();
+      if (Platform.OS === 'web') {
+        setShowConfirmation(true);
+      } else {
+        Alert.alert(
+          'Submitted (demo)',
+          'Demo mode is on — no real calling was created.',
+          [{ text: 'OK' }],
+        );
+      }
+      return;
+    }
 
     const payload: any = {
       type,

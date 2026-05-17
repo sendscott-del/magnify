@@ -3,6 +3,7 @@ import { NavigationContainer, createNavigationContainerRef } from '@react-naviga
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { View, ActivityIndicator, Platform } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
 import { LoginScreen } from '../screens/auth/LoginScreen';
 import { RegisterScreen } from '../screens/auth/RegisterScreen';
 import { ForgotPasswordScreen } from '../screens/auth/ForgotPasswordScreen';
@@ -66,25 +67,43 @@ export function AppNavigator() {
   useEffect(() => {
     if (!isAuthenticated || !navReady || pendingLinkHandled.current) return;
     if (Platform.OS !== 'web') return;
-    try {
-      const callingId = localStorage.getItem(PENDING_LINK_KEY);
-      if (!callingId) return;
-      pendingLinkHandled.current = true;
-      localStorage.removeItem(PENDING_LINK_KEY);
+    const callingId = (() => {
+      try { return localStorage.getItem(PENDING_LINK_KEY); } catch { return null; }
+    })();
+    if (!callingId) return;
+    pendingLinkHandled.current = true;
+    try { localStorage.removeItem(PENDING_LINK_KEY); } catch {}
+
+    // Pick the right tab based on the calling's stage so the back-press
+    // lands on the matching kanban board. Defaults to HC if the lookup
+    // fails so the user still reaches the detail screen.
+    const SP_STAGES = ['ideas', 'for_approval', 'stake_approved'];
+    const COMPLETED_STAGES = ['complete'];
+
+    (async () => {
+      let tab: 'HC' | 'PresidencyBoard' | 'Completed' = 'HC';
+      try {
+        const { data } = await supabase.from('callings').select('stage').eq('id', callingId).single();
+        const stage = (data as { stage?: string } | null)?.stage;
+        if (stage && SP_STAGES.includes(stage)) tab = 'PresidencyBoard';
+        else if (stage && COMPLETED_STAGES.includes(stage)) tab = 'Completed';
+      } catch {}
+
+      const stackInner = tab === 'Completed' ? 'CompletedList' : (tab === 'PresidencyBoard' ? 'PresidencyMain' : 'HCMain');
       const tryNavigate = (attempts = 0) => {
         if (navigationRef.isReady()) {
           // navigationRef is typed as any-ref; cast to bypass TS's tuple-vs-single
           // arg inference on the nested-navigator overload.
           (navigationRef.navigate as (n: string, p: unknown) => void)('Main', {
-            screen: 'HC',
-            params: { screen: 'CallingDetail', params: { callingId } },
+            screen: tab,
+            params: { screen: 'CallingDetail', params: { callingId, _backTo: stackInner } },
           });
         } else if (attempts < 10) {
           setTimeout(() => tryNavigate(attempts + 1), 100);
         }
       };
       setTimeout(() => tryNavigate(), 100);
-    } catch {}
+    })();
   }, [isAuthenticated, navReady]);
 
   if (loading || !navReady) {
