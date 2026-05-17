@@ -73,10 +73,12 @@ export function AppNavigator() {
       localStorage.removeItem(PENDING_LINK_KEY);
       const tryNavigate = (attempts = 0) => {
         if (navigationRef.isReady()) {
-          navigationRef.navigate('Main' as never, {
+          // navigationRef is typed as any-ref; cast to bypass TS's tuple-vs-single
+          // arg inference on the nested-navigator overload.
+          (navigationRef.navigate as (n: string, p: unknown) => void)('Main', {
             screen: 'HC',
             params: { screen: 'CallingDetail', params: { callingId } },
-          } as never);
+          });
         } else if (attempts < 10) {
           setTimeout(() => tryNavigate(attempts + 1), 100);
         }
