@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.18.1',
+    date: '2026-05-18',
+    enhancements: [
+      'Home-screen / PWA icon redesigned: navy background (matching the Gathered "M" chip) with a large gold magnifying glass replacing the white "M" letter. Same treatment is rolling out across the suite — each app\'s icon is now its brand color + its gold accent shape, instead of every icon being a dark blue letter. assets/icon.png, adaptive-icon.png, splash-icon.png, and favicon.png all regenerated from a single icon-master.svg.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.18.0',
     date: '2026-05-18',
     enhancements: [
