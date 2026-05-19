@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.18.2',
+    date: '2026-05-19',
+    enhancements: [
+      'In-app MagnifyLogo updated to match the v2.18.1 home-screen icon. The rounded navy square no longer carries the white-"M" letterform; instead it holds a large gold magnifying glass — the same glyph the new PWA icon uses. The "Magnify" wordmark continues alongside in headers and the login card.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.18.1',
     date: '2026-05-18',
     enhancements: [

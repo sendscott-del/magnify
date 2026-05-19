@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, ViewStyle } from 'react-native';
-import Svg, { Path, Circle, Line } from 'react-native-svg';
+import Svg, { Circle, Line } from 'react-native-svg';
 import { Colors, Radius } from '../../constants/theme';
 
 interface Props {
@@ -9,11 +9,23 @@ interface Props {
   style?: ViewStyle;
 }
 
+/**
+ * Magnify brand mark. Matches the v2.18.1 home-screen / PWA icon:
+ *   - rounded square in Magnify navy (Colors.primary = #1B3A6B, the
+ *     Gathered "M" chip), or white in `inverse`
+ *   - large gold magnifying glass centered, no letter
+ *
+ * The white-"M" letterform that used to live here is gone; the suite-wide
+ * convention is now "brand color + per-app gold accent shape," with the
+ * "Magnify" wordmark appearing as adjacent text wherever the logo is used.
+ */
 export function MagnifyLogo({ size = 44, variant = 'mark', style }: Props) {
   const isInverse = variant === 'inverse';
   const containerColor = isInverse ? Colors.white : Colors.primary;
-  const strokeColor = isInverse ? Colors.primary : Colors.white;
   const accent = Colors.accent;
+  // Scale the glyph generously so the magnifier dominates the square — the
+  // same proportion the rasterized home-screen icon uses.
+  const glyph = size * 0.78;
 
   return (
     <View
@@ -30,23 +42,23 @@ export function MagnifyLogo({ size = 44, variant = 'mark', style }: Props) {
         style,
       ]}
     >
-      <Svg width={size * 0.6} height={size * 0.6} viewBox="0 0 64 64" fill="none">
-        <Path
-          d="M11 50 L11 14 L32 38 L53 14 L53 50"
-          stroke={strokeColor}
+      {/* viewBox 0..64; lens centered upper-left, handle to lower-right. */}
+      <Svg width={glyph} height={glyph} viewBox="0 0 64 64" fill="none">
+        <Circle
+          cx={26}
+          cy={26}
+          r={15}
+          stroke={accent}
           strokeWidth={6}
-          strokeLinecap="round"
-          strokeLinejoin="round"
           fill="none"
         />
-        <Circle cx={44} cy={26} r={6.5} stroke={accent} strokeWidth={3.5} fill="none" />
         <Line
-          x1={48.6}
-          y1={30.6}
-          x2={52.5}
-          y2={34.5}
+          x1={37}
+          y1={37}
+          x2={52}
+          y2={52}
           stroke={accent}
-          strokeWidth={3.5}
+          strokeWidth={7}
           strokeLinecap="round"
         />
       </Svg>
