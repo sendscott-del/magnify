@@ -118,6 +118,7 @@ export function AppNavigator() {
     <NavigationContainer
       ref={navigationRef}
       initialState={isAuthenticated ? latestNavState.current : undefined}
+      documentTitle={{ formatter: () => 'Magnify' }}
       onStateChange={(state) => {
         latestNavState.current = state;
         saveNavState(state);

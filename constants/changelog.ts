@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.18.0',
+    date: '2026-05-18',
+    enhancements: [
+      'Suite consistency pass (1/5): the Gathered top bar now carries an EN/ES toggle on every screen, matching the pattern already established in Tidings. Language preference still syncs to your profile and persists across devices — the toggle just moves out of Settings so you can switch one-handed.',
+      'Suite consistency pass: scripture banner. A slim line under the Gathered chrome now carries Magnify\'s namesake verse — "We did magnify our office unto the Lord." (Jacob 1:19) — so the app\'s name has a visible origin everywhere it travels, matching the pattern Steward already uses.',
+      'Browser tab title is now locked to "Magnify" across every screen. Previously the tab read "HC Main" / "Presidency" / etc. depending on which screen you were focused on, which broke the home-screen-shortcut and tab-history experience.',
+      'Settings → Help & Documentation renamed to Settings → User Guide. Same content, naming aligned with the rest of the suite.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.17.0',
     date: '2026-05-10',
     enhancements: [

@@ -3,7 +3,8 @@ import { View, Text, TouchableOpacity, StyleSheet, Linking, Platform } from 'rea
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
-import { Colors, FontSize, Spacing, Radius } from '../constants/theme';
+import { useLanguage } from '../context/LanguageContext';
+import { Colors, FontSize, Spacing } from '../constants/theme';
 
 interface AppInfo {
   name: string;
@@ -43,6 +44,7 @@ function AppMark({ app, size }: { app: AppInfo; size: number }) {
 
 export function AppSwitcher() {
   const { user } = useAuth();
+  const { language, setLanguage, t } = useLanguage();
   const [otherApps, setOtherApps] = useState<AppInfo[]>([]);
   const [expanded, setExpanded] = useState(false);
 
@@ -60,8 +62,6 @@ export function AppSwitcher() {
       });
   }, [user]);
 
-  if (otherApps.length === 0) return null;
-
   function openApp(url: string) {
     if (Platform.OS === 'web') {
       // Same-tab navigation so the user doesn't accumulate one tab per
@@ -75,26 +75,69 @@ export function AppSwitcher() {
   }
 
   const currentApp = APP_CATALOG.find(a => a.name === CURRENT_APP)!;
+  const hasOtherApps = otherApps.length > 0;
+  const scripture = t('app.scripture');
+  const scriptureRef = t('app.scriptureRef');
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.bar} onPress={() => setExpanded(!expanded)} activeOpacity={0.7}>
-        <View style={styles.leftGroup}>
+      <View style={styles.bar}>
+        <TouchableOpacity
+          style={styles.leftGroup}
+          onPress={() => hasOtherApps && setExpanded(!expanded)}
+          activeOpacity={hasOtherApps ? 0.7 : 1}
+        >
           <Text style={styles.lflLabel}>Gathered</Text>
           <View style={styles.divider} />
           <AppMark app={currentApp} size={18} />
           <Text style={styles.currentLabel}>{currentApp.label}</Text>
+          {hasOtherApps && (
+            <Ionicons
+              name={expanded ? 'chevron-up' : 'chevron-down'}
+              size={14}
+              color="rgba(255,255,255,0.7)"
+              style={{ marginLeft: 4 }}
+            />
+          )}
+        </TouchableOpacity>
+        <View style={styles.langGroup}>
+          <TouchableOpacity
+            onPress={() => setLanguage('en')}
+            hitSlop={8}
+            style={styles.langBtn}
+            accessibilityRole="button"
+            accessibilityLabel="English"
+          >
+            <Text style={[styles.langText, language === 'en' && styles.langActive]}>EN</Text>
+          </TouchableOpacity>
+          <Text style={styles.langDivider}>|</Text>
+          <TouchableOpacity
+            onPress={() => setLanguage('es')}
+            hitSlop={8}
+            style={styles.langBtn}
+            accessibilityRole="button"
+            accessibilityLabel="Español"
+          >
+            <Text style={[styles.langText, language === 'es' && styles.langActive]}>ES</Text>
+          </TouchableOpacity>
         </View>
-        <View style={styles.rightGroup}>
-          <Ionicons
-            name={expanded ? 'chevron-up' : 'chevron-down'}
-            size={14}
-            color="rgba(255,255,255,0.7)"
-          />
-        </View>
-      </TouchableOpacity>
+      </View>
 
-      {expanded && (
+      {/* Slim scripture sub-row mirrors the pattern used by Steward — a quiet
+          tagline under the app chrome so the app's namesake verse rides with
+          you across every screen. */}
+      {scripture !== 'app.scripture' && (
+        <View style={styles.scriptureRow}>
+          <Text style={styles.scriptureText} numberOfLines={1}>
+            <Text style={styles.scriptureQuote}>&ldquo;{scripture}&rdquo;</Text>
+            {scriptureRef !== 'app.scriptureRef' && (
+              <Text style={styles.scriptureRef}>  {scriptureRef}</Text>
+            )}
+          </Text>
+        </View>
+      )}
+
+      {expanded && hasOtherApps && (
         <View style={styles.dropdown}>
           <Text style={styles.switchLabel}>Switch to</Text>
           {otherApps.map(app => (
@@ -129,6 +172,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    flexShrink: 1,
   },
   lflLabel: {
     fontSize: 11,
@@ -147,9 +191,45 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.white,
   },
-  rightGroup: {
+  langGroup: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 4,
+  },
+  langBtn: {
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+  },
+  langText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.55)',
+    letterSpacing: 0.5,
+  },
+  langActive: {
+    color: Colors.white,
+  },
+  langDivider: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.25)',
+  },
+  scriptureRow: {
+    backgroundColor: Colors.white,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.gray[100],
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 4,
+  },
+  scriptureText: {
+    fontSize: 11,
+    color: Colors.gray[500],
+    textAlign: 'center',
+  },
+  scriptureQuote: {
+    fontStyle: 'italic',
+  },
+  scriptureRef: {
+    color: Colors.gray[400],
   },
   dropdown: {
     backgroundColor: Colors.white,

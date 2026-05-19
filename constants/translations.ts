@@ -3,6 +3,8 @@ export const translations = {
     // App general
     'app.name': 'Magnify',
     'app.tagline': 'Stake Callings Workflow',
+    'app.scripture': 'We did magnify our office unto the Lord.',
+    'app.scriptureRef': 'Jacob 1:19',
     'app.disclaimer': 'This app is not an official app from The Church of Jesus Christ of Latter-day Saints.',
 
     // Auth - Login
@@ -281,7 +283,7 @@ export const translations = {
     'settings.manageHC': 'Manage High Council Members',
     'settings.manageUserRoles': 'Manage User Roles',
     'settings.helpInfo': 'Help & Information',
-    'settings.help': 'Help & Documentation',
+    'settings.help': 'User Guide',
     'settings.releaseNotes': 'Release Notes',
     'settings.accessPermissions': 'Access Permissions',
     'settings.slackNotifications': 'Slack Notifications',
@@ -413,7 +415,7 @@ export const translations = {
     'userRoles.revokeAccess': 'Revoke Access',
 
     // Help Screen
-    'help.title': 'Help & Documentation',
+    'help.title': 'User Guide',
     'help.about': 'About Magnify',
     'help.aboutBody': 'Magnify is a stake callings workflow management tool for The Church of Jesus Christ of Latter-day Saints. It tracks callings from initial consideration through final recording, ensuring the right people take action at each stage.',
     'help.roles': 'User Roles',
@@ -533,6 +535,8 @@ export const translations = {
     // App general
     'app.name': 'Magnify',
     'app.tagline': 'Flujo de Trabajo de Llamamientos de Estaca',
+    'app.scripture': 'Magnificamos nuestro oficio para con el Se\u00F1or.',
+    'app.scriptureRef': 'Jacob 1:19',
     'app.disclaimer': 'Esta aplicaci\u00f3n no es una aplicaci\u00f3n oficial de La Iglesia de Jesucristo de los Santos de los \u00DAltimos D\u00EDas.',
 
     // Auth - Login
@@ -811,7 +815,7 @@ export const translations = {
     'settings.manageHC': 'Administrar Miembros del Alto Consejo',
     'settings.manageUserRoles': 'Administrar Roles de Usuario',
     'settings.helpInfo': 'Ayuda e Informaci\u00f3n',
-    'settings.help': 'Ayuda y Documentaci\u00f3n',
+    'settings.help': 'Gu\u00eda del Usuario',
     'settings.releaseNotes': 'Notas de Actualizaci\u00f3n',
     'settings.accessPermissions': 'Permisos de Acceso',
     'settings.slackNotifications': 'Notificaciones de Slack',
@@ -943,7 +947,7 @@ export const translations = {
     'userRoles.revokeAccess': 'Revocar Acceso',
 
     // Help Screen
-    'help.title': 'Ayuda y Documentaci\u00f3n',
+    'help.title': 'Gu\u00eda del Usuario',
     'help.about': 'Acerca de Magnify',
     'help.aboutBody': 'Magnify es una herramienta de gesti\u00f3n del flujo de trabajo de llamamientos de estaca para La Iglesia de Jesucristo de los Santos de los \u00DAltimos D\u00EDas. Realiza un seguimiento de los llamamientos desde la consideraci\u00f3n inicial hasta el registro final, asegurando que las personas correctas tomen acci\u00f3n en cada etapa.',
     'help.roles': 'Funciones de Usuario',
