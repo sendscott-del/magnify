@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.18.3',
+    date: '2026-05-19',
+    enhancements: [
+      'Magnify glyph recolored from gold to white. The navy background is unchanged; the magnifying glass on the home-screen icon and the in-app MagnifyLogo are now white instead of gold. Aligns with the suite-wide rule that default icons are brand color + white glyph; iOS Tinted (sleep) mode then renders white-on-color as the gold-on-black look the user wants there.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.18.2',
     date: '2026-05-19',
     enhancements: [

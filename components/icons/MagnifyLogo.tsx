@@ -10,19 +10,21 @@ interface Props {
 }
 
 /**
- * Magnify brand mark. Matches the v2.18.1 home-screen / PWA icon:
+ * Magnify brand mark. Matches the v2.18.3 home-screen / PWA icon:
  *   - rounded square in Magnify navy (Colors.primary = #1B3A6B, the
  *     Gathered "M" chip), or white in `inverse`
- *   - large gold magnifying glass centered, no letter
+ *   - large white magnifying glass centered, no letter
  *
- * The white-"M" letterform that used to live here is gone; the suite-wide
- * convention is now "brand color + per-app gold accent shape," with the
- * "Magnify" wordmark appearing as adjacent text wherever the logo is used.
+ * The default look is brand color + white glyph (was gold). Sleep / iOS
+ * Tinted mode auto-renders white-on-color as gold-on-black, which is the
+ * appearance the user wants there; keeping the source glyph white instead
+ * of gold gives both modes the right color story.
  */
 export function MagnifyLogo({ size = 44, variant = 'mark', style }: Props) {
   const isInverse = variant === 'inverse';
   const containerColor = isInverse ? Colors.white : Colors.primary;
-  const accent = Colors.accent;
+  // Glyph color: white over the navy container, navy over the inverse white container.
+  const accent = isInverse ? Colors.primary : Colors.white;
   // Scale the glyph generously so the magnifier dominates the square — the
   // same proportion the rasterized home-screen icon uses.
   const glyph = size * 0.78;
