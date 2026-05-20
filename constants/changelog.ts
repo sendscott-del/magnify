@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.18.4',
+    date: '2026-05-19',
+    enhancements: [
+      'Favicon (browser tab + Chrome bookmark bar) now matches the home-screen icon. Expo\'s web template was emitting a `<link rel="icon" href="/favicon.ico" />` but we never generated a favicon.ico — browsers either 404\'d or fell back to a stale cached icon. The postbuild script now rewrites that link to point at /favicon.png (regenerated from the current navy-+-white-magnifier master).',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.18.3',
     date: '2026-05-19',
     enhancements: [

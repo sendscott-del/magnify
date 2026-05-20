@@ -63,6 +63,19 @@ if (fs.existsSync(swSrc)) {
 // 4. Inject meta tags + manifest link + SW registration script
 let html = fs.readFileSync(indexPath, 'utf-8');
 
+// Expo's web template emits `<link rel="icon" href="/favicon.ico" />` but
+// we never generate a favicon.ico. Browsers therefore either 404 or fall
+// back to a default — including in the Chrome bookmark bar, where it
+// caches a stale / wrong icon. Rewrite that link to point at favicon.png
+// so the new brand-color icon shows everywhere a favicon is needed.
+if (html.includes('/favicon.ico')) {
+  html = html.replace(
+    /<link[^>]*rel=["']icon["'][^>]*href=["']\/favicon\.ico["'][^>]*\/?>/g,
+    '<link rel="icon" type="image/png" href="/favicon.png" />'
+  );
+  console.log('[postbuild] Rewrote favicon.ico link → favicon.png');
+}
+
 const headTags = `
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
