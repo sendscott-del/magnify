@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.19.1',
+    date: '2026-05-20',
+    enhancements: [],
+    bugFixes: [
+      'Push notifications restored. The Supabase VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY secrets had been overwritten during a sibling app\'s push setup, breaking every existing Magnify push subscription. The original keypair was recovered from the local .vapid-keys.txt backup and re-set as the Supabase secret. constants/push.ts is unchanged — existing subscriptions resume working immediately, no user action required. The sibling app has been moved to a prefixed env-var namespace so this cannot recur.',
+    ],
+  },
+  {
     version: '2.19.0',
     date: '2026-05-20',
     enhancements: [
