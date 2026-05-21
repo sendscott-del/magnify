@@ -7,6 +7,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { notifySuggestion } from '../../lib/slack';
+import { supabase } from '../../lib/supabase';
+
+const SUBMIT_URL =
+  'https://isogetmvnpimcmouakeg.supabase.co/functions/v1/submit-suggestion';
 import { Colors, Spacing, Radius, FontSize } from '../../constants/theme';
 
 export function SuggestionFAB() {
@@ -20,12 +24,37 @@ export function SuggestionFAB() {
   async function handleSubmit() {
     if (!text.trim()) return;
     setSending(true);
+    const submitted = text.trim();
+    const submittedBy = profile?.full_name ?? 'Unknown';
+
+    // Fan out to (1) Slack — the long-standing pipe — and (2) the new shared
+    // cross-app inbox on Gathered Supabase, which also emails Scott via
+    // Resend. Both are best-effort; a failure in either should not block the
+    // user's "I sent it" feedback.
+    const slackTask = notifySuggestion({ suggestion: submitted, submittedBy }).catch(() => {});
+
+    let userId: string | null = null;
+    let email: string | null = null;
     try {
-      await notifySuggestion({
-        suggestion: text.trim(),
-        submittedBy: profile?.full_name ?? 'Unknown',
-      });
+      const { data } = await supabase.auth.getUser();
+      userId = data.user?.id ?? null;
+      email = data.user?.email ?? null;
     } catch (_) {}
+
+    const inboxTask = fetch(SUBMIT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        app: 'magnify',
+        suggestion: submitted,
+        submittedByName: profile?.full_name ?? null,
+        submittedByEmail: email,
+        submittedByUserId: userId,
+        pageUrl: null,
+      }),
+    }).catch(() => {});
+
+    await Promise.all([slackTask, inboxTask]);
     setSending(false);
     setText('');
     setOpen(false);

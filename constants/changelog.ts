@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.19.0',
+    date: '2026-05-20',
+    enhancements: [
+      'Suggestion FAB now also writes to the shared cross-app inbox and emails Scott. The bottom-right lightbulb has always posted to Slack; it now additionally POSTs to the new `submit-suggestion` edge function on the Gathered Supabase project, which writes a row to `public.app_suggestions` and emails Scott via Resend. Magnify joins Glean, Steward, Knit, and Tidings in feeding one tracker you can mark `in_progress` / `implemented` / `declined`. Slack delivery is unchanged — both fire in parallel and either failing does not block the user.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.18.4',
     date: '2026-05-19',
     enhancements: [
