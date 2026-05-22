@@ -28,7 +28,32 @@ interface HCMember {
   id: string; name: string; sort_order: number; active: boolean; slack_user_id: string | null;
 }
 
-type TabId = 'users' | 'sp' | 'hc';
+type TabId = 'users' | 'sp' | 'hc' | 'suite';
+
+// Mirrors public.gather_roles_catalog on the shared Supabase project.
+// Same 19 roles every app in the Gathered suite uses.
+type SuiteScope = 'stake' | 'ward';
+const SUITE_ROLES: Array<{ key: string; label: string; scope: SuiteScope }> = [
+  { key: 'stake_president', label: 'Stake President', scope: 'stake' },
+  { key: 'stake_clerk', label: 'Stake Clerk', scope: 'stake' },
+  { key: 'sp_1st_counselor', label: 'Stake Presidency 1st Counselor', scope: 'stake' },
+  { key: 'sp_2nd_counselor', label: 'Stake Presidency 2nd Counselor', scope: 'stake' },
+  { key: 'stake_exec_secretary', label: 'Stake Executive Secretary', scope: 'stake' },
+  { key: 'high_councilor', label: 'High Councilor', scope: 'stake' },
+  { key: 'hc_missionary_work', label: 'High Councilor — Missionary Work', scope: 'stake' },
+  { key: 'hc_welfare_self_reliance', label: 'High Councilor — Welfare & Self Reliance', scope: 'stake' },
+  { key: 'community_events_leader', label: 'Community Events Leader', scope: 'stake' },
+  { key: 'stake_council', label: 'Stake Council', scope: 'stake' },
+  { key: 'bishop', label: 'Bishop', scope: 'ward' },
+  { key: 'bishopric_1st_counselor', label: 'Bishopric 1st Counselor', scope: 'ward' },
+  { key: 'bishopric_2nd_counselor', label: 'Bishopric 2nd Counselor', scope: 'ward' },
+  { key: 'ward_clerk', label: 'Ward Clerk', scope: 'ward' },
+  { key: 'ward_exec_secretary', label: 'Ward Executive Secretary', scope: 'ward' },
+  { key: 'ward_council', label: 'Ward Council', scope: 'ward' },
+  { key: 'ward_org_presidency', label: 'Ward Organization Presidency', scope: 'ward' },
+  { key: 'ward_mission_leader', label: 'Ward Mission Leader', scope: 'ward' },
+  { key: 'ward_member', label: 'Ward Member', scope: 'ward' },
+];
 
 export function UserRolesScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -50,6 +75,7 @@ export function UserRolesScreen({ navigation }: any) {
           { id: 'users' as TabId, label: t('userRoles.usersTab') },
           { id: 'sp' as TabId, label: t('spAdmin.title') },
           { id: 'hc' as TabId, label: t('hcAdmin.title') },
+          { id: 'suite' as TabId, label: 'Suite' },
         ]).map(tab => (
           <TouchableOpacity
             key={tab.id}
@@ -65,6 +91,7 @@ export function UserRolesScreen({ navigation }: any) {
         {activeTab === 'users' && <UsersTab />}
         {activeTab === 'sp' && <SPTab />}
         {activeTab === 'hc' && <HCTab />}
+        {activeTab === 'suite' && <SuiteTab />}
       </ScrollView>
     </View>
   );
@@ -536,4 +563,240 @@ const styles = StyleSheet.create({
   modalHint: { fontSize: FontSize.xs, color: Colors.gray[400], marginBottom: Spacing.md },
   modalButtons: { flexDirection: 'row', gap: Spacing.sm },
   modalBtn: { flex: 1 },
+  // SuiteTab styles
+  suiteUserRow: {
+    padding: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.gray[100],
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.sm,
+  },
+  suiteUserInfo: { flex: 1 },
+  suiteUserEmail: { fontSize: FontSize.sm, fontWeight: '500', color: Colors.gray[800] },
+  suiteRoleBadgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 4 },
+  suiteRoleBadge: {
+    paddingHorizontal: 6, paddingVertical: 2,
+    backgroundColor: '#EEF2FF', borderColor: '#C7D2FE', borderWidth: 1,
+    borderRadius: 4,
+  },
+  suiteRoleBadgeText: { fontSize: 10, color: '#3730A3' },
+  suiteEditBtn: {
+    paddingHorizontal: Spacing.sm, paddingVertical: 6,
+    borderWidth: 1, borderColor: Colors.gray[300], borderRadius: Radius.sm,
+  },
+  suiteEditBtnText: { fontSize: FontSize.xs, color: Colors.gray[700], fontWeight: '500' },
+  suiteRoleRow: {
+    flexDirection: 'row', alignItems: 'center',
+    paddingVertical: 8, paddingHorizontal: 10,
+    borderWidth: 1, borderRadius: Radius.sm, marginBottom: 6,
+  },
+  suiteRoleRowChecked: { backgroundColor: '#EEF2FF', borderColor: '#A5B4FC' },
+  suiteRoleRowUnchecked: { backgroundColor: Colors.white, borderColor: Colors.gray[200] },
+  suiteRoleCheck: { width: 18, height: 18, borderWidth: 1.5, borderColor: Colors.gray[400], borderRadius: 3, marginRight: 8, alignItems: 'center', justifyContent: 'center' },
+  suiteRoleCheckOn: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  suiteRoleLabel: { flex: 1, fontSize: FontSize.sm, color: Colors.gray[800] },
+  suiteRoleScope: { fontSize: 10, color: Colors.gray[400], textTransform: 'uppercase', letterSpacing: 0.5 },
+  suiteWardPicker: { marginTop: 6, paddingHorizontal: 6 },
+  suiteWardChipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4 },
+  suiteWardChip: { paddingHorizontal: 6, paddingVertical: 3, borderWidth: 1, borderColor: Colors.gray[200], borderRadius: 4 },
+  suiteWardChipOn: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  suiteWardChipText: { fontSize: 11, color: Colors.gray[700] },
+  suiteWardChipTextOn: { color: Colors.white, fontWeight: '600' },
 });
+
+// ─── Suite Tab — 19 Gathered roles ───
+// Writes to public.gather_user_roles on the shared Supabase project via the
+// gather_grant_role / gather_revoke_role RPCs. Same source of truth Glean,
+// Knit, Steward, and the Tidings sync all read from.
+
+interface SuiteUser { user_id: string; email: string | null }
+interface SuiteRoleRow { email: string; role_key: string; ward: string | null }
+interface SuiteDraft { role_key: string; ward: string | null }
+interface SuiteWard { id: string; name: string }
+
+function SuiteTab() {
+  const [users, setUsers] = useState<SuiteUser[]>([]);
+  const [wards, setWards] = useState<SuiteWard[]>([]);
+  const [roleRows, setRoleRows] = useState<SuiteRoleRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState<SuiteUser | null>(null);
+  const [draft, setDraft] = useState<SuiteDraft[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [filter, setFilter] = useState('');
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    const [usersRes, wardsRes, rolesRes] = await Promise.all([
+      supabase.from('gather_app_users').select('user_id, email').order('email'),
+      supabase.from('wards').select('id, name').order('name'),
+      supabase.from('gather_user_roles').select('email, role_key, ward').is('revoked_at', null),
+    ]);
+    setUsers((usersRes.data ?? []) as SuiteUser[]);
+    setWards((wardsRes.data ?? []) as SuiteWard[]);
+    setRoleRows((rolesRes.data ?? []) as SuiteRoleRow[]);
+    setLoading(false);
+  }, []);
+
+  useFocusEffect(useCallback(() => { void refresh(); }, [refresh]));
+
+  const rolesByEmail: Record<string, SuiteRoleRow[]> = {};
+  for (const r of roleRows) {
+    const key = r.email.toLowerCase();
+    if (!rolesByEmail[key]) rolesByEmail[key] = [];
+    rolesByEmail[key].push(r);
+  }
+
+  function openEdit(u: SuiteUser) {
+    setEditing(u);
+    const existing = rolesByEmail[(u.email ?? '').toLowerCase()] ?? [];
+    setDraft(existing.map(r => ({ role_key: r.role_key, ward: r.ward })));
+  }
+
+  function toggleRole(roleKey: string) {
+    setDraft(prev => {
+      const has = prev.some(d => d.role_key === roleKey);
+      if (has) return prev.filter(d => d.role_key !== roleKey);
+      return [...prev, { role_key: roleKey, ward: null }];
+    });
+  }
+
+  function setWardForRole(roleKey: string, ward: string | null) {
+    setDraft(prev => prev.map(d => d.role_key === roleKey ? { ...d, ward } : d));
+  }
+
+  async function saveRoles() {
+    if (!editing?.email) return;
+    setSaving(true);
+    try {
+      const email = editing.email;
+      const existing = rolesByEmail[email.toLowerCase()] ?? [];
+      const sameKey = (a: SuiteDraft, b: SuiteDraft) =>
+        a.role_key === b.role_key && (a.ward ?? null) === (b.ward ?? null);
+      const toAdd = draft.filter(d => !existing.some(e => sameKey(e, d)));
+      const toRemove = existing.filter(e => !draft.some(d => sameKey(e, d)));
+
+      for (const r of toRemove) {
+        const { error } = await supabase.rpc('gather_revoke_role', {
+          p_email: email, p_role: r.role_key, p_ward: r.ward,
+        });
+        if (error) throw new Error(`Revoke ${r.role_key}: ${error.message}`);
+      }
+      for (const r of toAdd) {
+        const { error } = await supabase.rpc('gather_grant_role', {
+          p_email: email, p_role: r.role_key, p_ward: r.ward, p_full_name: null,
+        });
+        if (error) throw new Error(`Grant ${r.role_key}: ${error.message}`);
+      }
+      setEditing(null);
+      await refresh();
+    } catch (e) {
+      Alert.alert('Save failed', (e as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const filtered = users.filter(u => !filter || (u.email ?? '').toLowerCase().includes(filter.toLowerCase()));
+
+  if (loading) {
+    return <View style={{ padding: Spacing.lg }}><ActivityIndicator /></View>;
+  }
+
+  return (
+    <View>
+      <Text style={{ fontSize: FontSize.xs, color: Colors.gray[500], paddingHorizontal: Spacing.md, paddingTop: Spacing.sm }}>
+        Assign the 19 Gathered suite roles. One person can hold multiple roles. Stake roles cover the whole stake;
+        ward roles need a ward picked. Writes flow to every Gathered app via the shared gather_user_roles table.
+      </Text>
+
+      <TextInput
+        value={filter}
+        onChangeText={setFilter}
+        placeholder="Filter by email…"
+        style={[styles.modalInput, { marginHorizontal: Spacing.md, marginTop: Spacing.sm }]}
+        placeholderTextColor={Colors.gray[400]}
+      />
+
+      {filtered.map(u => {
+        const roles = rolesByEmail[(u.email ?? '').toLowerCase()] ?? [];
+        return (
+          <View key={u.user_id} style={styles.suiteUserRow}>
+            <View style={styles.suiteUserInfo}>
+              <Text style={styles.suiteUserEmail}>{u.email ?? '(no email)'}</Text>
+              <View style={styles.suiteRoleBadgeRow}>
+                {roles.length === 0 && (
+                  <Text style={{ fontSize: 11, color: Colors.gray[400], fontStyle: 'italic' }}>No suite roles</Text>
+                )}
+                {roles.map(r => {
+                  const def = SUITE_ROLES.find(s => s.key === r.role_key);
+                  return (
+                    <View key={`${r.role_key}-${r.ward ?? ''}`} style={styles.suiteRoleBadge}>
+                      <Text style={styles.suiteRoleBadgeText}>
+                        {def?.label ?? r.role_key}{r.ward ? ` · ${r.ward}` : ''}
+                      </Text>
+                    </View>
+                  );
+                })}
+              </View>
+            </View>
+            <TouchableOpacity onPress={() => openEdit(u)} disabled={!u.email} style={styles.suiteEditBtn}>
+              <Text style={styles.suiteEditBtnText}>Edit</Text>
+            </TouchableOpacity>
+          </View>
+        );
+      })}
+
+      <Modal visible={!!editing} animationType="slide" transparent onRequestClose={() => setEditing(null)}>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { maxWidth: 500, maxHeight: '90%' }]}>
+            <Text style={styles.modalTitle}>Suite roles</Text>
+            <Text style={styles.modalName}>{editing?.email}</Text>
+            <ScrollView style={{ maxHeight: 420 }}>
+              {SUITE_ROLES.map(role => {
+                const sel = draft.find(d => d.role_key === role.key);
+                const selected = !!sel;
+                return (
+                  <View
+                    key={role.key}
+                    style={[styles.suiteRoleRow, selected ? styles.suiteRoleRowChecked : styles.suiteRoleRowUnchecked]}
+                  >
+                    <TouchableOpacity onPress={() => toggleRole(role.key)} style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                      <View style={[styles.suiteRoleCheck, selected && styles.suiteRoleCheckOn]}>
+                        {selected && <Ionicons name="checkmark" size={12} color={Colors.white} />}
+                      </View>
+                      <Text style={styles.suiteRoleLabel}>{role.label}</Text>
+                      <Text style={styles.suiteRoleScope}>{role.scope}</Text>
+                    </TouchableOpacity>
+                    {selected && role.scope === 'ward' && (
+                      <View style={[styles.suiteWardPicker, { width: '100%' }]}>
+                        <View style={styles.suiteWardChipRow}>
+                          {wards.map(w => {
+                            const isOn = sel?.ward === w.name;
+                            return (
+                              <TouchableOpacity
+                                key={w.id}
+                                onPress={() => setWardForRole(role.key, isOn ? null : w.name)}
+                                style={[styles.suiteWardChip, isOn && styles.suiteWardChipOn]}
+                              >
+                                <Text style={[styles.suiteWardChipText, isOn && styles.suiteWardChipTextOn]}>{w.name}</Text>
+                              </TouchableOpacity>
+                            );
+                          })}
+                        </View>
+                      </View>
+                    )}
+                  </View>
+                );
+              })}
+            </ScrollView>
+            <View style={[styles.modalButtons, { marginTop: Spacing.md }]}>
+              <Button title="Cancel" onPress={() => setEditing(null)} variant="secondary" style={styles.modalBtn} />
+              <Button title={saving ? 'Saving…' : 'Save'} onPress={() => void saveRoles()} disabled={saving} style={styles.modalBtn} />
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+}

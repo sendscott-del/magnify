@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.20.0',
+    date: '2026-05-22',
+    enhancements: [
+      'User Roles screen has a new "Suite" tab alongside Users / SP / HC. Lets stake-suite super admins assign any of the 19 Gathered roles to any signed-in user — Stake President through Ward Member. Multi-role-per-person; ward-scoped roles get a ward chip picker. Writes to the shared `gather_user_roles` table — same source of truth Glean / Knit / Steward read from and that Tidings syncs into. Existing Magnify-specific role plumbing (`profiles.role`, sp_members, hc_members) is unchanged; the suite tab layers on top for cross-app visibility.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.19.1',
     date: '2026-05-20',
     enhancements: [],
