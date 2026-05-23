@@ -9,6 +9,15 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.21.1',
+    date: '2026-05-23',
+    enhancements: [
+      'User Roles screen header now reads "User Roles" (was "Manage Members") — matches the Settings entry that opens it.',
+      'User Guide audited against the redesigned Settings tab: Slack section, Stake Clerk / Executive Secretary role descriptions, and the "How do I add a user?" / "How do I add Slack notifications?" FAQ entries all updated to reference Settings → User roles and Settings → Pending access (the old "Manage Users" / "Manage HC Members" / "Manage Stake Presidency Members" paths are gone). New User Guide sections cover the Settings tab layout and the unified User Roles screen, plus a new FAQ entry on how to set a Slack User ID so @-mentions land. Both English and Spanish updated.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.21.0',
     date: '2026-05-23',
     enhancements: [

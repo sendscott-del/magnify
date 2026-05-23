@@ -169,6 +169,17 @@ export function HelpScreen({ navigation }: any) {
           <Text style={styles.body}>{t('help.aboutBody')}</Text>
         </Section>
 
+        <Section title={t('help.settings')}>
+          <Text style={styles.body}>{t('help.settingsBody1')}</Text>
+          <Text style={[styles.body, { marginTop: Spacing.xs }]}>{t('help.settingsBody2')}</Text>
+          <Text style={[styles.body, { marginTop: Spacing.xs }]}>{t('help.settingsBody3')}</Text>
+          <Text style={[styles.body, { marginTop: Spacing.xs }]}>{t('help.settingsBody4')}</Text>
+        </Section>
+
+        <Section title={t('help.userRoles')}>
+          <Text style={styles.body}>{t('help.userRolesBody')}</Text>
+        </Section>
+
         <Section title={t('help.roles')}>
           <Item
             label={t('role.stake_president')}
@@ -247,6 +258,10 @@ export function HelpScreen({ navigation }: any) {
           <Item
             label={t('help.faq.slack')}
             description={t('help.faq.slackDesc')}
+          />
+          <Item
+            label={t('help.faq.slackId')}
+            description={t('help.faq.slackIdDesc')}
           />
           <Item
             label={t('help.faq.undo')}
