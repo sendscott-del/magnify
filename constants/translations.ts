@@ -413,8 +413,46 @@ export const translations = {
     'userRoles.removeConfirm': 'Revoke access for',
     'userRoles.remove': 'Revoke',
     'userRoles.revokeAccess': 'Revoke Access',
+    'userRoles.suiteTab': 'Suite',
+    'userRoles.searchPlaceholder': 'Search by name, email, role',
+    'userRoles.add': 'Add',
+    'userRoles.peopleCount': 'people',
+    'userRoles.editUser': 'Edit user',
+    'userRoles.addUser': 'Add user',
+    'userRoles.fieldName': 'Name',
+    'userRoles.fieldEmail': 'Email',
+    'userRoles.fieldRole': 'Role',
+    'userRoles.fieldSlackId': 'Slack user ID',
+    'userRoles.namePlaceholder': 'Full name',
+    'userRoles.slackIdPlaceholder': '@username or U01234',
+    'userRoles.slackIdHint': 'Used for @-mentions in Slack notifications',
+
+    // Settings — Option B layout sections + rows
+    'settings.adminSection': 'Admin',
+    'settings.integrationsSection': 'Integrations',
+    'settings.preferencesSection': 'Preferences',
+    'settings.helpSection': 'Help',
+    'settings.appSection': 'App',
+    'settings.pendingAccess': 'Pending access',
+    'settings.pendingAccessSub': 'Approve / assign role',
+    'settings.userRoles': 'User roles',
+    'settings.usersSub': 'users',
+    'settings.slackSubOf': 'of',
+    'settings.slackSubActive': 'active',
+    'settings.demoMode': 'Demo mode',
+    'settings.userGuide': 'User guide',
+    'settings.userGuideSub': 'App overview, permissions, FAQ',
+    'settings.manageGather': 'Manage Gather user access ↗',
+
+    // Pending access screen
+    'pendingAccess.title': 'Pending Access',
+
+    // Slack settings screen
+    'slackSettings.activeOf': 'of',
+    'slackSettings.active': 'active',
 
     // Help Screen
+    'help.accessPermissions': 'Access Permissions',
     'help.title': 'User Guide',
     'help.about': 'About Magnify',
     'help.aboutBody': 'Magnify is a stake callings workflow management tool for The Church of Jesus Christ of Latter-day Saints. It tracks callings from initial consideration through final recording, ensuring the right people take action at each stage.',
@@ -945,8 +983,46 @@ export const translations = {
     'userRoles.removeConfirm': 'Revocar acceso para',
     'userRoles.remove': 'Revocar',
     'userRoles.revokeAccess': 'Revocar Acceso',
+    'userRoles.suiteTab': 'Suite',
+    'userRoles.searchPlaceholder': 'Buscar por nombre, correo, rol',
+    'userRoles.add': 'A\u00f1adir',
+    'userRoles.peopleCount': 'personas',
+    'userRoles.editUser': 'Editar usuario',
+    'userRoles.addUser': 'A\u00f1adir usuario',
+    'userRoles.fieldName': 'Nombre',
+    'userRoles.fieldEmail': 'Correo',
+    'userRoles.fieldRole': 'Rol',
+    'userRoles.fieldSlackId': 'ID de usuario de Slack',
+    'userRoles.namePlaceholder': 'Nombre completo',
+    'userRoles.slackIdPlaceholder': '@usuario o U01234',
+    'userRoles.slackIdHint': 'Se usa para menciones @ en las notificaciones de Slack',
+
+    // Settings \u2014 Option B layout sections + rows
+    'settings.adminSection': 'Admin',
+    'settings.integrationsSection': 'Integraciones',
+    'settings.preferencesSection': 'Preferencias',
+    'settings.helpSection': 'Ayuda',
+    'settings.appSection': 'Aplicaci\u00f3n',
+    'settings.pendingAccess': 'Acceso pendiente',
+    'settings.pendingAccessSub': 'Aprobar / asignar rol',
+    'settings.userRoles': 'Roles de usuario',
+    'settings.usersSub': 'usuarios',
+    'settings.slackSubOf': 'de',
+    'settings.slackSubActive': 'activos',
+    'settings.demoMode': 'Modo demo',
+    'settings.userGuide': 'Gu\u00eda del usuario',
+    'settings.userGuideSub': 'Resumen, permisos, preguntas',
+    'settings.manageGather': 'Gestionar acceso de Gather \u2197',
+
+    // Pending access screen
+    'pendingAccess.title': 'Acceso Pendiente',
+
+    // Slack settings screen
+    'slackSettings.activeOf': 'de',
+    'slackSettings.active': 'activos',
 
     // Help Screen
+    'help.accessPermissions': 'Permisos de Acceso',
     'help.title': 'Gu\u00eda del Usuario',
     'help.about': 'Acerca de Magnify',
     'help.aboutBody': 'Magnify es una herramienta de gesti\u00f3n del flujo de trabajo de llamamientos de estaca para La Iglesia de Jesucristo de los Santos de los \u00DAltimos D\u00EDas. Realiza un seguimiento de los llamamientos desde la consideraci\u00f3n inicial hasta el registro final, asegurando que las personas correctas tomen acci\u00f3n en cada etapa.',

@@ -1,122 +1,116 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Alert, Platform, TextInput,
+  Alert, Platform, Linking,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
-import { Profile, UserRole } from '../../lib/database.types';
-import { Button } from '../../components/ui/Button';
+import { UserRole } from '../../lib/database.types';
 import { DisclaimerFooter } from '../../components/ui/DisclaimerFooter';
 import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme';
 import { ROLE_LABELS } from '../../constants/callings';
-import { Ionicons } from '@expo/vector-icons';
-import { notifyAccessApproved, notifySuggestion } from '../../lib/slack';
 import { CHANGELOG } from '../../constants/changelog';
 import { useLanguage } from '../../context/LanguageContext';
 import { useDemoMode } from '../../context/DemoModeContext';
 
-interface SlackSetting { id: string; event_type: string; webhook_url: string; active: boolean; }
+interface RowProps {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  sub?: string;
+  right?: React.ReactNode;
+  onPress?: () => void;
+  chevron?: boolean;
+  danger?: boolean;
+  last?: boolean;
+}
+
+function Row({ icon, label, sub, right, onPress, chevron = true, danger, last }: RowProps) {
+  const Touchable: any = onPress ? TouchableOpacity : View;
+  return (
+    <Touchable
+      onPress={onPress}
+      activeOpacity={onPress ? 0.6 : 1}
+      style={[styles.row, last && styles.rowLast]}
+    >
+      <View style={[styles.rowIcon, danger && styles.rowIconDanger]}>
+        <Ionicons name={icon} size={16} color={danger ? Colors.error : Colors.primary} />
+      </View>
+      <View style={styles.rowText}>
+        <Text style={[styles.rowLabel, danger && styles.rowLabelDanger]}>{label}</Text>
+        {sub && <Text style={styles.rowSub}>{sub}</Text>}
+      </View>
+      {right && <View style={styles.rowRight}>{right}</View>}
+      {chevron && !right && (
+        <Ionicons name="chevron-forward" size={18} color={Colors.gray[400]} />
+      )}
+    </Touchable>
+  );
+}
+
+function Section({ label, children }: { label?: string; children: React.ReactNode }) {
+  return (
+    <View style={styles.section}>
+      {label && <Text style={styles.sectionLabel}>{label}</Text>}
+      <View style={styles.card}>{children}</View>
+    </View>
+  );
+}
+
+function Toggle({ on, onPress }: { on: boolean; onPress: () => void }) {
+  return (
+    <TouchableOpacity onPress={onPress} activeOpacity={0.7}
+      style={[styles.toggleTrack, on && styles.toggleTrackOn]}>
+      <View style={[styles.toggleThumb, on && styles.toggleThumbOn]} />
+    </TouchableOpacity>
+  );
+}
+
+function Segmented({ options, active, onChange }: { options: { value: string; label: string }[]; active: string; onChange: (v: string) => void }) {
+  return (
+    <View style={styles.seg}>
+      {options.map(o => (
+        <TouchableOpacity
+          key={o.value}
+          onPress={() => onChange(o.value)}
+          style={[styles.segBtn, active === o.value && styles.segBtnActive]}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.segText, active === o.value && styles.segTextActive]}>{o.label}</Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+}
 
 export function SettingsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { profile, signOut, isAdmin } = useAuth();
   const { t, language, setLanguage } = useLanguage();
   const { demoMode, setDemoMode } = useDemoMode();
-  const [pendingUsers, setPendingUsers] = useState<Profile[]>([]);
-  const [pendingRoles, setPendingRoles] = useState<Record<string, UserRole>>({});
-  const [approving, setApproving] = useState<Record<string, boolean>>({});
-  const [rejecting, setRejecting] = useState<Record<string, boolean>>({});
-  const [slackSettings, setSlackSettings] = useState<SlackSetting[]>([]);
-  const [slackDraft, setSlackDraft] = useState<Record<string, string>>({});
-  const [slackSaving, setSlackSaving] = useState<Record<string, boolean>>({});
-  const [slackTesting, setSlackTesting] = useState<Record<string, boolean>>({});
-  const [showSuggestion, setShowSuggestion] = useState(false);
-  const [suggestionText, setSuggestionText] = useState('');
-  const [suggestionSending, setSuggestionSending] = useState(false);
-  const [suggestionSent, setSuggestionSent] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [userCount, setUserCount] = useState(0);
+  const [slackActive, setSlackActive] = useState(0);
 
-  const fetchPendingUsers = useCallback(async () => {
+  const fetchCounts = useCallback(async () => {
     if (!isAdmin) return;
-    const { data } = await supabase.from('profiles').select('*').eq('status', 'pending').order('created_at');
-    const users = (data as Profile[]) ?? [];
-    setPendingUsers(users);
-    const roleDefaults: Record<string, UserRole> = {};
-    users.forEach(u => { roleDefaults[u.id] = (u.role as UserRole) || 'stake_clerk'; });
-    setPendingRoles(prev => ({ ...roleDefaults, ...prev }));
+    const [pending, users, slack] = await Promise.all([
+      supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+      supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
+      supabase.from('slack_settings').select('id', { count: 'exact', head: true }).eq('active', true),
+    ]);
+    setPendingCount(pending.count ?? 0);
+    setUserCount(users.count ?? 0);
+    setSlackActive(slack.count ?? 0);
   }, [isAdmin]);
 
-  const fetchSlackSettings = useCallback(async () => {
-    const { data } = await supabase.from('slack_settings').select('*').order('event_type');
-    const rows = (data as SlackSetting[]) ?? [];
-    setSlackSettings(rows);
-    const drafts: Record<string, string> = {};
-    rows.forEach(r => { drafts[r.event_type] = r.webhook_url; });
-    setSlackDraft(drafts);
-  }, []);
-
-  useFocusEffect(useCallback(() => {
-    fetchPendingUsers();
-    fetchSlackSettings();
-  }, [fetchPendingUsers, fetchSlackSettings]));
-
-  async function testSlackWebhook(eventType: string) {
-    const url = slackSettings.find(s => s.event_type === eventType)?.webhook_url;
-    if (!url) return;
-    setSlackTesting(prev => ({ ...prev, [eventType]: true }));
-    try {
-      await fetch(url, {
-        method: 'POST', mode: 'no-cors',
-        body: JSON.stringify({ text: '✅ *Magnify test* — Slack integration is working!' }),
-      });
-      if (Platform.OS === 'web') window.alert(t('settings.slackTestSent'));
-      else Alert.alert(t('settings.sent'), t('settings.slackTestSent'));
-    } catch {
-      if (Platform.OS === 'web') window.alert(t('settings.slackTestFailed'));
-      else Alert.alert(t('common.error'), t('settings.slackTestFailed'));
-    }
-    setSlackTesting(prev => ({ ...prev, [eventType]: false }));
-  }
-
-  async function saveSlackWebhook(eventType: string) {
-    const url = (slackDraft[eventType] ?? '').trim();
-    setSlackSaving(prev => ({ ...prev, [eventType]: true }));
-    const existing = slackSettings.find(s => s.event_type === eventType);
-    if (existing) {
-      await supabase.from('slack_settings').update({ webhook_url: url, active: !!url }).eq('id', existing.id);
-    } else if (url) {
-      await supabase.from('slack_settings').insert({ event_type: eventType, webhook_url: url, active: true });
-    }
-    await fetchSlackSettings();
-    setSlackSaving(prev => ({ ...prev, [eventType]: false }));
-  }
-
-  async function handleApprove(userId: string) {
-    setApproving(prev => ({ ...prev, [userId]: true }));
-    const user = pendingUsers.find(u => u.id === userId);
-    const assignedRole = pendingRoles[userId] ?? 'stake_clerk';
-    await supabase.from('profiles').update({ status: 'approved', role: assignedRole }).eq('id', userId);
-    if (user) {
-      notifyAccessApproved({ name: user.full_name, email: user.email, role: ROLE_LABELS[assignedRole] }).catch(() => {});
-    }
-    setPendingUsers(prev => prev.filter(u => u.id !== userId));
-    setApproving(prev => ({ ...prev, [userId]: false }));
-  }
-
-  async function handleReject(userId: string) {
-    setRejecting(prev => ({ ...prev, [userId]: true }));
-    await supabase.from('profiles').update({ status: 'rejected' }).eq('id', userId);
-    setPendingUsers(prev => prev.filter(u => u.id !== userId));
-    setRejecting(prev => ({ ...prev, [userId]: false }));
-  }
+  useFocusEffect(useCallback(() => { fetchCounts(); }, [fetchCounts]));
 
   function handleSignOut() {
     if (Platform.OS === 'web') {
-      if (window.confirm(t('settings.signOutConfirm'))) {
-        signOut();
-      }
+      if (window.confirm(t('settings.signOutConfirm'))) signOut();
     } else {
       Alert.alert(t('settings.signOut'), t('settings.signOutConfirm'), [
         { text: t('detail.cancel'), style: 'cancel' },
@@ -126,24 +120,17 @@ export function SettingsScreen({ navigation }: any) {
   }
 
   function handleReload() {
-    if (Platform.OS === 'web') {
-      window.location.reload();
-    }
+    if (Platform.OS === 'web') window.location.reload();
   }
 
-  async function handleSubmitSuggestion() {
-    if (!suggestionText.trim()) return;
-    setSuggestionSending(true);
-    await notifySuggestion({
-      suggestion: suggestionText.trim(),
-      submittedBy: profile?.full_name ?? 'Unknown',
-    });
-    setSuggestionSending(false);
-    setSuggestionText('');
-    setSuggestionSent(true);
-    setTimeout(() => setSuggestionSent(false), 3000);
-    setShowSuggestion(false);
+  function openGather() {
+    const url = 'https://stewards-indeed.vercel.app/admin/gather';
+    if (Platform.OS === 'web') window.open(url, '_blank');
+    else Linking.openURL(url);
   }
+
+  const initials = (profile?.full_name ?? '').split(' ').map(s => s[0]).slice(0, 2).join('').toUpperCase();
+  const version = CHANGELOG[0]?.version ?? '1.0.0';
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -152,245 +139,140 @@ export function SettingsScreen({ navigation }: any) {
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        {/* Profile Info */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('settings.myProfile')}</Text>
-          {profile && (
-            <>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>{t('settings.name')}</Text>
-                <Text style={styles.infoValue}>{profile.full_name}</Text>
+        {/* Profile card */}
+        <View style={styles.profileCard}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{initials || '—'}</Text>
+          </View>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <View style={styles.profileTopRow}>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={styles.profileName} numberOfLines={1}>{profile?.full_name ?? '—'}</Text>
+                <Text style={styles.profileEmail} numberOfLines={1}>{profile?.email ?? ''}</Text>
               </View>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>{t('settings.email')}</Text>
-                <Text style={styles.infoValue}>{profile.email}</Text>
-              </View>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>{t('settings.roleLabel')}</Text>
-                <Text style={styles.infoValue}>{ROLE_LABELS[profile.role as UserRole]}</Text>
-              </View>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>{t('settings.statusLabel')}</Text>
-                <View style={[styles.statusChip, profile.status === 'approved' ? styles.statusApproved : styles.statusPending]}>
-                  <Text style={[styles.statusText, profile.status === 'approved' ? styles.statusTextApproved : styles.statusTextPending]}>
-                    {profile.status.charAt(0).toUpperCase() + profile.status.slice(1)}
-                  </Text>
+              {profile?.status === 'approved' && (
+                <View style={styles.approvedChip}>
+                  <Text style={styles.approvedChipText}>{t('settings.approved').toLowerCase()}</Text>
                 </View>
-              </View>
-            </>
-          )}
+              )}
+            </View>
+            <View style={styles.profileRoleRow}>
+              <Text style={styles.profileRoleLabel}>{t('settings.roleLabel')}</Text>
+              <Text style={styles.profileRoleValue}>
+                {profile ? ROLE_LABELS[profile.role as UserRole] : ''}
+              </Text>
+            </View>
+          </View>
         </View>
 
-        {/* Admin: Manage Users */}
+        {/* Admin */}
         {isAdmin && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('settings.manageUsers')}</Text>
-            {pendingUsers.length === 0 ? (
-              <View style={styles.emptyUsers}>
-                <Text style={styles.emptyUsersText}>{t('settings.noPending')}</Text>
-              </View>
-            ) : (
-              pendingUsers.map(u => (
-                <View key={u.id} style={styles.userCard}>
-                  <Text style={styles.userName}>{u.full_name}</Text>
-                  <Text style={styles.userEmail}>{u.email}</Text>
-                  <Text style={styles.userRoleLabel}>{t('settings.assignRole')}</Text>
-                  <View style={styles.roleChipRow}>
-                    {(['stake_president', 'first_counselor', 'second_counselor', 'high_councilor', 'stake_clerk', 'exec_secretary'] as UserRole[]).map(r => (
-                      <TouchableOpacity
-                        key={r}
-                        style={[styles.roleChip, pendingRoles[u.id] === r && styles.roleChipActive]}
-                        onPress={() => setPendingRoles(prev => ({ ...prev, [u.id]: r }))}
-                      >
-                        <Text style={[styles.roleChipText, pendingRoles[u.id] === r && styles.roleChipTextActive]}>
-                          {ROLE_LABELS[r]}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                  <View style={styles.userActions}>
-                    <TouchableOpacity
-                      style={[styles.approveBtn, approving[u.id] && styles.btnDisabled]}
-                      onPress={() => handleApprove(u.id)}
-                      disabled={approving[u.id]}
-                    >
-                      <Text style={styles.approveBtnText}>
-                        {approving[u.id] ? '…' : t('settings.approve')}
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.rejectBtn, rejecting[u.id] && styles.btnDisabled]}
-                      onPress={() => handleReject(u.id)}
-                      disabled={rejecting[u.id]}
-                    >
-                      <Text style={styles.rejectBtnText}>
-                        {rejecting[u.id] ? '…' : t('settings.reject')}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
+          <Section label={t('settings.adminSection')}>
+            <Row
+              icon="time-outline"
+              label={t('settings.pendingAccess')}
+              sub={t('settings.pendingAccessSub')}
+              right={pendingCount > 0 ? (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{pendingCount}</Text>
                 </View>
-              ))
-            )}
-          </View>
+              ) : undefined}
+              onPress={() => navigation.navigate('PendingAccess')}
+            />
+            <Row
+              icon="people-outline"
+              label={t('settings.userRoles')}
+              sub={`${userCount} ${t('settings.usersSub')}`}
+              onPress={() => navigation.navigate('UserRoles')}
+              last
+            />
+          </Section>
         )}
 
-        {/* Leadership */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('settings.leadership')}</Text>
-          <Button
-            title={t('settings.manageUserRoles')}
-            onPress={() => navigation.navigate('UserRoles')}
-            variant="outline"
-            fullWidth
-            style={styles.actionBtn}
-          />
-        </View>
+        {/* Integrations */}
+        {isAdmin && (
+          <Section label={t('settings.integrationsSection')}>
+            <Row
+              icon="chatbubble-ellipses-outline"
+              label={t('settings.slackNotifications')}
+              sub={`${slackActive} ${t('settings.slackSubOf')} 5 ${t('settings.slackSubActive')}`}
+              onPress={() => navigation.navigate('SlackSettings')}
+              last
+            />
+          </Section>
+        )}
 
-        {/* Help & Info */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('settings.helpInfo')}</Text>
-          <Button
-            title={t('settings.help')}
+        {/* Preferences */}
+        <Section label={t('settings.preferencesSection')}>
+          <Row
+            icon="language-outline"
+            label={t('settings.language')}
+            chevron={false}
+            right={
+              <Segmented
+                options={[
+                  { value: 'en', label: 'EN' },
+                  { value: 'es', label: 'ES' },
+                ]}
+                active={language}
+                onChange={(v) => setLanguage(v as any)}
+              />
+            }
+          />
+          <Row
+            icon="contrast-outline"
+            label={t('settings.demoMode')}
+            chevron={false}
+            right={<Toggle on={demoMode} onPress={() => setDemoMode(!demoMode)} />}
+            last
+          />
+        </Section>
+
+        {/* Help */}
+        <Section label={t('settings.helpSection')}>
+          <Row
+            icon="help-circle-outline"
+            label={t('settings.userGuide')}
+            sub={t('settings.userGuideSub')}
             onPress={() => navigation.navigate('Help')}
-            variant="outline"
-            fullWidth
-            style={styles.actionBtn}
           />
-          <Button
-            title={t('settings.releaseNotes')}
+          <Row
+            icon="sparkles-outline"
+            label={t('settings.releaseNotes')}
+            right={<Text style={styles.versionRight}>v{version}</Text>}
+            chevron={false}
             onPress={() => navigation.navigate('ReleaseNotes')}
-            variant="outline"
-            fullWidth
-            style={styles.actionBtn}
+            last
           />
-          {profile?.role === 'stake_president' && (
-            <Button
-              title={t('settings.accessPermissions')}
-              onPress={() => navigation.navigate('Permissions')}
-              variant="outline"
-              fullWidth
-              style={styles.actionBtn}
-            />
-          )}
-        </View>
+        </Section>
 
-        {/* Slack */}
-        {isAdmin && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('settings.slackNotifications')}</Text>
-            <Text style={styles.slackHint}>{t('settings.slackHint')}</Text>
-            {[
-              { key: 'sp_stage_change', label: t('settings.spBoardWebhook') },
-              { key: 'hc_stage_change', label: t('settings.hcBoardWebhook') },
-              { key: 'rejection', label: t('settings.rejectionWebhook') },
-              { key: 'user_access_request', label: t('settings.accessRequestWebhook') },
-              { key: 'user_access_approved', label: t('settings.accessApprovedWebhook') },
-            ].map(({ key, label }) => {
-              const active = slackSettings.find(s => s.event_type === key)?.active;
-              return (
-                <View key={key} style={styles.slackRow}>
-                  <View style={styles.slackLabelRow}>
-                    <Text style={styles.slackLabel}>{label}</Text>
-                    {active && <Text style={styles.slackActive}>● {t('settings.active')}</Text>}
-                  </View>
-                  <View style={styles.slackInputRow}>
-                    <TextInput
-                      style={styles.slackInput}
-                      value={slackDraft[key] ?? ''}
-                      onChangeText={v => setSlackDraft(prev => ({ ...prev, [key]: v }))}
-                      placeholder={t('settings.webhookPlaceholder')}
-                      placeholderTextColor={Colors.gray[400]}
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                    />
-                    <TouchableOpacity
-                      style={[styles.slackSaveBtn, slackSaving[key] && styles.btnDisabled]}
-                      onPress={() => saveSlackWebhook(key)}
-                      disabled={slackSaving[key]}
-                    >
-                      <Text style={styles.slackSaveBtnText}>{slackSaving[key] ? '…' : t('settings.save')}</Text>
-                    </TouchableOpacity>
-                    {active && (
-                      <TouchableOpacity
-                        style={[styles.slackTestBtn, slackTesting[key] && styles.btnDisabled]}
-                        onPress={() => testSlackWebhook(key)}
-                        disabled={slackTesting[key]}
-                      >
-                        <Text style={styles.slackTestBtnText}>{slackTesting[key] ? '…' : t('settings.test')}</Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                </View>
-              );
-            })}
-          </View>
-        )}
-
-        {/* Language */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('settings.language')}</Text>
-          <View style={styles.langRow}>
-            <TouchableOpacity
-              style={[styles.langBtn, language === 'en' && styles.langBtnActive]}
-              onPress={() => setLanguage('en')}
-            >
-              <Text style={[styles.langBtnText, language === 'en' && styles.langBtnTextActive]}>
-                {t('settings.languageEnglish')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.langBtn, language === 'es' && styles.langBtnActive]}
-              onPress={() => setLanguage('es')}
-            >
-              <Text style={[styles.langBtnText, language === 'es' && styles.langBtnTextActive]}>
-                {t('settings.languageSpanish')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* App Actions */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('settings.app')}</Text>
+        {/* App */}
+        <Section label={t('settings.appSection')}>
           {Platform.OS === 'web' && (
-            <Button
-              title={t('settings.refreshApp')}
+            <Row
+              icon="refresh-outline"
+              label={t('settings.refreshApp')}
               onPress={handleReload}
-              variant="outline"
-              fullWidth
-              style={styles.actionBtn}
             />
           )}
-          <Button
-            title={demoMode ? 'Exit demo mode' : 'Enable demo mode'}
-            onPress={() => setDemoMode(!demoMode)}
-            variant="outline"
-            fullWidth
-            style={styles.actionBtn}
-          />
           {(profile?.role === 'stake_president' || profile?.role === 'stake_clerk') && (
-            <Button
-              title="Manage Gather user access ↗"
-              onPress={() => {
-                const url = 'https://stewards-indeed.vercel.app/admin/gather';
-                if (Platform.OS === 'web') window.open(url, '_blank');
-                else import('react-native').then(rn => rn.Linking.openURL(url));
-              }}
-              variant="outline"
-              fullWidth
-              style={styles.actionBtn}
+            <Row
+              icon="open-outline"
+              label={t('settings.manageGather')}
+              onPress={openGather}
             />
           )}
-          <Button
-            title={t('settings.signOut')}
+          <Row
+            icon="log-out-outline"
+            label={t('settings.signOut')}
+            danger
+            chevron={false}
             onPress={handleSignOut}
-            variant="danger"
-            fullWidth
-            style={styles.actionBtn}
+            last
           />
-        </View>
+        </Section>
 
-        <Text style={styles.version}>Magnify v{CHANGELOG[0]?.version ?? '1.0.0'} · Stake Callings Workflow</Text>
+        <Text style={styles.version}>Magnify v{version} · Stake Callings Workflow</Text>
         <DisclaimerFooter />
       </ScrollView>
     </View>
@@ -408,204 +290,144 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: FontSize.xxl, fontWeight: '800', color: Colors.primary },
   scroll: { flex: 1 },
-  scrollContent: { padding: Spacing.md },
-  section: {
+  scrollContent: { padding: Spacing.md, paddingBottom: Spacing.xl },
+
+  // Profile
+  profileCard: {
     backgroundColor: Colors.white,
     borderRadius: Radius.md,
     padding: Spacing.md,
     marginBottom: Spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
     borderWidth: 1,
     borderColor: Colors.gray[200],
     ...(Shadow as any),
   },
-  sectionTitle: {
-    fontSize: FontSize.md,
-    fontWeight: '700',
-    color: Colors.gray[800],
-    marginBottom: Spacing.md,
+  avatar: {
+    width: 48, height: 48, borderRadius: Radius.md,
+    backgroundColor: Colors.primaryFade,
+    alignItems: 'center', justifyContent: 'center',
   },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: Spacing.xs,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.gray[100],
-  },
-  infoLabel: {
-    fontSize: FontSize.sm,
-    color: Colors.gray[500],
-    fontWeight: '500',
-  },
-  infoValue: {
-    fontSize: FontSize.sm,
-    color: Colors.gray[800],
-    fontWeight: '600',
-  },
-  statusChip: {
+  avatarText: { fontSize: FontSize.md, fontWeight: '800', color: Colors.primary },
+  profileTopRow: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.sm },
+  profileName: { fontSize: FontSize.lg, fontWeight: '700', color: Colors.gray[900] },
+  profileEmail: { fontSize: FontSize.xs, color: Colors.gray[500], marginTop: 1 },
+  approvedChip: {
     paddingHorizontal: Spacing.sm,
     paddingVertical: 2,
     borderRadius: Radius.full,
+    backgroundColor: Colors.success + '18',
     borderWidth: 1,
+    borderColor: Colors.success + '50',
   },
-  statusApproved: {
-    backgroundColor: Colors.success + '15',
-    borderColor: Colors.success,
-  },
-  statusPending: {
-    backgroundColor: Colors.warning + '15',
-    borderColor: Colors.warning,
-  },
-  statusText: {
-    fontSize: FontSize.xs,
-    fontWeight: '700',
-  },
-  statusTextApproved: { color: Colors.success },
-  statusTextPending: { color: Colors.warning },
-  emptyUsers: {
-    padding: Spacing.sm,
+  approvedChipText: { fontSize: FontSize.xs, color: Colors.success, fontWeight: '700' },
+  profileRoleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingTop: Spacing.xs,
+    marginTop: Spacing.xs,
+    borderTopWidth: 1,
+    borderTopColor: Colors.gray[100],
   },
-  emptyUsersText: {
-    fontSize: FontSize.sm,
-    color: Colors.gray[400],
-    fontStyle: 'italic',
+  profileRoleLabel: { fontSize: FontSize.xs, color: Colors.gray[500] },
+  profileRoleValue: { fontSize: FontSize.xs, color: Colors.gray[800], fontWeight: '700' },
+
+  // Section
+  section: { marginBottom: Spacing.md },
+  sectionLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: Colors.gray[500],
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    marginBottom: 6,
+    marginLeft: 4,
   },
-  userCard: {
-    paddingVertical: Spacing.md,
+  card: {
+    backgroundColor: Colors.white,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.gray[200],
+    ...(Shadow as any),
+    overflow: 'hidden',
+  },
+
+  // Row
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm + 2,
+    gap: Spacing.sm,
     borderBottomWidth: 1,
     borderBottomColor: Colors.gray[100],
+    minHeight: 52,
   },
-  userInfo: { flex: 1 },
-  userRoleLabel: {
-    fontSize: FontSize.xs,
-    fontWeight: '600',
-    color: Colors.gray[500],
-    marginTop: Spacing.xs,
-    marginBottom: 4,
-  },
-  roleChipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 4,
-    marginBottom: Spacing.sm,
-  },
-  roleChip: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 3,
-    borderRadius: Radius.full,
-    borderWidth: 1.5,
-    borderColor: Colors.gray[300],
-    backgroundColor: Colors.white,
-  },
-  roleChipActive: {
-    borderColor: Colors.primary,
+  rowLast: { borderBottomWidth: 0 },
+  rowIcon: {
+    width: 28, height: 28, borderRadius: 7,
     backgroundColor: Colors.primaryFade,
+    alignItems: 'center', justifyContent: 'center',
   },
-  roleChipText: {
-    fontSize: FontSize.xs,
-    color: Colors.gray[600],
+  rowIconDanger: { backgroundColor: Colors.error + '15' },
+  rowText: { flex: 1, minWidth: 0 },
+  rowLabel: { fontSize: FontSize.sm, color: Colors.gray[900], fontWeight: '500' },
+  rowLabelDanger: { color: Colors.error, fontWeight: '700' },
+  rowSub: { fontSize: FontSize.xs, color: Colors.gray[500], marginTop: 1 },
+  rowRight: { flexDirection: 'row', alignItems: 'center' },
+
+  // Badge
+  badge: {
+    minWidth: 22, height: 22, borderRadius: 11, paddingHorizontal: 6,
+    backgroundColor: Colors.warning,
+    alignItems: 'center', justifyContent: 'center',
   },
-  roleChipTextActive: {
-    color: Colors.primary,
-    fontWeight: '700',
+  badgeText: { color: Colors.white, fontSize: FontSize.xs, fontWeight: '800' },
+
+  // Toggle
+  toggleTrack: {
+    width: 40, height: 24, borderRadius: 12,
+    backgroundColor: Colors.gray[300],
+    padding: 2,
+    justifyContent: 'center',
   },
-  userName: {
-    fontSize: FontSize.md,
-    fontWeight: '700',
-    color: Colors.gray[900],
+  toggleTrackOn: { backgroundColor: Colors.success },
+  toggleThumb: {
+    width: 20, height: 20, borderRadius: 10,
+    backgroundColor: Colors.white,
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 1px 2px rgba(0,0,0,0.25)' }
+      : { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.25, shadowRadius: 2, elevation: 2 }),
   },
-  userEmail: {
-    fontSize: FontSize.sm,
-    color: Colors.gray[500],
-    marginTop: 1,
-  },
-  userRole: {
-    fontSize: FontSize.xs,
-    color: Colors.primary,
-    fontWeight: '600',
-    marginTop: 2,
-  },
-  userActions: {
+  toggleThumbOn: { alignSelf: 'flex-end' },
+
+  // Segmented
+  seg: {
     flexDirection: 'row',
-    gap: Spacing.xs,
-    justifyContent: 'flex-end',
-    marginTop: Spacing.xs,
+    backgroundColor: Colors.gray[100],
+    borderRadius: 8,
+    padding: 2,
   },
-  approveBtn: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    borderRadius: Radius.sm,
-    backgroundColor: Colors.success,
-  },
-  approveBtnText: {
-    color: Colors.white,
-    fontSize: FontSize.sm,
-    fontWeight: '700',
-  },
-  rejectBtn: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    borderRadius: Radius.sm,
-    backgroundColor: Colors.error + '15',
-    borderWidth: 1,
-    borderColor: Colors.error,
-  },
-  rejectBtnText: {
-    color: Colors.error,
-    fontSize: FontSize.sm,
-    fontWeight: '700',
-  },
-  btnDisabled: { opacity: 0.5 },
-  actionBtn: { marginBottom: Spacing.sm },
-  slackHint: { fontSize: FontSize.xs, color: Colors.gray[500], marginBottom: Spacing.md, lineHeight: 18 },
-  slackRow: { marginBottom: Spacing.md },
-  slackLabelRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginBottom: Spacing.xs },
-  slackLabel: { fontSize: FontSize.sm, fontWeight: '600', color: Colors.gray[700] },
-  slackActive: { fontSize: FontSize.xs, color: Colors.success, fontWeight: '700' },
-  slackInputRow: { flexDirection: 'row', gap: Spacing.sm, alignItems: 'center' },
-  slackInput: {
-    flex: 1, backgroundColor: Colors.gray[50], borderWidth: 1.5,
-    borderColor: Colors.gray[200], borderRadius: Radius.md,
-    paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs,
-    fontSize: FontSize.xs, color: Colors.black,
-  },
-  slackSaveBtn: {
-    paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs,
-    borderRadius: Radius.sm, backgroundColor: Colors.primary,
-  },
-  slackSaveBtnText: { color: Colors.white, fontSize: FontSize.sm, fontWeight: '700' },
-  slackTestBtn: {
-    paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs,
-    borderRadius: Radius.sm, borderWidth: 1, borderColor: Colors.success,
-  },
-  slackTestBtnText: { color: Colors.success, fontSize: FontSize.sm, fontWeight: '700' },
-  langRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  langBtn: {
-    flex: 1,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radius.md,
-    borderWidth: 1.5,
-    borderColor: Colors.gray[300],
+  segBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 6,
+    minWidth: 40,
     alignItems: 'center',
+  },
+  segBtnActive: {
     backgroundColor: Colors.white,
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 1px 2px rgba(0,0,0,0.12)' }
+      : { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.12, shadowRadius: 2, elevation: 1 }),
   },
-  langBtnActive: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.primaryFade,
-  },
-  langBtnText: {
-    fontSize: FontSize.sm,
-    fontWeight: '600',
-    color: Colors.gray[600],
-  },
-  langBtnTextActive: {
-    color: Colors.primary,
-    fontWeight: '700',
-  },
+  segText: { fontSize: FontSize.xs, fontWeight: '600', color: Colors.gray[500] },
+  segTextActive: { color: Colors.primary, fontWeight: '700' },
+
+  versionRight: { fontSize: FontSize.xs, color: Colors.gray[500], fontWeight: '600' },
   version: {
     fontSize: FontSize.xs,
     color: Colors.gray[400],

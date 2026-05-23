@@ -17,12 +17,11 @@ import { NewCallingScreen } from '../screens/main/NewCallingScreen';
 import { CompletedCallingsScreen } from '../screens/main/CompletedCallingsScreen';
 import { SettingsScreen } from '../screens/main/SettingsScreen';
 import { CallingDetailScreen } from '../screens/main/CallingDetailScreen';
-import { HCAdminScreen } from '../screens/main/HCAdminScreen';
-import { SPAdminScreen } from '../screens/main/SPAdminScreen';
 import { HelpScreen } from '../screens/main/HelpScreen';
 import { ReleaseNotesScreen } from '../screens/main/ReleaseNotesScreen';
-import { PermissionsTableScreen } from '../screens/main/PermissionsTableScreen';
 import { UserRolesScreen } from '../screens/main/UserRolesScreen';
+import { PendingAccessScreen } from '../screens/main/PendingAccessScreen';
+import { SlackSettingsScreen } from '../screens/main/SlackSettingsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -60,8 +59,9 @@ function SettingsStack() {
       <Stack.Screen name="SettingsMain" component={SettingsScreen} />
       <Stack.Screen name="Help" component={HelpScreen} />
       <Stack.Screen name="ReleaseNotes" component={ReleaseNotesScreen} />
-      <Stack.Screen name="Permissions" component={PermissionsTableScreen} />
       <Stack.Screen name="UserRoles" component={UserRolesScreen} />
+      <Stack.Screen name="PendingAccess" component={PendingAccessScreen} />
+      <Stack.Screen name="SlackSettings" component={SlackSettingsScreen} />
     </Stack.Navigator>
   );
 }

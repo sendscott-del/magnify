@@ -9,6 +9,16 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.21.0',
+    date: '2026-05-23',
+    enhancements: [
+      'Settings tab redesigned around a single consistent row pattern — every action is the same shape, so the mix of full-width outline buttons / segmented controls / inline cards is gone. Sections: profile card, Admin (pending access, user roles), Integrations (Slack notifications), Preferences (language as inline segment, demo mode as inline toggle), Help, App (refresh, manage Gather, sign out). Pending users and Slack webhooks moved to their own screens reachable from the new rows.',
+      'User Roles screen collapses the old Users / Stake Presidency / High Council tabs into one unified list. Every person shows name, email, role, and Slack ID in one row; the edit sheet handles all four fields and writes back to whichever underlying table (profiles, sp_members, high_council_members) the person belongs to. Role changes between SP and HC roles auto-migrate the person between rosters so Slack @-mentions and kanban assignment stay consistent. "Suite" tab (the 19 cross-app Gathered roles) is preserved as a second tab.',
+      'Access Permissions button retired from Settings — the full permissions matrix is now a section inside the User Guide. PermissionsTableScreen, SPAdminScreen, and HCAdminScreen files removed; the latter two were already dead imports.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.20.0',
     date: '2026-05-22',
     enhancements: [
