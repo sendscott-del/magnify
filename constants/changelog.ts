@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.22.1',
+    date: '2026-05-23',
+    enhancements: [],
+    bugFixes: [
+      "Removed the in-app User Roles screen entirely (the 'Opening Gather…' placeholder was getting restored from React Navigation persisted state on PWA reloads, so users were landing on it every time they opened Magnify). The Settings → Manage user access menu item still opens the standalone Gather page in the browser via Linking.openURL — same behavior as v2.22.0, but the dead intermediate screen is gone so it can't be navigated to anymore.",
+    ],
+  },
+  {
     version: '2.22.0',
     date: '2026-05-23',
     enhancements: [
