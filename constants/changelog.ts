@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.22.0',
+    date: '2026-05-23',
+    enhancements: [
+      "Settings → Manage user access now opens the standalone Gather page (https://gathered-admin-neon.vercel.app/gather) in your browser instead of the in-app User Roles screen. Why: one canonical place to manage user access across all five Gathered apps — Magnify, Steward, Glean, Tidings, Knit — with app-access toggles, super-admin + per-app admin powers, and the 19 suite roles all in one redesigned row + side-panel UI. The native User Roles screen still exists as a safety net (auto-opens the same browser URL) for old nav-history links.",
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.21.1',
     date: '2026-05-23',
     enhancements: [

@@ -181,9 +181,9 @@ export function SettingsScreen({ navigation }: any) {
             />
             <Row
               icon="people-outline"
-              label={t('settings.userRoles')}
-              sub={`${userCount} ${t('settings.usersSub')}`}
-              onPress={() => navigation.navigate('UserRoles')}
+              label="Manage user access (Gather ↗)"
+              sub={`${userCount} ${t('settings.usersSub')} · opens in browser`}
+              onPress={() => Linking.openURL('https://gathered-admin-neon.vercel.app/gather')}
               last
             />
           </Section>
