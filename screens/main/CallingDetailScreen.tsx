@@ -1287,9 +1287,9 @@ export function CallingDetailScreen({ route, navigation }: any) {
         {!isDesktopWeb && (!isComplete || (canBack && prevStage)) && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('detail.actionsTitle')}</Text>
+            {/* Sustain → set-apart is Magnify's "moment of completion" —
+                spec §4 calls for this CTA to flip to gold (Colors.accent). */}
             {canAdvance && !calling.rejected && (
-              {/* Sustain → set-apart is Magnify's "moment of completion" —
-                  spec §4 calls for this CTA to flip to gold (Colors.accent). */}
               <Button
                 title={advanceLabel}
                 onPress={handleAdvance}
