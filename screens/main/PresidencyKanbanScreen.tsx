@@ -187,6 +187,7 @@ export function PresidencyKanbanScreen({ navigation }: any) {
                 callings={visibleCallings.filter(c => c.stage === col.stage)}
                 viewedIds={viewedIds}
                 onCardPress={openCard}
+                fluid
               />
             ))}
             {canSeeRejected && (
@@ -196,6 +197,7 @@ export function PresidencyKanbanScreen({ navigation }: any) {
                 callings={visibleRejected}
                 viewedIds={viewedIds}
                 onCardPress={openCard}
+                fluid
               />
             )}
           </View>

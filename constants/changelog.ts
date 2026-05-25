@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.24.1',
+    date: '2026-05-25',
+    enhancements: [],
+    bugFixes: [
+      "Web kanban: columns no longer overflow into their neighbors at 1280px wide (in v2.24.0 Sustain cards visibly slid under Set Apart). KanbanColumn had a hardcoded width:280 + marginRight that fought the CSS Grid's cell sizing. Added a fluid prop that the desktop-web path passes — column then fills its grid cell instead of forcing 280px. Native horizontal-scroll mode (phone) unchanged.",
+    ],
+  },
+  {
     version: '2.24.0',
     date: '2026-05-25',
     enhancements: [

@@ -423,6 +423,7 @@ export function HCKanbanScreen({ navigation }: any) {
                 callings={filteredCallings(col.stages)}
                 viewedIds={viewedIds}
                 onCardPress={openCard}
+                fluid
                 headerAction={col.stages.includes('sustain') ? (
                   <TouchableOpacity
                     style={styles.scriptBtn}

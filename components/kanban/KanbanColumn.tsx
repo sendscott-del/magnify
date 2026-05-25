@@ -13,12 +13,18 @@ interface Props {
   color?: string;
   headerAction?: React.ReactNode;
   viewedIds?: Set<string>;
+  /** Desktop-web CSS Grid lays out the column widths from the outside, so
+   *  the column itself should fill its grid cell instead of declaring a fixed
+   *  280px width + horizontal margin (those overflow the cell on a 1280px
+   *  monitor with 8 columns, which is why Sustain spilled into Set Apart in
+   *  v2.24.0). Native horizontal-scroll mode keeps the original behavior. */
+  fluid?: boolean;
 }
 
-export function KanbanColumn({ title, callings, onCardPress, color = Colors.primary, headerAction, viewedIds }: Props) {
+export function KanbanColumn({ title, callings, onCardPress, color = Colors.primary, headerAction, viewedIds, fluid }: Props) {
   const { t } = useLanguage();
   return (
-    <View style={styles.column}>
+    <View style={[styles.column, fluid && styles.columnFluid]}>
       <View style={[styles.header, { borderTopColor: color }]}>
         <Text style={styles.title}>{title}</Text>
         <View style={[styles.badge, { backgroundColor: color }]}>
@@ -44,6 +50,13 @@ const styles = StyleSheet.create({
     width: 280,
     marginRight: Spacing.md,
     flex: 1,
+  },
+  columnFluid: {
+    width: 'auto',
+    minWidth: 0,
+    marginRight: 0,
+    flex: 1,
+    minHeight: 200,
   },
   header: {
     flexDirection: 'row',
