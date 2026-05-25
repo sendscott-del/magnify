@@ -12,7 +12,7 @@ import { Colors, Radius, Spacing, FontSize } from '../../constants/theme';
 interface ButtonProps {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'accent';
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
   disabled?: boolean;
@@ -91,6 +91,12 @@ const styles = StyleSheet.create({
   danger: {
     backgroundColor: Colors.error,
   },
+  accent: {
+    // Gold — reserved for moment-of-completion CTAs (e.g. "Mark sustained ✓")
+    // per Section 4 of the Magnify Mobile + Web Handoff. Pairs with dark text
+    // for contrast on the gold field.
+    backgroundColor: Colors.accent,
+  },
   size_sm: {
     paddingVertical: Spacing.xs,
     paddingHorizontal: Spacing.sm,
@@ -117,6 +123,7 @@ const styles = StyleSheet.create({
   text_outline: { color: Colors.primary },
   text_ghost: { color: Colors.primary },
   text_danger: { color: Colors.white },
+  text_accent: { color: Colors.primaryDark },
   textSize_sm: { fontSize: FontSize.sm },
   textSize_md: { fontSize: FontSize.md },
   textSize_lg: { fontSize: FontSize.lg },

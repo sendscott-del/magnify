@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.25.0',
+    date: '2026-05-25',
+    enhancements: [
+      'WebShell sidebar active state now uses white-on-white-translucent (`rgba(255,255,255,0.15)` background, full-white label, inactive labels stay at 75% white) — matches Knit/Glean/Steward/Tidings sidebars pixel-for-pixel. Spec pitfall §m2: "Gold is reserved for the brand mark and the FAB." Previous gold-tinted active fill broke that rule.',
+      'Calling-detail right-rail action panel shrinks from 220px → 200px (spec mockup width). Content padding-right drops to 232px to match. Rail stays absolute-positioned because Expo Web body has `overflow:hidden` and each screen owns its own ScrollView — there\'s no scrolling ancestor for `position:sticky` to anchor against, so absolute gives the same "stays visible" behavior.',
+      'Sustain-stage advance button now flips to gold (`Colors.accent`, new `accent` Button variant). Spec §4 calls this Magnify\'s "moment of completion" flourish — the only place gold fills (instead of bordering) a primary CTA. Only triggers when `calling.stage === "sustain"`; every other stage keeps the navy primary.',
+      '`app.json` gains `scheme: "magnify"`. The linking config already advertised `magnify://` as a prefix but native deep links couldn\'t resolve without the scheme declaration — fixed.',
+    ],
+    bugFixes: [
+      'Native SuggestionFAB grows from 44px → 56px (spec §m6 mandates 56-px on native). Bottom offset also bumps from 80 → 90 to clear the iOS home indicator. Desktop web stays at 40px in the corner.',
+    ],
+  },
+  {
     version: '2.24.1',
     date: '2026-05-25',
     enhancements: [],

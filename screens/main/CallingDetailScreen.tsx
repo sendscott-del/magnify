@@ -1122,7 +1122,8 @@ export function CallingDetailScreen({ route, navigation }: any) {
         style={styles.scroll}
         contentContainerStyle={[
           styles.scrollContent,
-          isDesktopWeb ? { paddingRight: 252 } : null,
+          // 200px rail + 16px right gutter + 16px breathing room = 232px.
+          isDesktopWeb ? { paddingRight: 232 } : null,
         ]}
       >
         <View style={styles.heroSection}>
@@ -1287,7 +1288,17 @@ export function CallingDetailScreen({ route, navigation }: any) {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('detail.actionsTitle')}</Text>
             {canAdvance && !calling.rejected && (
-              <Button title={advanceLabel} onPress={handleAdvance} loading={actionLoading} fullWidth size="lg" style={styles.advanceBtn} />
+              {/* Sustain → set-apart is Magnify's "moment of completion" —
+                  spec §4 calls for this CTA to flip to gold (Colors.accent). */}
+              <Button
+                title={advanceLabel}
+                onPress={handleAdvance}
+                loading={actionLoading}
+                fullWidth
+                size="lg"
+                style={styles.advanceBtn}
+                variant={calling.stage === 'sustain' ? 'accent' : 'primary'}
+              />
             )}
             {canRejectCalling && !calling.rejected && (
               <Button title={t('detail.decline')} onPress={() => setShowRejectModal(true)} variant="danger" fullWidth style={styles.rejectBtn} />
@@ -1345,7 +1356,14 @@ export function CallingDetailScreen({ route, navigation }: any) {
           <View style={styles.desktopActionPanel}>
             <Text style={styles.desktopActionEyebrow}>{t('detail.actionsTitle')}</Text>
             {canAdvance && !calling.rejected && (
-              <Button title={advanceLabel} onPress={handleAdvance} loading={actionLoading} fullWidth style={styles.advanceBtn} />
+              <Button
+                title={advanceLabel}
+                onPress={handleAdvance}
+                loading={actionLoading}
+                fullWidth
+                style={styles.advanceBtn}
+                variant={calling.stage === 'sustain' ? 'accent' : 'primary'}
+              />
             )}
             {canRejectCalling && !calling.rejected && (
               <Button title={t('detail.decline')} onPress={() => setShowRejectModal(true)} variant="danger" fullWidth style={styles.rejectBtn} />
@@ -1599,10 +1617,16 @@ const styles = StyleSheet.create({
     : { padding: Spacing.md },
   desktopActionRail: Platform.OS === 'web'
     ? ({
+        // 200px wide per spec mockup (was 220). Absolute positioning rather
+        // than the spec's sticky because Expo Web's body has overflow:hidden
+        // and each screen owns its own ScrollView — there's no scrolling
+        // ancestor for sticky to anchor against. Absolute pins to the
+        // calling-detail container, which gives the same "stays visible"
+        // behavior as a sticky panel would.
         position: 'absolute' as const,
-        top: 70,           // below the headerBar
+        top: 70,
         right: 16,
-        width: 220,
+        width: 200,
         zIndex: 50,
       } as any)
     : ({ display: 'none' } as any),

@@ -164,11 +164,14 @@ export function SuggestionFAB({ controlledOpen, onControlledClose }: Props = {})
 const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
-    bottom: 80,
+    bottom: 90,
     right: 16,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    // Native size is 56px per spec (m6) — matches the iOS Material standard
+    // for primary FABs and the rest of the suite's mobile FAB sizing.
+    // Desktop web shrinks to 40px (see fabDesktop override).
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',

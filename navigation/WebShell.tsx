@@ -142,7 +142,11 @@ interface SideLinkProps {
 function SideLink({
   label, ionicon, productIcon, active, badge, small, onPress,
 }: SideLinkProps) {
-  const color = active ? Colors.accent : 'rgba(255,255,255,0.75)';
+  // Spec pitfall (m2): "Gold is reserved for the brand mark and the FAB."
+  // Active state is full-white text on white-translucent fill (set by
+  // linkActive), inactive is dimmed white. Matches Knit/Glean/Steward/
+  // Tidings sidebars pixel-for-pixel.
+  const color = active ? 'white' : 'rgba(255,255,255,0.75)';
   return (
     <Pressable
       onPress={onPress}
@@ -245,7 +249,10 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   linkActive: {
-    backgroundColor: 'rgba(201,168,76,0.18)',
+    // White-on-white-translucent active fill — matches the suite recipe.
+    // Earlier gold fill (rgba(201,168,76,0.18)) violated the spec pitfall
+    // that gold belongs to the brand mark + FAB only.
+    backgroundColor: 'rgba(255,255,255,0.15)',
   },
   linkHover: {
     backgroundColor: 'rgba(255,255,255,0.06)',
