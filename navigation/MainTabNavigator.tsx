@@ -11,6 +11,7 @@ import { DemoModeBanner } from '../components/DemoModeBanner';
 import { ProductIcon } from '../components/icons/ProductIcon';
 import { useAuth } from '../context/AuthContext';
 import { useActionCounts } from '../context/ActionCountsContext';
+import { useIsDesktopWeb } from '../lib/useDeviceWidth';
 import { PresidencyKanbanScreen } from '../screens/main/PresidencyKanbanScreen';
 import { HCKanbanScreen } from '../screens/main/HCKanbanScreen';
 import { NewCallingScreen } from '../screens/main/NewCallingScreen';
@@ -69,6 +70,11 @@ export function MainTabNavigator() {
   const { t } = useLanguage();
   const { hcCount, spCount } = useActionCounts();
   const showPresidencyBoard = isPresidency || isClerk;
+  // Belt-and-suspenders: AppNavigator's AuthedRoot already routes desktop web
+  // through WebShell, but in the rare cross-render case (a hot resize during a
+  // navigation transition), the tab bar would briefly flash. Hide it directly
+  // when isDesktopWeb so there's no double-shell.
+  const isDesktopWeb = useIsDesktopWeb();
 
   return (
     <View style={{ flex: 1 }}>
@@ -79,7 +85,9 @@ export function MainTabNavigator() {
         headerShown: false,
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: Colors.gray[400],
-        tabBarStyle: { borderTopColor: Colors.gray[200] },
+        tabBarStyle: isDesktopWeb
+          ? { display: 'none' }
+          : { borderTopColor: Colors.gray[200] },
         tabBarIcon: ({ color, size, focused }) => {
           if (route.name === 'PresidencyBoard') {
             return (

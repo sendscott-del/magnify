@@ -7,6 +7,7 @@ import {
   TextInputProps,
   TouchableOpacity,
   ViewStyle,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Radius, Spacing, FontSize } from '../../constants/theme';
@@ -84,7 +85,9 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: Spacing.sm + 2,
     paddingHorizontal: Spacing.md,
-    fontSize: FontSize.md,
+    // 16px on web prevents iOS Safari auto-zoom when this app is installed
+    // as a PWA. Native keeps the design-system 15px.
+    fontSize: Platform.OS === 'web' ? 16 : FontSize.md,
     color: Colors.black,
   },
   inputWithLeft: {

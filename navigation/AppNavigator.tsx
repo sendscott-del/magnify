@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
+import { NavigationContainer, createNavigationContainerRef, LinkingOptions } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { View, ActivityIndicator, Platform } from 'react-native';
 import { useAuth } from '../context/AuthContext';
@@ -10,8 +10,61 @@ import { ForgotPasswordScreen } from '../screens/auth/ForgotPasswordScreen';
 import { ResetPasswordScreen } from '../screens/auth/ResetPasswordScreen';
 import { PendingApprovalScreen } from '../screens/auth/PendingApprovalScreen';
 import { MainTabNavigator } from './MainTabNavigator';
+import { WebShell } from './WebShell';
+import { WebStackNavigator } from './WebStackNavigator';
+import { useIsDesktopWeb } from '../lib/useDeviceWidth';
 import { IdleTimeoutGuard } from '../components/IdleTimeoutGuard';
 import { Colors } from '../constants/theme';
+
+/**
+ * React Navigation linking config — gives every screen a real URL on web.
+ *
+ * Each URL has exactly one path entry, mapped to the unique LEAF screen name
+ * that's shared across both shells (MainTabNavigator on native and
+ * WebStackNavigator on desktop web register the same screen names, just at
+ * different nesting depths). React Navigation walks the active tree to
+ * resolve a path → state; the leaf-name match works equally well for either
+ * tree, so deep links work on both. Duplicate path entries (one nested, one
+ * flat for the same leaf) caused the dev build to throw
+ * "Found conflicting screens with the same pattern" — keep this minimal.
+ */
+const linking: LinkingOptions<any> = {
+  prefixes: ['magnify://', 'https://magnify-eta.vercel.app'],
+  config: {
+    screens: {
+      Login: 'login',
+      Register: 'register',
+      ForgotPassword: 'forgot-password',
+      ResetPassword: 'reset-password',
+      Pending: 'pending',
+      Main: {
+        screens: {
+          New: 'new',
+          PresidencyMain: 'board',
+          HCMain: 'hc',
+          CompletedList: 'completed',
+          SettingsMain: 'settings',
+          Help: 'guide',
+          ReleaseNotes: 'release-notes',
+          SlackSettings: 'settings/slack',
+          PendingAccess: 'pending-access',
+          CallingDetail: 'calling/:callingId',
+        },
+      },
+    },
+  },
+};
+
+function AuthedRoot() {
+  const isDesktopWeb = useIsDesktopWeb();
+  return isDesktopWeb ? (
+    <WebShell>
+      <WebStackNavigator />
+    </WebShell>
+  ) : (
+    <MainTabNavigator />
+  );
+}
 
 const Stack = createNativeStackNavigator();
 const navigationRef = createNavigationContainerRef<any>();
@@ -117,6 +170,7 @@ export function AppNavigator() {
   return (
     <NavigationContainer
       ref={navigationRef}
+      linking={linking}
       initialState={isAuthenticated ? latestNavState.current : undefined}
       documentTitle={{ formatter: () => 'Magnify' }}
       onStateChange={(state) => {
@@ -141,7 +195,7 @@ export function AppNavigator() {
           <Stack.Screen name="Main">
             {() => (
               <IdleTimeoutGuard>
-                <MainTabNavigator />
+                <AuthedRoot />
               </IdleTimeoutGuard>
             )}
           </Stack.Screen>

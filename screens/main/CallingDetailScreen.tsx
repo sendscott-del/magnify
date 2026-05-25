@@ -18,6 +18,7 @@ import { Button } from '../../components/ui/Button';
 import { DisclaimerFooter } from '../../components/ui/DisclaimerFooter';
 import { ProductIcon } from '../../components/icons/ProductIcon';
 import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme';
+import { useIsDesktopWeb } from '../../lib/useDeviceWidth';
 import { STAGE_LABELS } from '../../constants/callings';
 import {
   canAdvanceStage, canReject, canMoveback, canDelete,
@@ -576,6 +577,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
   const { profile } = useAuth();
   const { t } = useLanguage();
   const { demoMode } = useDemoMode();
+  const isDesktopWeb = useIsDesktopWeb();
   // True when the calling we're rendering is a fixture (id like demo-call-NNN).
   // In that state we still render the screen, but every Supabase write is a
   // no-op so demo activity never pollutes the real database.
@@ -1116,7 +1118,13 @@ export function CallingDetailScreen({ route, navigation }: any) {
         )}
       </View>
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[
+          styles.scrollContent,
+          isDesktopWeb ? { paddingRight: 252 } : null,
+        ]}
+      >
         <View style={styles.heroSection}>
           <Text style={styles.memberName}>{calling.member_name}</Text>
           <Text style={styles.callingNameText}>{calling.calling_name}</Text>
@@ -1272,8 +1280,10 @@ export function CallingDetailScreen({ route, navigation }: any) {
           }}
         />
 
-        {/* Actions */}
-        {(!isComplete || (canBack && prevStage)) && (
+        {/* Inline actions block — native + phone-width web. On desktop the
+            same content renders in the sticky right-rail panel below, so we
+            suppress the inline copy to avoid duplication. */}
+        {!isDesktopWeb && (!isComplete || (canBack && prevStage)) && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('detail.actionsTitle')}</Text>
             {canAdvance && !calling.rejected && (
@@ -1325,6 +1335,37 @@ export function CallingDetailScreen({ route, navigation }: any) {
         </View>
         <DisclaimerFooter />
       </ScrollView>
+
+      {/* Desktop-web sticky right-rail action panel. Same handlers as the
+          inline block above; mirrors the spec mockup (§4 of the handoff).
+          Positioned absolutely in the calling-detail container so it stays
+          visible while the form scrolls. */}
+      {isDesktopWeb && (!isComplete || (canBack && prevStage)) && (
+        <View style={styles.desktopActionRail}>
+          <View style={styles.desktopActionPanel}>
+            <Text style={styles.desktopActionEyebrow}>{t('detail.actionsTitle')}</Text>
+            {canAdvance && !calling.rejected && (
+              <Button title={advanceLabel} onPress={handleAdvance} loading={actionLoading} fullWidth style={styles.advanceBtn} />
+            )}
+            {canRejectCalling && !calling.rejected && (
+              <Button title={t('detail.decline')} onPress={() => setShowRejectModal(true)} variant="danger" fullWidth style={styles.rejectBtn} />
+            )}
+            {canBack && prevStage && !calling.rejected && (
+              <Button
+                title={`← ${t('detail.moveBack')} ${STAGE_LABELS[prevStage]}`}
+                onPress={handleMoveBack}
+                variant="outline"
+                fullWidth
+                style={styles.backStageBtn}
+                disabled={actionLoading}
+              />
+            )}
+            {!canAdvance && !canRejectCalling && !canBack && (
+              <Text style={styles.noActionsText}>{t('detail.noActions')}</Text>
+            )}
+          </View>
+        </View>
+      )}
 
       {/* Decline Modal */}
       <Modal visible={showRejectModal} transparent animationType="slide" onRequestClose={() => setShowRejectModal(false)}>
@@ -1550,7 +1591,38 @@ const styles = StyleSheet.create({
   typeIcon: { width: 28, height: 28, borderRadius: 6 },
   deleteHeaderBtn: { padding: Spacing.xs },
   scroll: { flex: 1 },
-  scrollContent: { padding: Spacing.md },
+  // On desktop web we reserve right padding inside the content so long text
+  // doesn't slide under the absolute-positioned action rail. 240px = 220 rail
+  // width + a small gutter.
+  scrollContent: Platform.OS === 'web'
+    ? ({ padding: Spacing.md, paddingRight: Spacing.md } as any)
+    : { padding: Spacing.md },
+  desktopActionRail: Platform.OS === 'web'
+    ? ({
+        position: 'absolute' as const,
+        top: 70,           // below the headerBar
+        right: 16,
+        width: 220,
+        zIndex: 50,
+      } as any)
+    : ({ display: 'none' } as any),
+  desktopActionPanel: {
+    backgroundColor: Colors.white,
+    borderWidth: 1,
+    borderColor: Colors.gray[200],
+    borderRadius: Radius.md,
+    padding: Spacing.md,
+    gap: 6,
+    ...(Shadow as any),
+  },
+  desktopActionEyebrow: {
+    fontSize: FontSize.xs,
+    fontWeight: '800',
+    color: Colors.gray[500],
+    textTransform: 'uppercase' as const,
+    letterSpacing: 0.8,
+    marginBottom: 4,
+  },
   heroSection: { backgroundColor: Colors.white, borderRadius: Radius.md, padding: Spacing.lg, marginBottom: Spacing.md, borderWidth: 1, borderColor: Colors.gray[200], ...(Shadow as any) },
   memberName: { fontSize: FontSize.xxl, fontWeight: '800', color: Colors.primary, marginBottom: 4 },
   callingNameText: { fontSize: FontSize.lg, color: Colors.gray[700], fontWeight: '500' },

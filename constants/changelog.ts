@@ -9,6 +9,22 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.24.0',
+    date: '2026-05-25',
+    enhancements: [
+      'Web parity + suite alignment (Phase 6). Magnify on a desktop browser was previously the native UI stretched edge-to-edge: the bottom tab bar grew to 1920px, the kanban scrolled horizontally even with room for every column, and the SuggestionFAB covered the last calling card. This release adds a real desktop shell — a 224px navy sidebar at md+ on web only — that puts Magnify on the same chrome the rest of the Stake Suite (Knit / Glean / Tidings / Steward) just adopted. iOS + Android are unchanged; phone-width browsers still get the bottom tab bar.',
+      'New WebShell layout (navigation/WebShell.tsx) — sidebar with New / SP Board (presidency-gated) / HC Board / Completed / Settings up top, User Guide + Release Notes underneath, gold-accent active state. Drives navigation via React Navigation\'s nested-screen syntax so the inner stack tree stays correct. Brand mark + Magnify wordmark at top match the per-app chrome the other four apps use.',
+      'WebStackNavigator (navigation/WebStackNavigator.tsx) — flat NativeStack that registers every leaf screen the tab navigator does, plus the CallingDetail / Help / ReleaseNotes / SlackSettings / PendingAccess screens, so the sidebar can reach all of them. Initial route picks PresidencyMain for presidency/clerk users and HCMain otherwise — same default the tab navigator lands on.',
+      'Kanban → responsive CSS Grid on web at md+ (PresidencyKanbanScreen + HCKanbanScreen). Columns use repeat(auto-fit, minmax(220px, 1fr)) so 4 fit at 1024px and 8 at 1280px — no horizontal scroll. Native phone view still uses ScrollView horizontal.',
+      'Calling detail (CallingDetailScreen) gets a sticky right-rail action panel on desktop web (220px, top-right, absolute-positioned so it stays visible while the form scrolls). Inline actions block is suppressed on desktop so Mark approved / Decline / Move back don\'t render twice. Native + phone-width web keep the existing inline-at-bottom placement.',
+      'SuggestionFAB shrinks to 40px and anchors at bottom-18/right-18 on desktop web; native + phone web keep the existing 44px / bottom-80 placement. Now accepts controlledOpen + onControlledClose props for suite-wide parity with Knit / Glean / Steward / Tidings — a future Settings row could open the modal without a separate floating button.',
+      'React Navigation linking config — every screen has a real URL: /new, /board, /hc, /completed, /settings, /guide, /release-notes, /settings/slack, /calling/:id. Bookmarking the SP board or sharing a calling-detail URL now works on web. Native deep links via magnify:// share the same prefixes.',
+      'Forms (shared Input component + SuggestionFAB textarea) use 16px font on web only via Platform.OS check. Native keeps the design-system 15px. Prevents iOS Safari from auto-zooming when Magnify is installed as a PWA.',
+      'New lib/useDeviceWidth.ts hook — single source of truth for "are we on desktop web?". useIsDesktopWeb() returns Platform.OS === "web" && width >= 768. Updates live on browser resize so hot-resizing between phone and desktop widths swaps shells smoothly.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.23.1',
     date: '2026-05-24',
     enhancements: [],

@@ -17,11 +17,13 @@ import { DisclaimerFooter } from '../../components/ui/DisclaimerFooter';
 import { EnableNotificationsBanner } from '../../components/EnableNotificationsBanner';
 import { Colors, Spacing, FontSize, Radius } from '../../constants/theme';
 import { useLanguage } from '../../context/LanguageContext';
+import { useIsDesktopWeb } from '../../lib/useDeviceWidth';
 
 export function HCKanbanScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { profile } = useAuth();
   const { t, language } = useLanguage();
+  const isDesktopWeb = useIsDesktopWeb();
 
   const HC_COLUMNS = [
     { stages: ['hc_approval'], label: t('stage.hc_approval'), color: Colors.stage.hc_approval },
@@ -406,33 +408,63 @@ export function HCKanbanScreen({ navigation }: any) {
         </View>
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.board}
-        contentContainerStyle={styles.boardContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-      >
-        {HC_COLUMNS.map(col => (
-          <KanbanColumn
-            key={col.label}
-            title={col.label}
-            color={col.color}
-            callings={filteredCallings(col.stages)}
-            viewedIds={viewedIds}
-            onCardPress={openCard}
-            headerAction={col.stages.includes('sustain') ? (
-              <TouchableOpacity
-                style={styles.scriptBtn}
-                onPress={() => { setScriptWard(null); setScriptCopied(false); setShowScriptModal(true); }}
-              >
-                <Ionicons name="document-text-outline" size={13} color={Colors.primary} />
-                <Text style={styles.scriptBtnText}>{t('script.title')}</Text>
-              </TouchableOpacity>
-            ) : undefined}
-          />
-        ))}
-      </ScrollView>
+      {isDesktopWeb ? (
+        <ScrollView
+          style={styles.board}
+          contentContainerStyle={styles.boardContentDesktop}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        >
+          <View style={hcKanbanGridStyle as any}>
+            {HC_COLUMNS.map(col => (
+              <KanbanColumn
+                key={col.label}
+                title={col.label}
+                color={col.color}
+                callings={filteredCallings(col.stages)}
+                viewedIds={viewedIds}
+                onCardPress={openCard}
+                headerAction={col.stages.includes('sustain') ? (
+                  <TouchableOpacity
+                    style={styles.scriptBtn}
+                    onPress={() => { setScriptWard(null); setScriptCopied(false); setShowScriptModal(true); }}
+                  >
+                    <Ionicons name="document-text-outline" size={13} color={Colors.primary} />
+                    <Text style={styles.scriptBtnText}>{t('script.title')}</Text>
+                  </TouchableOpacity>
+                ) : undefined}
+              />
+            ))}
+          </View>
+        </ScrollView>
+      ) : (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.board}
+          contentContainerStyle={styles.boardContent}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        >
+          {HC_COLUMNS.map(col => (
+            <KanbanColumn
+              key={col.label}
+              title={col.label}
+              color={col.color}
+              callings={filteredCallings(col.stages)}
+              viewedIds={viewedIds}
+              onCardPress={openCard}
+              headerAction={col.stages.includes('sustain') ? (
+                <TouchableOpacity
+                  style={styles.scriptBtn}
+                  onPress={() => { setScriptWard(null); setScriptCopied(false); setShowScriptModal(true); }}
+                >
+                  <Ionicons name="document-text-outline" size={13} color={Colors.primary} />
+                  <Text style={styles.scriptBtnText}>{t('script.title')}</Text>
+                </TouchableOpacity>
+              ) : undefined}
+            />
+          ))}
+        </ScrollView>
+      )}
 
       {/* Ward Filter Modal */}
       <Modal visible={showWardFilter} transparent animationType="slide" onRequestClose={() => setShowWardFilter(false)}>
@@ -579,6 +611,7 @@ const styles = StyleSheet.create({
   clearChipText: { fontSize: FontSize.xs, color: Colors.gray[600], fontWeight: '700' },
   board: { flex: 1 },
   boardContent: { padding: Spacing.md, flexDirection: 'row', alignItems: 'stretch' },
+  boardContentDesktop: { padding: Spacing.md },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
   modalSheet: {
     backgroundColor: Colors.white, borderTopLeftRadius: Radius.xl,
@@ -640,3 +673,12 @@ const styles = StyleSheet.create({
   scriptScrollContent: { padding: Spacing.lg },
   scriptText: { fontSize: FontSize.sm, color: Colors.gray[800], lineHeight: 22, fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace' },
 });
+
+// CSS Grid layout for the HC kanban on desktop web. Same recipe as the SP
+// board — react-native-web passes these style fields through to the DOM.
+const hcKanbanGridStyle = {
+  display: 'grid' as const,
+  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+  gap: Spacing.sm + 2,
+  alignItems: 'stretch' as const,
+};

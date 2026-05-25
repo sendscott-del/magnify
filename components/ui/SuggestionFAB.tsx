@@ -8,15 +8,33 @@ import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { notifySuggestion } from '../../lib/slack';
 import { supabase } from '../../lib/supabase';
+import { useIsDesktopWeb } from '../../lib/useDeviceWidth';
 
 const SUBMIT_URL =
   'https://isogetmvnpimcmouakeg.supabase.co/functions/v1/submit-suggestion';
 import { Colors, Spacing, Radius, FontSize } from '../../constants/theme';
 
-export function SuggestionFAB() {
+interface Props {
+  /** When provided, the modal is parent-controlled (e.g. a Settings row opens
+   *  it). Leave unset to use the internal FAB button. Same contract as
+   *  Knit/Steward/Glean/Tidings for suite consistency. */
+  controlledOpen?: boolean;
+  onControlledClose?: () => void;
+}
+
+export function SuggestionFAB({ controlledOpen, onControlledClose }: Props = {}) {
   const { profile } = useAuth();
   const { t } = useLanguage();
-  const [open, setOpen] = useState(false);
+  const isDesktopWeb = useIsDesktopWeb();
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  function setOpen(v: boolean) {
+    if (controlledOpen !== undefined) {
+      if (!v) onControlledClose?.();
+    } else {
+      setInternalOpen(v);
+    }
+  }
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
@@ -72,14 +90,23 @@ export function SuggestionFAB() {
         </View>
       )}
 
-      {/* FAB button */}
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => setOpen(true)}
-        activeOpacity={0.8}
-      >
-        <Ionicons name="bulb-outline" size={20} color={Colors.white} />
-      </TouchableOpacity>
+      {/* FAB button — desktop web: 40px corner-anchored to the content area
+          so it doesn't sit on top of the right-rail action panel. Native +
+          phone-width web: 44px above the tab bar (existing position). When
+          controlledOpen is supplied by a parent (e.g. a future Settings row),
+          the floating button is suppressed entirely. */}
+      {controlledOpen === undefined && (
+        <TouchableOpacity
+          style={[
+            styles.fab,
+            isDesktopWeb && styles.fabDesktop,
+          ]}
+          onPress={() => setOpen(true)}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="bulb-outline" size={isDesktopWeb ? 18 : 20} color={Colors.white} />
+        </TouchableOpacity>
+      )}
 
       {/* Modal */}
       <Modal visible={open} transparent animationType="fade">
@@ -153,6 +180,13 @@ const styles = StyleSheet.create({
     zIndex: 100,
     opacity: 0.85,
   },
+  fabDesktop: {
+    bottom: 18,
+    right: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
   toast: {
     position: 'absolute',
     top: 60,
@@ -215,7 +249,9 @@ const styles = StyleSheet.create({
     borderColor: Colors.gray[200],
     borderRadius: Radius.md,
     padding: Spacing.md,
-    fontSize: FontSize.md,
+    // 16px font on web prevents iOS Safari from auto-zooming on focus when
+    // installed as a PWA. Native uses the design-system FontSize.md.
+    fontSize: Platform.OS === 'web' ? 16 : FontSize.md,
     color: Colors.gray[800],
     minHeight: 100,
     textAlignVertical: 'top',

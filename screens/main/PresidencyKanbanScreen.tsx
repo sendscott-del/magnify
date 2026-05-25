@@ -15,6 +15,7 @@ import { KanbanColumn } from '../../components/kanban/KanbanColumn';
 import { DisclaimerFooter } from '../../components/ui/DisclaimerFooter';
 import { Colors, Spacing, FontSize, Radius } from '../../constants/theme';
 import { useLanguage } from '../../context/LanguageContext';
+import { useIsDesktopWeb } from '../../lib/useDeviceWidth';
 
 const ACTIVE_STAGES = ['ideas', 'for_approval', 'stake_approved'];
 
@@ -24,6 +25,7 @@ export function PresidencyKanbanScreen({ navigation }: any) {
   const { t } = useLanguage();
   const { demoMode } = useDemoMode();
   const { refresh: refreshActionCounts } = useActionCounts();
+  const isDesktopWeb = useIsDesktopWeb();
 
   const ACTIVE_COLUMNS = [
     { stage: 'ideas', label: t('stage.ideas'), color: Colors.stage.ideas },
@@ -167,33 +169,66 @@ export function PresidencyKanbanScreen({ navigation }: any) {
           </TouchableOpacity>
         )}
       </ScrollView>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.board}
-        contentContainerStyle={styles.boardContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-      >
-        {ACTIVE_COLUMNS.map(col => (
-          <KanbanColumn
-            key={col.stage}
-            title={col.label}
-            color={col.color}
-            callings={visibleCallings.filter(c => c.stage === col.stage)}
-            viewedIds={viewedIds}
-            onCardPress={openCard}
-          />
-        ))}
-        {canSeeRejected && (
-          <KanbanColumn
-            title={t('detail.declined')}
-            color={Colors.error}
-            callings={visibleRejected}
-            viewedIds={viewedIds}
-            onCardPress={openCard}
-          />
-        )}
-      </ScrollView>
+      {isDesktopWeb ? (
+        // Desktop web: CSS Grid lays the columns out side-by-side. auto-fit
+        // wraps to a second row at narrower widths so a 1024px iPad-width
+        // browser still gets multi-row instead of a horizontal-scroll strip.
+        <ScrollView
+          style={styles.board}
+          contentContainerStyle={styles.boardContentDesktop}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        >
+          <View style={kanbanGridStyle as any}>
+            {ACTIVE_COLUMNS.map(col => (
+              <KanbanColumn
+                key={col.stage}
+                title={col.label}
+                color={col.color}
+                callings={visibleCallings.filter(c => c.stage === col.stage)}
+                viewedIds={viewedIds}
+                onCardPress={openCard}
+              />
+            ))}
+            {canSeeRejected && (
+              <KanbanColumn
+                title={t('detail.declined')}
+                color={Colors.error}
+                callings={visibleRejected}
+                viewedIds={viewedIds}
+                onCardPress={openCard}
+              />
+            )}
+          </View>
+        </ScrollView>
+      ) : (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.board}
+          contentContainerStyle={styles.boardContent}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        >
+          {ACTIVE_COLUMNS.map(col => (
+            <KanbanColumn
+              key={col.stage}
+              title={col.label}
+              color={col.color}
+              callings={visibleCallings.filter(c => c.stage === col.stage)}
+              viewedIds={viewedIds}
+              onCardPress={openCard}
+            />
+          ))}
+          {canSeeRejected && (
+            <KanbanColumn
+              title={t('detail.declined')}
+              color={Colors.error}
+              callings={visibleRejected}
+              viewedIds={viewedIds}
+              onCardPress={openCard}
+            />
+          )}
+        </ScrollView>
+      )}
       <DisclaimerFooter />
     </View>
   );
@@ -224,4 +259,16 @@ const styles = StyleSheet.create({
   filterTextActive: { color: Colors.primary, fontWeight: '700' },
   board: { flex: 1 },
   boardContent: { padding: Spacing.md, flexDirection: 'row', alignItems: 'stretch' },
+  boardContentDesktop: { padding: Spacing.md },
 });
+
+// CSS Grid for the desktop-web kanban. react-native-web passes through
+// `display: 'grid'` and `gridTemplateColumns`; native ignores both (and we
+// never render this path on native). minmax(220px, 1fr) means columns stay
+// at least 220px wide and the whole row fills the available width.
+const kanbanGridStyle = {
+  display: 'grid' as const,
+  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+  gap: Spacing.sm + 2,
+  alignItems: 'stretch' as const,
+};
