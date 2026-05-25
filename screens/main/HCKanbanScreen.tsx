@@ -44,6 +44,11 @@ export function HCKanbanScreen({ navigation }: any) {
   const [refreshing, setRefreshing] = useState(false);
   const [hcApprovalMap, setHcApprovalMap] = useState<Record<string, boolean>>({});
   const [hcMemberIdMap, setHcMemberIdMap] = useState<Record<string, string>>({});
+  // hc_member_id -> Set of ward_ids that HC covers. Drives "Just mine" on Sustain.
+  const [hcWardCoverage, setHcWardCoverage] = useState<Record<string, Set<string>>>({});
+  // calling_id -> Set of ward_ids whose ward_sustainings row is sustained=true.
+  // Stake callings in sustain stage need sustaining in every ward NOT in this set.
+  const [sustainedWardMap, setSustainedWardMap] = useState<Record<string, Set<string>>>({});
 
   const [typeFilter, setTypeFilter] = useState<CallingType | 'all'>('all');
   const [wardFilter, setWardFilter] = useState<string>('all');
@@ -104,10 +109,12 @@ export function HCKanbanScreen({ navigation }: any) {
       ]);
       setHcMemberIdMap({});
       setHcApprovalMap({});
+      setHcWardCoverage({});
+      setSustainedWardMap({});
       setViewedIds(new Set());
       return;
     }
-    const [callingsRes, wardsRes, spMembersRes, hcMembersRes, hcApprovalsRes] = await Promise.all([
+    const [callingsRes, wardsRes, spMembersRes, hcMembersRes, hcApprovalsRes, hcWardsRes, wardSustRes] = await Promise.all([
       supabase
         .from('callings')
         .select('*, wards!callings_ward_id_fkey(id,name,abbreviation)')
@@ -118,6 +125,8 @@ export function HCKanbanScreen({ navigation }: any) {
       supabase.from('sp_members').select('id,name,role').eq('active', true).order('sort_order'),
       supabase.from('high_council_members').select('id,name,sort_order').eq('active', true).order('sort_order'),
       supabase.from('hc_approvals').select('calling_id,hc_member_id,approved'),
+      supabase.from('hc_member_wards').select('hc_member_id, ward_id'),
+      supabase.from('ward_sustainings').select('calling_id, ward_id, sustained').eq('sustained', true),
     ]);
     setCallings((callingsRes.data as Calling[]) ?? []);
     setWards((wardsRes.data as Ward[]) ?? []);
@@ -135,6 +144,20 @@ export function HCKanbanScreen({ navigation }: any) {
       approvalMap[`${a.calling_id}:${a.hc_member_id}`] = a.approved;
     });
     setHcApprovalMap(approvalMap);
+
+    const coverage: Record<string, Set<string>> = {};
+    ((hcWardsRes.data ?? []) as { hc_member_id: string; ward_id: string }[]).forEach((row) => {
+      if (!coverage[row.hc_member_id]) coverage[row.hc_member_id] = new Set();
+      coverage[row.hc_member_id].add(row.ward_id);
+    });
+    setHcWardCoverage(coverage);
+
+    const sustainedMap: Record<string, Set<string>> = {};
+    ((wardSustRes.data ?? []) as { calling_id: string; ward_id: string }[]).forEach((row) => {
+      if (!sustainedMap[row.calling_id]) sustainedMap[row.calling_id] = new Set();
+      sustainedMap[row.calling_id].add(row.ward_id);
+    });
+    setSustainedWardMap(sustainedMap);
 
     // Fetch which callings this user has viewed
     if (profile?.id) {
@@ -179,6 +202,24 @@ export function HCKanbanScreen({ navigation }: any) {
             const key = `${c.id}:${hcMemberId}`;
             const approved = hcApprovalMap[key];
             if (approved === undefined || approved === false) return true;
+          }
+        }
+        // For the Sustain column, surface cards that still need sustaining
+        // in any of the HC member's assigned wards. Ward callings live in
+        // one ward; stake callings need sustaining in every ward (tracked
+        // per-ward via ward_sustainings).
+        if (c.stage === 'sustain') {
+          const hcMemberId = hcMemberIdMap[assigneeFilter];
+          const myWards = hcMemberId ? hcWardCoverage[hcMemberId] : undefined;
+          if (myWards && myWards.size > 0) {
+            if (c.type === 'stake_calling') {
+              const sustained = sustainedWardMap[c.id] ?? new Set<string>();
+              for (const wid of myWards) {
+                if (!sustained.has(wid)) return true;
+              }
+            } else if (c.ward_id && myWards.has(c.ward_id)) {
+              return true;
+            }
           }
         }
         return false;

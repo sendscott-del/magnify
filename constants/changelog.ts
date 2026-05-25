@@ -9,6 +9,15 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.23.0',
+    date: '2026-05-24',
+    enhancements: [
+      'High Council board "Just mine" filter now includes the Sustain column. A high councilor with assigned wards sees every card that still needs sustaining in any of their wards — ward callings for those wards, plus stake callings whose per-ward sustaining hasn\'t been checked off yet for any of their wards. Same fall-through pattern as HC Approval. The home-screen badge count and silent push updates mirror the same rule, so the number on the icon matches what\'s on the board.',
+      'Ward coverage for each high councilor is now managed from the Gathered admin page (Manage user access → High councilor ward coverage). One click per ward chip to assign or remove. Backed by a new hc_member_wards table in the shared Supabase project; readable by any approved Magnify user and writable by stake admins or Gathered super-admins.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.22.1',
     date: '2026-05-23',
     enhancements: [],

@@ -35,18 +35,22 @@ export function ActionCountsProvider({ children }: { children: React.ReactNode }
     }
     const myName = profile.full_name;
 
-    const [callingsRes, hcMembersRes, hcApprovalsRes] = await Promise.all([
+    const [callingsRes, hcMembersRes, hcApprovalsRes, hcWardsRes, wardSustRes] = await Promise.all([
       supabase
         .from('callings')
-        .select('id, stage, extend_by, sustain_by, set_apart_by, record_by, rejected')
+        .select('id, type, ward_id, stage, extend_by, sustain_by, set_apart_by, record_by, rejected')
         .eq('rejected', false)
         .neq('stage', 'complete'),
       supabase.from('high_council_members').select('id, name').eq('active', true),
       supabase.from('hc_approvals').select('calling_id, hc_member_id, approved'),
+      supabase.from('hc_member_wards').select('hc_member_id, ward_id'),
+      supabase.from('ward_sustainings').select('calling_id, ward_id, sustained').eq('sustained', true),
     ]);
 
     const callings = (callingsRes.data ?? []) as Array<{
       id: string;
+      type: 'ward_calling' | 'stake_calling' | 'mp_ordination';
+      ward_id: string | null;
       stage: string;
       extend_by: string | null;
       sustain_by: string | null;
@@ -59,12 +63,25 @@ export function ActionCountsProvider({ children }: { children: React.ReactNode }
       hc_member_id: string;
       approved: boolean;
     }>;
+    const hcWards = (hcWardsRes.data ?? []) as Array<{ hc_member_id: string; ward_id: string }>;
+    const wardSust = (wardSustRes.data ?? []) as Array<{ calling_id: string; ward_id: string }>;
 
     const myHcMember = hcMembers.find(m => m.name === myName);
     const approvalMap: Record<string, boolean> = {};
     hcApprovals.forEach(a => {
       approvalMap[`${a.calling_id}:${a.hc_member_id}`] = a.approved;
     });
+    const myWards = new Set<string>();
+    if (myHcMember) {
+      for (const row of hcWards) {
+        if (row.hc_member_id === myHcMember.id) myWards.add(row.ward_id);
+      }
+    }
+    const sustainedMap: Record<string, Set<string>> = {};
+    for (const row of wardSust) {
+      if (!sustainedMap[row.calling_id]) sustainedMap[row.calling_id] = new Set();
+      sustainedMap[row.calling_id].add(row.ward_id);
+    }
 
     let hc = 0;
     let sp = 0;
@@ -78,6 +95,19 @@ export function ActionCountsProvider({ children }: { children: React.ReactNode }
         if (c.stage === 'hc_approval' && myHcMember) {
           const key = `${c.id}:${myHcMember.id}`;
           if (!approvalMap[key]) {
+            hc++;
+            continue;
+          }
+        }
+        if (c.stage === 'sustain' && myWards.size > 0) {
+          if (c.type === 'stake_calling') {
+            const sustained = sustainedMap[c.id] ?? new Set<string>();
+            let needs = false;
+            for (const wid of myWards) {
+              if (!sustained.has(wid)) { needs = true; break; }
+            }
+            if (needs) { hc++; continue; }
+          } else if (c.ward_id && myWards.has(c.ward_id)) {
             hc++;
             continue;
           }
