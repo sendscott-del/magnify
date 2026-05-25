@@ -87,8 +87,15 @@ export function ActionCountsProvider({ children }: { children: React.ReactNode }
     let sp = 0;
     for (const c of callings) {
       if (HC_STAGES.includes(c.stage)) {
-        const namedAssignee = [c.extend_by, c.sustain_by, c.set_apart_by, c.record_by].includes(myName);
-        if (namedAssignee) {
+        // Only count the assignee for the CURRENT stage. Prior-stage
+        // assignees are done — they shouldn't keep accumulating badges.
+        const currentAssignee =
+          c.stage === 'issue_calling' || c.stage === 'ordained' ? c.extend_by :
+          c.stage === 'sustain'   ? c.sustain_by :
+          c.stage === 'set_apart' ? c.set_apart_by :
+          c.stage === 'record'    ? c.record_by :
+          null;
+        if (currentAssignee === myName) {
           hc++;
           continue;
         }

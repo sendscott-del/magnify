@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.23.1',
+    date: '2026-05-24',
+    enhancements: [],
+    bugFixes: [
+      "\"Just mine\" filter and the home-screen badge no longer hold onto cards from prior stages. When a calling advances (e.g., out of Extend Calling and into Sustain), the previous-stage assignee drops off — only the assignee for the calling's current stage counts as \"mine.\" Before, a card stayed in your view for every step you'd touched along the way, even after you'd handed it off. Applies to the HC board, the in-app badge count, and the silent push that updates the home-screen badge.",
+    ],
+  },
+  {
     version: '2.23.0',
     date: '2026-05-24',
     enhancements: [

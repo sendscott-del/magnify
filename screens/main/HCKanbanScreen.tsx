@@ -193,8 +193,16 @@ export function HCKanbanScreen({ navigation }: any) {
       if (typeFilter !== 'all' && c.type !== typeFilter) return false;
       if (wardFilter !== 'all' && c.ward_id !== wardFilter) return false;
       if (assigneeFilter !== 'all') {
-        const assigned = [c.extend_by, c.sustain_by, c.set_apart_by, c.record_by];
-        if (assigned.includes(assigneeFilter)) return true;
+        // Match only the assignee responsible for the CURRENT stage. Once a
+        // calling advances, prior-stage assignees should drop off the "Just
+        // mine" view — they're done.
+        const currentAssignee =
+          c.stage === 'issue_calling' || c.stage === 'ordained' ? c.extend_by :
+          c.stage === 'sustain'   ? c.sustain_by :
+          c.stage === 'set_apart' ? c.set_apart_by :
+          c.stage === 'record'    ? c.record_by :
+          null;
+        if (currentAssignee === assigneeFilter) return true;
         // For hc_approval stage, include cards where the HC member hasn't approved yet
         if (c.stage === 'hc_approval') {
           const hcMemberId = hcMemberIdMap[assigneeFilter];
