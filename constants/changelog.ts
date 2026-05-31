@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.26.0',
+    date: '2026-05-31',
+    enhancements: [
+      "AuthContext signUp now passes `data: { app: 'magnify' }` so the shared handle_new_user trigger (rewritten in parallel) only writes to Magnify's profiles table for users who actually signed up through Magnify. Cross-app signups (Knit, Glean, Steward, etc.) no longer create pending profiles rows that show up in Magnify's Pending Access queue. Required because the trigger is now strict — untagged signups insert nothing — so without this tag, new Magnify signups would not land in profiles and the Pending Access flow would silently break.",
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.25.0',
     date: '2026-05-25',
     enhancements: [
