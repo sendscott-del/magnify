@@ -15,7 +15,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.magnify.stakes",
-      "buildNumber": "3",
+      "buildNumber": "6",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -26,7 +26,7 @@
         "foregroundImage": "./assets/adaptive-icon.png"
       },
       "package": "com.magnify.stakes",
-      "versionCode": 3
+      "versionCode": 4
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -47,6 +47,12 @@
         "projectId": "280bb166-4653-47e0-86dc-5ed0226e2fc3"
       }
     },
-    "owner": "leftfieldapps"
+    "owner": "leftfieldapps",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/280bb166-4653-47e0-86dc-5ed0226e2fc3"
+    }
   }
 }
