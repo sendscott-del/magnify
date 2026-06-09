@@ -39,7 +39,9 @@
       "display": "standalone",
       "orientation": "portrait"
     },
-    "plugins": [],
+    "plugins": [
+      "expo-font"
+    ],
     "extra": {
       "eas": {
         "projectId": "280bb166-4653-47e0-86dc-5ed0226e2fc3"
