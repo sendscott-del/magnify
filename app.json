@@ -14,14 +14,16 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.magnify.stakes"
+      "bundleIdentifier": "com.magnify.stakes",
+      "buildNumber": "1"
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#1B3A6B",
         "foregroundImage": "./assets/adaptive-icon.png"
       },
-      "package": "com.magnify.stakes"
+      "package": "com.magnify.stakes",
+      "versionCode": 1
     },
     "web": {
       "favicon": "./assets/favicon.png",
