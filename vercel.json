@@ -4,6 +4,12 @@
   "framework": null,
   "redirects": [
     {
+      "source": "/",
+      "has": [{ "type": "host", "value": "magnify-eta.vercel.app" }],
+      "destination": "https://magnify.gatheredin.app/",
+      "permanent": true
+    },
+    {
       "source": "/:path*",
       "has": [{ "type": "host", "value": "magnify-eta.vercel.app" }],
       "destination": "https://magnify.gatheredin.app/:path*",
