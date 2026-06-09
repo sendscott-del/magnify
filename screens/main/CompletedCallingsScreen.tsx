@@ -8,7 +8,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { format } from 'date-fns';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
-import { useDemoMode } from '../../context/DemoModeContext';
+import { useAuth } from '../../context/AuthContext';
+import { useDemoMode, isReviewDemoUser } from '../../context/DemoModeContext';
 import { getDemoCompletedCallings } from '../../lib/demoCallings';
 import { Calling, Ward } from '../../lib/database.types';
 import { Badge } from '../../components/ui/Badge';
@@ -27,6 +28,7 @@ export function CompletedCallingsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { t } = useLanguage();
   const { demoMode } = useDemoMode();
+  const { profile } = useAuth();
 
   const TYPE_LABELS: Record<string, string> = {
     ward_calling: t('type.ward_calling_short'),
@@ -42,7 +44,7 @@ export function CompletedCallingsScreen({ navigation }: any) {
   const [showWardPicker, setShowWardPicker] = useState(false);
 
   const fetchCallings = useCallback(async () => {
-    if (demoMode) {
+    if (demoMode || isReviewDemoUser(profile?.email)) {
       setCallings(getDemoCompletedCallings());
       return;
     }
@@ -55,7 +57,7 @@ export function CompletedCallingsScreen({ navigation }: any) {
   }, [demoMode]);
 
   const fetchWards = useCallback(async () => {
-    if (demoMode) {
+    if (demoMode || isReviewDemoUser(profile?.email)) {
       setWards([
         { id: 'demo-ward-1', name: 'Hyde Park 1st', abbreviation: 'HP1', sort_order: 1 },
         { id: 'demo-ward-2', name: 'Hyde Park 2nd', abbreviation: 'HP2', sort_order: 2 },

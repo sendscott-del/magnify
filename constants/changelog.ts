@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.29.0',
+    date: '2026-06-08',
+    enhancements: [
+      'App Store review support: a designated reviewer account is automatically locked into Demo Mode on every data screen, so App Store reviewers only ever see sample data — never real member callings or names.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.28.0',
     date: '2026-06-08',
     enhancements: [],

@@ -8,7 +8,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
-import { useDemoMode } from '../../context/DemoModeContext';
+import { useDemoMode, isReviewDemoUser } from '../../context/DemoModeContext';
 import { useActionCounts } from '../../context/ActionCountsContext';
 import { getDemoHCCallings } from '../../lib/demoCallings';
 import { Calling, CallingType, Ward } from '../../lib/database.types';
@@ -89,7 +89,7 @@ export function HCKanbanScreen({ navigation }: any) {
   const { refresh: refreshActionCounts } = useActionCounts();
 
   const fetchData = useCallback(async () => {
-    if (demoMode) {
+    if (demoMode || isReviewDemoUser(profile?.email)) {
       // Demo: fixture HC-stage callings + a couple of fake HC members so
       // the board has rows to render. Approval map left empty in demo.
       setCallings(getDemoHCCallings());

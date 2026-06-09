@@ -20,6 +20,16 @@ export const MAGNIFY_DEMO_ROLE_LABELS: Record<MagnifyDemoRole, string> = {
   member: 'Member',
 };
 
+// Apple App Review reviewer account(s). These accounts ALWAYS see Demo Mode
+// (fake) data and never real member data — every real-data read in the app is
+// gated on `demoMode || isReviewDemoUser(profile.email)`, a synchronous check
+// (no window where a real query could run). Keep in sync with the approved demo
+// account in Supabase + the App Review notes.
+export const REVIEW_DEMO_EMAILS = ['applereview@gatheredin.app'];
+export function isReviewDemoUser(email?: string | null): boolean {
+  return !!email && REVIEW_DEMO_EMAILS.includes(email.toLowerCase());
+}
+
 interface DemoMode {
   demoMode: boolean;
   demoRole: MagnifyDemoRole;

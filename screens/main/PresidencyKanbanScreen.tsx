@@ -7,7 +7,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
-import { useDemoMode } from '../../context/DemoModeContext';
+import { useDemoMode, isReviewDemoUser } from '../../context/DemoModeContext';
 import { useActionCounts } from '../../context/ActionCountsContext';
 import { getDemoActiveCallings, getDemoRejectedCallings } from '../../lib/demoCallings';
 import { Calling, CallingType } from '../../lib/database.types';
@@ -66,7 +66,7 @@ export function PresidencyKanbanScreen({ navigation }: any) {
     [mineOnly, rejectedCallings, isMine]);
 
   const fetchCallings = useCallback(async () => {
-    if (demoMode) {
+    if (demoMode || isReviewDemoUser(profile?.email)) {
       // Demo: short-circuit all reads to fixture callings. No DB writes
       // happen from this screen, so no further demo-mode branching is
       // needed — drag-to-advance / detail-page actions still flow through
