@@ -2,6 +2,14 @@
   "buildCommand": "npm run build:web",
   "outputDirectory": "dist",
   "framework": null,
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "magnify-eta.vercel.app" }],
+      "destination": "https://magnify.gatheredin.app/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     { "source": "/reset-password", "destination": "/index.html" },
     { "source": "/calling/:callingId", "destination": "/index.html" },

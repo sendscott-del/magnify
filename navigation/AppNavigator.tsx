@@ -29,7 +29,7 @@ import { Colors } from '../constants/theme';
  * "Found conflicting screens with the same pattern" — keep this minimal.
  */
 const linking: LinkingOptions<any> = {
-  prefixes: ['magnify://', 'https://magnify-eta.vercel.app'],
+  prefixes: ['magnify://', 'https://magnify.gatheredin.app', 'https://magnify-eta.vercel.app'],
   config: {
     screens: {
       Login: 'login',

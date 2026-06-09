@@ -9,6 +9,15 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.27.0',
+    date: '2026-06-08',
+    enhancements: [
+      'Domain migration: Magnify now lives at https://magnify.gatheredin.app — the new Gathered suite domain. The old magnify-eta.vercel.app URL keeps working and redirects here, so existing links and home-screen shortcuts are not broken. The in-app App Switcher and deep-link handling now use the *.gatheredin.app addresses for all five Gathered apps (Magnify, Steward, Glean, Tidings, Knit).',
+      'Password-reset and Slack "View Card" links now build on an absolute https://magnify.gatheredin.app base (via EXPO_PUBLIC_APP_URL) instead of a relative path, so reset emails and notifications point at the correct domain.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.26.0',
     date: '2026-05-31',
     enhancements: [

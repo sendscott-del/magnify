@@ -124,7 +124,7 @@ export function SettingsScreen({ navigation }: any) {
   }
 
   function openGather() {
-    const url = 'https://stewards-indeed.vercel.app/admin/gather';
+    const url = 'https://steward.gatheredin.app/admin/gather';
     if (Platform.OS === 'web') window.open(url, '_blank');
     else Linking.openURL(url);
   }
