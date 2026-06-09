@@ -22,6 +22,16 @@
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "ascApiKeyPath": "/Users/scottshurtliff/Downloads/AuthKey_424J7NT92Y.p8",
+        "ascApiKeyId": "424J7NT92Y",
+        "ascApiKeyIssuerId": "dff48c7f-f787-4bec-9f7c-def2559b6c58"
+      },
+      "android": {
+        "serviceAccountKeyPath": "/Users/scottshurtliff/.config/gatheredin/play-service-account.json",
+        "track": "production"
+      }
+    }
   }
 }
