@@ -24,6 +24,7 @@
   "submit": {
     "production": {
       "ios": {
+        "ascAppId": "6778263386",
         "ascApiKeyPath": "/Users/scottshurtliff/Downloads/AuthKey_424J7NT92Y.p8",
         "ascApiKeyId": "424J7NT92Y",
         "ascApiKeyIssuerId": "dff48c7f-f787-4bec-9f7c-def2559b6c58"
