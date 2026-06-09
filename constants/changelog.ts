@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.30.0',
+    date: '2026-06-09',
+    enhancements: [
+      'Added the required disclaimer that Magnify is not an official product of, and is not endorsed by, The Church of Jesus Christ of Latter-day Saints, to the sign-in screen.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.29.0',
     date: '2026-06-08',
     enhancements: [

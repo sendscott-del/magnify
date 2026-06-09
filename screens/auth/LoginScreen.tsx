@@ -125,6 +125,11 @@ export function LoginScreen({ navigation }: any) {
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Required legal disclaimer */}
+        <Text style={styles.disclaimer}>
+          Not an official product of, and is not endorsed by, The Church of Jesus Christ of Latter-day Saints.
+        </Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -218,5 +223,13 @@ const styles = StyleSheet.create({
   langTextOn: {
     color: Colors.primary,
     fontWeight: '700',
+  },
+  disclaimer: {
+    textAlign: 'center',
+    color: Colors.gray[500],
+    fontSize: FontSize.xs,
+    lineHeight: 16,
+    marginTop: Spacing.xl,
+    marginHorizontal: Spacing.lg,
   },
 });
