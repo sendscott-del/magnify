@@ -656,7 +656,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
       supabase.from('stake_presidency_approvals').select('*').eq('calling_id', callingId),
       supabase.from('high_council_members').select('*').eq('active', true).order('sort_order'),
       supabase.from('hc_approvals').select('*').eq('calling_id', callingId),
-      supabase.from('profiles').select('id,full_name,role,status,email,created_at').eq('status', 'approved').order('full_name'),
+      supabase.from('profiles').select('id,full_name,role,status,email,created_at').eq('app', 'magnify').eq('status', 'approved').order('full_name'),
       supabase.from('sp_members').select('id,name,role').eq('active', true).order('sort_order'),
       supabase.from('ward_sustainings').select('*').eq('calling_id', callingId),
     ]);

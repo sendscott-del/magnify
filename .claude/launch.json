@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "magnify-web",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "dist", "-l"],
+      "cwd": "/Users/scottshurtliff/magnify",
+      "port": 4173
+    }
+  ]
+}

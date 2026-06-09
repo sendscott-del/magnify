@@ -21,7 +21,7 @@ export function PendingAccessScreen({ navigation }: any) {
 
   const fetchPendingUsers = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase.from('profiles').select('*').eq('status', 'pending').order('created_at');
+    const { data } = await supabase.from('profiles').select('*').eq('app', 'magnify').eq('status', 'pending').order('created_at');
     const users = (data as Profile[]) ?? [];
     setPendingUsers(users);
     const roleDefaults: Record<string, UserRole> = {};

@@ -88,6 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       full_name: meta.full_name ?? meta.name ?? '',
       role: meta.role ?? 'stake_clerk',
       status: 'pending',
+      app: 'magnify',
     });
 
     const { data: newProfile } = await supabase

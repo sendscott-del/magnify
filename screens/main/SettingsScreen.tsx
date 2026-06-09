@@ -97,8 +97,8 @@ export function SettingsScreen({ navigation }: any) {
   const fetchCounts = useCallback(async () => {
     if (!isAdmin) return;
     const [pending, users, slack] = await Promise.all([
-      supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-      supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
+      supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('app', 'magnify').eq('status', 'pending'),
+      supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('app', 'magnify').eq('status', 'approved'),
       supabase.from('slack_settings').select('id', { count: 'exact', head: true }).eq('active', true),
     ]);
     setPendingCount(pending.count ?? 0);

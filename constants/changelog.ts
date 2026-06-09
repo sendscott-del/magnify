@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.28.0',
+    date: '2026-06-08',
+    enhancements: [],
+    bugFixes: [
+      "Fixed a cross-app leak where Sparkle Pro signups appeared in Magnify's Pending Access queue. Magnify and Sparkle Pro share one physical `profiles` table; the signup trigger tagged each row's app but the table had no `app` column to store it, so Magnify's \"pending\" query surfaced Sparkle requests (and an Approve/Reject could mutate a Sparkle row). Added an `app` column, the trigger now stamps it, existing rows were backfilled, and every Magnify profiles list query is now scoped to app='magnify'. See supabase/migrations/20260608_scope_profiles_by_app.sql.",
+    ],
+  },
+  {
     version: '2.27.0',
     date: '2026-06-08',
     enhancements: [
