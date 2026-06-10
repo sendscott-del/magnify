@@ -124,7 +124,7 @@ export function SettingsScreen({ navigation }: any) {
   }
 
   function openGather() {
-    const url = 'https://steward.gatheredin.app/admin/gather';
+    const url = 'https://gather.gatheredin.app/gather';
     if (Platform.OS === 'web') window.open(url, '_blank');
     else Linking.openURL(url);
   }
