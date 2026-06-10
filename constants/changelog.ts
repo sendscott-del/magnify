@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.30.1',
+    date: '2026-06-09',
+    enhancements: [],
+    bugFixes: [
+      'Security: updated a development-tooling dependency (shell-quote) to a patched version. No app-facing changes.',
+    ],
+  },
+  {
     version: '2.30.0',
     date: '2026-06-09',
     enhancements: [
