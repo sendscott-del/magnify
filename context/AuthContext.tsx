@@ -71,33 +71,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .eq('id', userId)
       .single();
 
-    if (data) {
-      setProfile(data);
-      setLoading(false);
-      return;
-    }
-
-    // Create profile if missing (OAuth users or trigger failure)
-    const { data: authData } = await supabase.auth.getUser();
-    const authUser = authData?.user;
-    const meta = authUser?.user_metadata ?? {};
-
-    await supabase.from('profiles').insert({
-      id: userId,
-      email: authUser?.email ?? '',
-      full_name: meta.full_name ?? meta.name ?? '',
-      role: meta.role ?? 'stake_clerk',
-      status: 'pending',
-      app: 'magnify',
-    });
-
-    const { data: newProfile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
-
-    setProfile(newProfile ?? null);
+    // No auto-create fallback. All apps on this Supabase project share
+    // auth.users, so an authenticated user from another app (Duty, Sparkle,
+    // etc.) who merely opens Magnify must NOT get a Magnify pending row.
+    // Real Magnify signups get their profiles row from the DB trigger
+    // (signUp passes data: { app: 'magnify' }). A null profile routes to
+    // the PendingApprovalScreen; access is granted via the Gather hub.
+    setProfile(data ?? null);
     setLoading(false);
   }
 

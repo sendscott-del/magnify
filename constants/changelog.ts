@@ -9,6 +9,16 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.31.0',
+    date: '2026-06-10',
+    enhancements: [
+      'Access approvals now live in the Gather hub — the in-app Pending Access screen is read-only and links there.',
+    ],
+    bugFixes: [
+      'Fixed a cross-app leak where signing into Magnify with an account from another app silently created a pending access request. Visitors without Magnify access now just see the pending screen; no rows are created.',
+    ],
+  },
+  {
     version: '2.30.1',
     date: '2026-06-09',
     enhancements: [],

@@ -8,7 +8,7 @@ import { ROLE_LABELS } from '../../constants/callings';
 import { UserRole } from '../../lib/database.types';
 
 export function PendingApprovalScreen() {
-  const { profile, signOut, refreshProfile } = useAuth();
+  const { profile, user, signOut, refreshProfile } = useAuth();
   const { t } = useLanguage();
 
   return (
@@ -16,14 +16,22 @@ export function PendingApprovalScreen() {
       <Text style={styles.icon}>⏳</Text>
       <Text style={styles.title}>{t('pending.title')}</Text>
       <Text style={styles.desc}>{t('pending.desc')}</Text>
-      {profile && (
+      {profile ? (
         <View style={styles.infoBox}>
           <Text style={styles.infoLabel}>{t('pending.name')}</Text>
           <Text style={styles.infoValue}>{profile.full_name}</Text>
           <Text style={styles.infoLabel}>{t('pending.email')}</Text>
           <Text style={styles.infoValue}>{profile.email}</Text>
           <Text style={styles.infoLabel}>{t('pending.requestedRole')}</Text>
-          <Text style={styles.infoValue}>{ROLE_LABELS[profile.role as UserRole]}</Text>
+          <Text style={styles.infoValue}>{ROLE_LABELS[profile.role as UserRole] ?? profile.role}</Text>
+        </View>
+      ) : (
+        // No Magnify profile row exists for this account (e.g. it belongs to
+        // another app on the shared Supabase project). Show the signed-in
+        // email from the auth session so the user knows which account this is.
+        <View style={styles.infoBox}>
+          <Text style={styles.infoLabel}>{t('pending.email')}</Text>
+          <Text style={styles.infoValue}>{user?.email ?? '—'}</Text>
         </View>
       )}
       <Button

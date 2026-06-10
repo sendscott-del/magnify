@@ -434,7 +434,7 @@ export const translations = {
     'settings.helpSection': 'Help',
     'settings.appSection': 'App',
     'settings.pendingAccess': 'Pending access',
-    'settings.pendingAccessSub': 'Approve / assign role',
+    'settings.pendingAccessSub': 'View requests — approve in Gather',
     'settings.userRoles': 'User roles',
     'settings.usersSub': 'users',
     'settings.slackSubOf': 'of',
@@ -446,6 +446,8 @@ export const translations = {
 
     // Pending access screen
     'pendingAccess.title': 'Pending Access',
+    'pendingAccess.gatherNote': 'Access approvals have moved to the Gather hub. This list is read-only — approve or reject requests in Gather.',
+    'pendingAccess.manageInGather': 'Manage access in Gather ↗',
 
     // Slack settings screen
     'slackSettings.activeOf': 'of',
@@ -1013,7 +1015,7 @@ export const translations = {
     'settings.helpSection': 'Ayuda',
     'settings.appSection': 'Aplicaci\u00f3n',
     'settings.pendingAccess': 'Acceso pendiente',
-    'settings.pendingAccessSub': 'Aprobar / asignar rol',
+    'settings.pendingAccessSub': 'Ver solicitudes — aprobar en Gather',
     'settings.userRoles': 'Roles de usuario',
     'settings.usersSub': 'usuarios',
     'settings.slackSubOf': 'de',
@@ -1025,6 +1027,8 @@ export const translations = {
 
     // Pending access screen
     'pendingAccess.title': 'Acceso Pendiente',
+    'pendingAccess.gatherNote': 'Las aprobaciones de acceso ahora se gestionan en el centro Gather. Esta lista es de solo lectura — apruebe o rechace solicitudes en Gather.',
+    'pendingAccess.manageInGather': 'Gestionar acceso en Gather ↗',
 
     // Slack settings screen
     'slackSettings.activeOf': 'de',

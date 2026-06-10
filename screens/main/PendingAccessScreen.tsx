@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Platform, Linking } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,47 +8,30 @@ import { Profile, UserRole } from '../../lib/database.types';
 import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme';
 import { ROLE_LABELS } from '../../constants/callings';
 import { useLanguage } from '../../context/LanguageContext';
-import { notifyAccessApproved } from '../../lib/slack';
 
+const GATHER_URL = 'https://gather.gatheredin.app/gather';
+
+// Read-only view of pending Magnify access requests. Approvals and
+// rejections moved to the Gather hub, which manages access for all apps
+// on the shared Supabase project.
 export function PendingAccessScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { t } = useLanguage();
   const [pendingUsers, setPendingUsers] = useState<Profile[]>([]);
-  const [pendingRoles, setPendingRoles] = useState<Record<string, UserRole>>({});
-  const [approving, setApproving] = useState<Record<string, boolean>>({});
-  const [rejecting, setRejecting] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
 
   const fetchPendingUsers = useCallback(async () => {
     setLoading(true);
     const { data } = await supabase.from('profiles').select('*').eq('app', 'magnify').eq('status', 'pending').order('created_at');
-    const users = (data as Profile[]) ?? [];
-    setPendingUsers(users);
-    const roleDefaults: Record<string, UserRole> = {};
-    users.forEach(u => { roleDefaults[u.id] = (u.role as UserRole) || 'stake_clerk'; });
-    setPendingRoles(prev => ({ ...roleDefaults, ...prev }));
+    setPendingUsers((data as Profile[]) ?? []);
     setLoading(false);
   }, []);
 
   useFocusEffect(useCallback(() => { fetchPendingUsers(); }, [fetchPendingUsers]));
 
-  async function handleApprove(userId: string) {
-    setApproving(prev => ({ ...prev, [userId]: true }));
-    const user = pendingUsers.find(u => u.id === userId);
-    const assignedRole = pendingRoles[userId] ?? 'stake_clerk';
-    await supabase.from('profiles').update({ status: 'approved', role: assignedRole }).eq('id', userId);
-    if (user) {
-      notifyAccessApproved({ name: user.full_name, email: user.email, role: ROLE_LABELS[assignedRole] }).catch(() => {});
-    }
-    setPendingUsers(prev => prev.filter(u => u.id !== userId));
-    setApproving(prev => ({ ...prev, [userId]: false }));
-  }
-
-  async function handleReject(userId: string) {
-    setRejecting(prev => ({ ...prev, [userId]: true }));
-    await supabase.from('profiles').update({ status: 'rejected' }).eq('id', userId);
-    setPendingUsers(prev => prev.filter(u => u.id !== userId));
-    setRejecting(prev => ({ ...prev, [userId]: false }));
+  function openGather() {
+    if (Platform.OS === 'web') window.open(GATHER_URL, '_blank');
+    else Linking.openURL(GATHER_URL);
   }
 
   return (
@@ -61,6 +44,16 @@ export function PendingAccessScreen({ navigation }: any) {
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+        <View style={styles.gatherBanner}>
+          <Ionicons name="information-circle" size={20} color={Colors.primary} style={{ marginTop: 1 }} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.gatherNote}>{t('pendingAccess.gatherNote')}</Text>
+            <TouchableOpacity style={styles.gatherBtn} onPress={openGather}>
+              <Text style={styles.gatherBtnText}>{t('pendingAccess.manageInGather')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {loading ? (
           <ActivityIndicator color={Colors.primary} style={{ padding: Spacing.lg }} />
         ) : pendingUsers.length === 0 ? (
@@ -72,40 +65,8 @@ export function PendingAccessScreen({ navigation }: any) {
             <View key={u.id} style={styles.userCard}>
               <Text style={styles.userName}>{u.full_name}</Text>
               <Text style={styles.userEmail}>{u.email}</Text>
-              <Text style={styles.userRoleLabel}>{t('settings.assignRole')}</Text>
-              <View style={styles.roleChipRow}>
-                {(['stake_president', 'first_counselor', 'second_counselor', 'high_councilor', 'stake_clerk', 'exec_secretary'] as UserRole[]).map(r => (
-                  <TouchableOpacity
-                    key={r}
-                    style={[styles.roleChip, pendingRoles[u.id] === r && styles.roleChipActive]}
-                    onPress={() => setPendingRoles(prev => ({ ...prev, [u.id]: r }))}
-                  >
-                    <Text style={[styles.roleChipText, pendingRoles[u.id] === r && styles.roleChipTextActive]}>
-                      {ROLE_LABELS[r]}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-              <View style={styles.userActions}>
-                <TouchableOpacity
-                  style={[styles.approveBtn, approving[u.id] && styles.btnDisabled]}
-                  onPress={() => handleApprove(u.id)}
-                  disabled={approving[u.id]}
-                >
-                  <Text style={styles.approveBtnText}>
-                    {approving[u.id] ? '…' : t('settings.approve')}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.rejectBtn, rejecting[u.id] && styles.btnDisabled]}
-                  onPress={() => handleReject(u.id)}
-                  disabled={rejecting[u.id]}
-                >
-                  <Text style={styles.rejectBtnText}>
-                    {rejecting[u.id] ? '…' : t('settings.reject')}
-                  </Text>
-                </TouchableOpacity>
-              </View>
+              <Text style={styles.userRoleLabel}>{t('pending.requestedRole')}</Text>
+              <Text style={styles.userRoleValue}>{ROLE_LABELS[u.role as UserRole] ?? u.role}</Text>
             </View>
           ))
         )}
@@ -124,6 +85,18 @@ const styles = StyleSheet.create({
   title: { fontSize: FontSize.xl, fontWeight: '800', color: Colors.primary },
   scroll: { flex: 1 },
   scrollContent: { padding: Spacing.md },
+  gatherBanner: {
+    flexDirection: 'row', gap: Spacing.sm, alignItems: 'flex-start',
+    backgroundColor: Colors.primaryFade, borderRadius: Radius.md, padding: Spacing.md,
+    borderWidth: 1, borderColor: Colors.primary, marginBottom: Spacing.md,
+  },
+  gatherNote: { fontSize: FontSize.sm, color: Colors.gray[700], lineHeight: 20 },
+  gatherBtn: {
+    alignSelf: 'flex-start', marginTop: Spacing.sm,
+    paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs,
+    borderRadius: Radius.sm, backgroundColor: Colors.primary,
+  },
+  gatherBtnText: { color: Colors.white, fontSize: FontSize.sm, fontWeight: '700' },
   empty: {
     backgroundColor: Colors.white, borderRadius: Radius.md, padding: Spacing.lg,
     borderWidth: 1, borderColor: Colors.gray[200], alignItems: 'center', ...(Shadow as any),
@@ -135,26 +108,6 @@ const styles = StyleSheet.create({
   },
   userName: { fontSize: FontSize.md, fontWeight: '700', color: Colors.gray[900] },
   userEmail: { fontSize: FontSize.sm, color: Colors.gray[500], marginTop: 1 },
-  userRoleLabel: { fontSize: FontSize.xs, fontWeight: '600', color: Colors.gray[500], marginTop: Spacing.sm, marginBottom: 4 },
-  roleChipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginBottom: Spacing.sm },
-  roleChip: {
-    paddingHorizontal: Spacing.sm, paddingVertical: 3, borderRadius: Radius.full,
-    borderWidth: 1.5, borderColor: Colors.gray[300], backgroundColor: Colors.white,
-  },
-  roleChipActive: { borderColor: Colors.primary, backgroundColor: Colors.primaryFade },
-  roleChipText: { fontSize: FontSize.xs, color: Colors.gray[600] },
-  roleChipTextActive: { color: Colors.primary, fontWeight: '700' },
-  userActions: { flexDirection: 'row', gap: Spacing.xs, justifyContent: 'flex-end', marginTop: Spacing.xs },
-  approveBtn: {
-    paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs,
-    borderRadius: Radius.sm, backgroundColor: Colors.success,
-  },
-  approveBtnText: { color: Colors.white, fontSize: FontSize.sm, fontWeight: '700' },
-  rejectBtn: {
-    paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs,
-    borderRadius: Radius.sm, backgroundColor: Colors.error + '15',
-    borderWidth: 1, borderColor: Colors.error,
-  },
-  rejectBtnText: { color: Colors.error, fontSize: FontSize.sm, fontWeight: '700' },
-  btnDisabled: { opacity: 0.5 },
+  userRoleLabel: { fontSize: FontSize.xs, fontWeight: '600', color: Colors.gray[500], marginTop: Spacing.sm },
+  userRoleValue: { fontSize: FontSize.sm, color: Colors.gray[800], fontWeight: '500' },
 });
