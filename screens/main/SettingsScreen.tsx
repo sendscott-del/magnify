@@ -179,6 +179,14 @@ export function SettingsScreen({ navigation }: any) {
               ) : undefined}
               onPress={() => navigation.navigate('PendingAccess')}
             />
+            {(profile?.role === 'stake_president' || profile?.role === 'stake_clerk' || profile?.role === 'exec_secretary') && (
+              <Row
+                icon="shield-checkmark-outline"
+                label={t('highCouncil.title')}
+                sub={t('highCouncil.settingsSub')}
+                onPress={() => navigation.navigate('HighCouncil')}
+              />
+            )}
             <Row
               icon="people-outline"
               label="Manage user access (Gather ↗)"

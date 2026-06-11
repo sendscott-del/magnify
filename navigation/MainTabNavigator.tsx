@@ -22,6 +22,7 @@ import { HelpScreen } from '../screens/main/HelpScreen';
 import { ReleaseNotesScreen } from '../screens/main/ReleaseNotesScreen';
 import { PendingAccessScreen } from '../screens/main/PendingAccessScreen';
 import { SlackSettingsScreen } from '../screens/main/SlackSettingsScreen';
+import { HighCouncilScreen } from '../screens/main/HighCouncilScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -61,6 +62,7 @@ function SettingsStack() {
       <Stack.Screen name="ReleaseNotes" component={ReleaseNotesScreen} />
       <Stack.Screen name="PendingAccess" component={PendingAccessScreen} />
       <Stack.Screen name="SlackSettings" component={SlackSettingsScreen} />
+      <Stack.Screen name="HighCouncil" component={HighCouncilScreen} />
     </Stack.Navigator>
   );
 }

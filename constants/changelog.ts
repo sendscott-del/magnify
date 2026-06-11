@@ -9,6 +9,16 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.34.0',
+    date: '2026-06-11',
+    enhancements: [
+      'New "High Council" screen in Settings (Stake President, Clerk, and Executive Secretary): add or remove high councilors and set which wards each one covers — no more editing the database by hand.',
+      'High councilors added here immediately appear in the extend / sustain / set-apart pickers and on the HC board for their assigned wards. The person does not need a Magnify login to be assigned.',
+      'Members can be marked Inactive to remove them from pickers while preserving their approval history, or permanently removed.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.33.0',
     date: '2026-06-11',
     enhancements: [

@@ -174,6 +174,7 @@ export function HelpScreen({ navigation }: any) {
           <Text style={[styles.body, { marginTop: Spacing.xs }]}>{t('help.settingsBody2')}</Text>
           <Text style={[styles.body, { marginTop: Spacing.xs }]}>{t('help.settingsBody3')}</Text>
           <Text style={[styles.body, { marginTop: Spacing.xs }]}>{t('help.settingsBody4')}</Text>
+          <Text style={[styles.body, { marginTop: Spacing.xs }]}>{t('help.settingsBody5')}</Text>
         </Section>
 
         <Section title={t('help.userRoles')}>
