@@ -8,3 +8,7 @@ web-build/
 .env.*.local
 .vapid-keys.txt
 supabase/.temp/
+
+# Expo prebuild / local device-build artifacts
+/ios
+/android
