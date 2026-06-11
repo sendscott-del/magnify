@@ -161,6 +161,7 @@ CREATE POLICY "ward_sustainings_update" ON ward_sustainings
 -- Replace v_role with a hardcoded safe default for Magnify signups.
 -- The client-supplied role in metadata is preserved in gather_access_requests
 -- for informational purposes but never trusted for profiles.role.
+-- Sparkle Pro signup logic has been moved to handle_sparkle_new_user() below.
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -169,7 +170,6 @@ SET search_path TO 'public'
 AS $$
 DECLARE
   v_app  text := lower(coalesce(new.raw_user_meta_data->>'app', ''));
-  v_role text := coalesce(new.raw_user_meta_data->>'role', 'staff');
   v_name text := coalesce(new.raw_user_meta_data->>'full_name', '');
 BEGIN
   -- Record access requests for Gathered-suite apps (informational only).
@@ -191,18 +191,50 @@ BEGIN
     INSERT INTO sq_users (id, email, full_name, status)
     VALUES (new.id, coalesce(new.email, ''), v_name, 'pending')
     ON CONFLICT (id) DO NOTHING;
-
-  ELSIF v_app = 'sparkle' THEN
-    INSERT INTO profiles (id, email, full_name, role, app)
-    VALUES (new.id, coalesce(new.email, ''), v_name, v_role, 'sparkle')
-    ON CONFLICT (id) DO NOTHING;
-    IF v_role = 'owner' THEN
-      INSERT INTO business_settings (owner_id, business_name)
-      VALUES (new.id, 'Sparkle Pro')
-      ON CONFLICT (owner_id) DO NOTHING;
-    END IF;
   END IF;
 
   RETURN new;
 END;
 $$;
+
+-- ── Sparkle Pro signup — fully decoupled from Gathered/Magnify ───────────────
+
+-- Sparkle Pro uses a separate trigger function so its signup path is completely
+-- independent of handle_new_user(). A Sparkle signup will never touch Magnify
+-- tables (gather_access_requests, profiles with app='magnify', etc.) and a
+-- Magnify signup will never touch Sparkle tables.
+
+CREATE OR REPLACE FUNCTION public.handle_sparkle_new_user()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+DECLARE
+  v_app  text := lower(coalesce(new.raw_user_meta_data->>'app', ''));
+  v_role text := coalesce(new.raw_user_meta_data->>'role', 'staff');
+  v_name text := coalesce(new.raw_user_meta_data->>'full_name', '');
+BEGIN
+  IF v_app <> 'sparkle' THEN
+    RETURN new;
+  END IF;
+
+  INSERT INTO profiles (id, email, full_name, role, app)
+  VALUES (new.id, coalesce(new.email, ''), v_name, v_role, 'sparkle')
+  ON CONFLICT (id) DO NOTHING;
+
+  IF v_role = 'owner' THEN
+    INSERT INTO business_settings (owner_id, business_name)
+    VALUES (new.id, 'Sparkle Pro')
+    ON CONFLICT (owner_id) DO NOTHING;
+  END IF;
+
+  RETURN new;
+END;
+$$;
+
+-- Create the trigger if it does not already exist.
+DROP TRIGGER IF EXISTS sparkle_on_auth_user_created ON auth.users;
+CREATE TRIGGER sparkle_on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_sparkle_new_user();
