@@ -17,6 +17,8 @@ const INTERNAL_FN_SECRET = Deno.env.get("INTERNAL_FN_SECRET")!;
 
 webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
 
+// Count logic is intentionally mirrored in context/ActionCountsContext.tsx
+// (in-app badge). Keep both in sync when stage rules change.
 const HC_STAGES = ["hc_approval", "issue_calling", "ordained", "sustain", "set_apart", "record"];
 const SP_PRESIDENCY_ROLES = ["stake_president", "first_counselor", "second_counselor"];
 const SP_CLERK_ROLES = ["stake_clerk", "exec_secretary"];

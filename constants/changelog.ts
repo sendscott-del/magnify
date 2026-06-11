@@ -9,6 +9,21 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.33.0',
+    date: '2026-06-11',
+    enhancements: [
+      'Counselors (first and second) can now see pending user counts and manage users in Settings, consistent with their admin role.',
+      'Idle timeout on iOS/Android now correctly resets when the app returns to the foreground or when the user taps the screen.',
+    ],
+    bugFixes: [
+      'Multi-app users (e.g. someone with both a Magnify and a Knit account) no longer get stuck on the Pending screen.',
+      'High council members can no longer edit calling names, types, or notes — only toggle HC approvals as intended.',
+      'Failed saves on approvals, assignments, and ward sustainings now show an error instead of silently reverting on the next reload.',
+      'Security: tightened Supabase RLS so only authorized roles can write to callings, approvals, and sustainings tables.',
+      'Security: new signups always start with a safe default role regardless of what is passed in signup metadata.',
+    ],
+  },
+  {
     version: '2.32.0',
     date: '2026-06-11',
     enhancements: [

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, Platform, AppState } from 'react-native';
 import { supabase } from '../lib/supabase';
 import { Colors, Spacing, FontSize, Radius } from '../constants/theme';
 import { useLanguage } from '../context/LanguageContext';
@@ -78,11 +78,23 @@ export function IdleTimeoutGuard({ children }: Props) {
       };
     }
 
-    return () => { clearTimers(); };
+    // Native: reset the timer when the app returns to the foreground after being
+    // backgrounded (the most common "are you still there?" scenario).
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') startTimers();
+    });
+    return () => {
+      clearTimers();
+      sub.remove();
+    };
   }, [startTimers, resetTimer]);
 
   return (
-    <>
+    // flex:1 wrapper also gives native a surface for onTouchStart activity detection.
+    <View
+      style={{ flex: 1 }}
+      onTouchStart={Platform.OS !== 'web' ? resetTimer : undefined}
+    >
       {children}
       <Modal visible={showWarning} transparent animationType="fade">
         <View style={styles.overlay}>
@@ -105,7 +117,7 @@ export function IdleTimeoutGuard({ children }: Props) {
           </View>
         </View>
       </Modal>
-    </>
+    </View>
   );
 }
 

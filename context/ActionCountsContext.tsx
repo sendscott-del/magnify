@@ -16,6 +16,8 @@ const ActionCountsContext = createContext<ActionCountsValue>({
   refresh: async () => {},
 });
 
+// Count logic is intentionally mirrored in supabase/functions/magnify-send-action-pushes/index.ts
+// (push badge fanout). Keep both in sync when stage rules change.
 const HC_STAGES = ['hc_approval', 'issue_calling', 'ordained', 'sustain', 'set_apart', 'record'];
 const SP_ACTION_STAGES = ['for_approval'];
 

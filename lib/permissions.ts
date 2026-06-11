@@ -7,9 +7,9 @@ export interface PermittedAction {
   canReject: boolean;
 }
 
-const PRESIDENCY: UserRole[] = ['stake_president', 'first_counselor', 'second_counselor'];
-const ADMIN_GROUP: UserRole[] = ['stake_president', 'first_counselor', 'second_counselor', 'stake_clerk', 'exec_secretary'];
-const ALL_APPROVED: UserRole[] = ['stake_president', 'first_counselor', 'second_counselor', 'high_councilor', 'stake_clerk', 'exec_secretary'];
+export const PRESIDENCY: UserRole[] = ['stake_president', 'first_counselor', 'second_counselor'];
+export const ADMIN_GROUP: UserRole[] = ['stake_president', 'first_counselor', 'second_counselor', 'stake_clerk', 'exec_secretary'];
+export const ALL_APPROVED: UserRole[] = ['stake_president', 'first_counselor', 'second_counselor', 'high_councilor', 'stake_clerk', 'exec_secretary'];
 
 /** Context needed for conditional advance permissions */
 export interface AdvanceContext {

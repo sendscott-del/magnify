@@ -69,6 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .from('profiles')
       .select('*')
       .eq('id', userId)
+      .eq('app', 'magnify')
       .single();
 
     // No auto-create fallback. All apps on this Supabase project share
@@ -87,6 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .from('profiles')
       .select('*')
       .eq('id', user.id)
+      .eq('app', 'magnify')
       .single();
     if (data) setProfile(data);
   }
@@ -94,7 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isPresidency = ['stake_president', 'first_counselor', 'second_counselor'].includes(profile?.role ?? '');
   const isClerk = ['stake_clerk', 'exec_secretary'].includes(profile?.role ?? '');
   const isHC = profile?.role === 'high_councilor';
-  const isAdmin = ['stake_president', 'stake_clerk', 'exec_secretary'].includes(profile?.role ?? '');
+  const isAdmin = ['stake_president', 'first_counselor', 'second_counselor', 'stake_clerk', 'exec_secretary'].includes(profile?.role ?? '');
 
   async function signIn(email: string, password: string) {
     const { error } = await supabase.auth.signInWithPassword({ email, password });

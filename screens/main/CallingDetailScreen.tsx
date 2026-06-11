@@ -23,7 +23,7 @@ import { STAGE_LABELS } from '../../constants/callings';
 import {
   canAdvanceStage, canReject, canMoveback, canDelete,
   getNextStage, getPrevStage, getAdvanceLabel,
-  AdvanceContext,
+  AdvanceContext, ADMIN_GROUP, ALL_APPROVED,
 } from '../../lib/permissions';
 import { CALLING_GROUPS } from '../../constants/callings';
 import { notifyStageChange, notifyRejection } from '../../lib/slack';
@@ -695,11 +695,15 @@ export function CallingDetailScreen({ route, navigation }: any) {
       return;
     }
     const newVal = !current;
-    await supabase.from('stake_presidency_approvals').upsert({
+    const { error } = await supabase.from('stake_presidency_approvals').upsert({
       calling_id: callingId, role, approved: newVal,
       approved_at: newVal ? new Date().toISOString() : null,
       approved_by: profile?.id ?? null,
     }, { onConflict: 'calling_id,role' });
+    if (error) {
+      Alert.alert('Error', 'Failed to save approval. Please try again.');
+      return;
+    }
     setSpApprovals(prev => {
       const exists = prev.find(a => a.role === role);
       if (exists) return prev.map(a => a.role === role ? { ...a, approved: newVal, approved_at: newVal ? new Date().toISOString() : null } : a);
@@ -710,10 +714,14 @@ export function CallingDetailScreen({ route, navigation }: any) {
   async function toggleHCApproval(memberId: string, current: boolean) {
     if (isDemo) return;
     const newVal = !current;
-    await supabase.from('hc_approvals').upsert({
+    const { error } = await supabase.from('hc_approvals').upsert({
       calling_id: callingId, hc_member_id: memberId, approved: newVal,
       approved_at: newVal ? new Date().toISOString() : null,
     }, { onConflict: 'calling_id,hc_member_id' });
+    if (error) {
+      Alert.alert('Error', 'Failed to save approval. Please try again.');
+      return;
+    }
     setHcApprovals(prev => {
       const exists = prev.find(a => a.hc_member_id === memberId);
       if (exists) return prev.map(a => a.hc_member_id === memberId ? { ...a, approved: newVal, approved_at: newVal ? new Date().toISOString() : null } : a);
@@ -727,7 +735,11 @@ export function CallingDetailScreen({ route, navigation }: any) {
       setCalling(prev => prev ? { ...prev, [field]: name } : prev);
       return;
     }
-    await supabase.from('callings').update({ [field]: name }).eq('id', calling.id);
+    const { error } = await supabase.from('callings').update({ [field]: name }).eq('id', calling.id);
+    if (error) {
+      Alert.alert('Error', 'Failed to save assignment. Please try again.');
+      return;
+    }
     setCalling(prev => prev ? { ...prev, [field]: name } : prev);
   }
 
@@ -736,9 +748,11 @@ export function CallingDetailScreen({ route, navigation }: any) {
     if (isDemo) return;
     if (existing) {
       const nv = !existing.sustained;
-      await supabase.from('ward_sustainings').update({ sustained: nv, sustained_at: nv ? new Date().toISOString() : null, sustained_by: profile?.id ?? null }).eq('id', existing.id);
+      const { error } = await supabase.from('ward_sustainings').update({ sustained: nv, sustained_at: nv ? new Date().toISOString() : null, sustained_by: profile?.id ?? null }).eq('id', existing.id);
+      if (error) { Alert.alert('Error', 'Failed to save. Please try again.'); return; }
     } else {
-      await supabase.from('ward_sustainings').insert({ calling_id: calling.id, ward_id: wardId, sustained: true, sustained_at: new Date().toISOString(), sustained_by: profile?.id ?? null });
+      const { error } = await supabase.from('ward_sustainings').insert({ calling_id: calling.id, ward_id: wardId, sustained: true, sustained_at: new Date().toISOString(), sustained_by: profile?.id ?? null });
+      if (error) { Alert.alert('Error', 'Failed to save. Please try again.'); return; }
     }
     const { data } = await supabase.from('ward_sustainings').select('*').eq('calling_id', calling.id);
     setWardSustainingsList((data as WardSustaining[]) ?? []);
@@ -1053,7 +1067,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
   const canRejectCalling = role ? canReject(role, calling.stage) : false;
   const canBack = role ? canMoveback(role) : false;
   const canDel = role ? canDelete(role) : false;
-  const canAssign = !!(role && ['stake_president','first_counselor','second_counselor','stake_clerk','exec_secretary','high_councilor'].includes(role));
+  const canAssign = !!(role && ADMIN_GROUP.includes(role as any));
 
   // Build list of assignable people: SP members table + active HC members
   const spAssignees: Assignee[] = spMembers.map(m => ({ name: m.name, subtitle: SP_ROLE_LABELS[m.role] ?? m.role }));
@@ -1070,9 +1084,9 @@ export function CallingDetailScreen({ route, navigation }: any) {
   const showHCApprovals = ['hc_approval','issue_calling','ordained','sustain','set_apart','record','complete'].includes(calling.stage);
   const spPresidentApproved = spApprovals.find(a => a.role === 'stake_president')?.approved ?? false;
 
-  const canToggleSP = !!(role && ['stake_president','first_counselor','second_counselor','stake_clerk','exec_secretary'].includes(role));
+  const canToggleSP = !!(role && ADMIN_GROUP.includes(role as any));
   const canToggleHC = !!(role && ['stake_president','high_councilor','stake_clerk','exec_secretary'].includes(role));
-  const canSeeRejectionLog = !!(role && ['stake_president','first_counselor','second_counselor','stake_clerk','exec_secretary'].includes(role));
+  const canSeeRejectionLog = !!(role && ADMIN_GROUP.includes(role as any));
 
   // Filter log entries: hide rejection entries from non-SP/clerk users
   const visibleLog = canSeeRejectionLog
@@ -1264,7 +1278,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
           <WardSustainingSection
             wards={allWards}
             sustainings={wardSustainingsList}
-            canToggle={!!(role && ['high_councilor','stake_clerk','exec_secretary','stake_president','first_counselor','second_counselor'].includes(role))}
+            canToggle={!!(role && ALL_APPROVED.includes(role as any))}
             onToggle={handleWardSustainingToggle}
           />
         )}
