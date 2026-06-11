@@ -7,6 +7,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { useActionCounts } from '../context/ActionCountsContext';
 import { ProductIcon, ProductIconKind } from '../components/icons/ProductIcon';
+import { MagnifyLogo } from '../components/icons/MagnifyLogo';
 import { AppSwitcher } from '../components/AppSwitcher';
 import { DemoModeBanner } from '../components/DemoModeBanner';
 import { SuggestionFAB } from '../components/ui/SuggestionFAB';
@@ -62,9 +63,7 @@ export function WebShell({ children }: { children: React.ReactNode }) {
       <View style={styles.row}>
         <View style={styles.sidebar}>
           <View style={styles.brand}>
-            <View style={styles.brandMark}>
-              <Ionicons name="trending-up" size={16} color={Colors.primary} />
-            </View>
+            <MagnifyLogo size={28} variant="inverse" />
             <Text style={styles.brandWord}>Magnify</Text>
           </View>
 

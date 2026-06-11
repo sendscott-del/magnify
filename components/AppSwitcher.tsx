@@ -126,6 +126,10 @@ export function AppSwitcher() {
         </View>
       </View>
 
+      {/* Per-app brand stripe — the navy the Gathered "M" chip uses, matching
+          the 3px stripe the other suite apps show under the chrome. */}
+      <View style={styles.brandStripe} />
+
       {/* Slim scripture sub-row mirrors the pattern used by Steward — a quiet
           tagline under the app chrome so the app's namesake verse rides with
           you across every screen. */}
@@ -216,12 +220,16 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: 'rgba(255,255,255,0.25)',
   },
+  brandStripe: {
+    height: 3,
+    backgroundColor: Colors.primary,
+  },
   scriptureRow: {
     backgroundColor: Colors.white,
     borderBottomWidth: 1,
     borderBottomColor: Colors.gray[100],
     paddingHorizontal: Spacing.md,
-    paddingVertical: 4,
+    paddingVertical: 6,
   },
   scriptureText: {
     fontSize: 11,

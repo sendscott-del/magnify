@@ -9,6 +9,15 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.32.0',
+    date: '2026-06-11',
+    enhancements: [
+      'The in-app Magnify mark now matches the real app icon — a navy tile with the white magnifying glass (it was showing a gold square with an upward arrow).',
+      'Added the navy brand stripe under the top bar and tidied the header so it lines up with the rest of the Gathered suite.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.31.1',
     date: '2026-06-10',
     enhancements: [],
