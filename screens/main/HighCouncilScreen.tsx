@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput,
-  Platform, Alert, ActivityIndicator,
+  Platform, Alert, ActivityIndicator, Modal,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,27 +11,34 @@ import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme
 import { useLanguage } from '../../context/LanguageContext';
 import { Ward } from '../../lib/database.types';
 
-interface HCMember { id: string; name: string; active: boolean; sort_order: number; }
+interface HCMember { id: string; name: string; active: boolean; sort_order: number; user_id: string | null; }
+interface Account { id: string; full_name: string; email: string; }
 
 export function HighCouncilScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { t } = useLanguage();
   const [members, setMembers] = useState<HCMember[]>([]);
   const [wards, setWards] = useState<Ward[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
   const [memberWards, setMemberWards] = useState<Record<string, Set<string>>>({});
   const [newName, setNewName] = useState('');
   const [adding, setAdding] = useState(false);
   const [busy, setBusy] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
+  const [linkModalFor, setLinkModalFor] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [nameDraft, setNameDraft] = useState('');
 
   const fetchAll = useCallback(async () => {
-    const [mRes, wRes, mwRes] = await Promise.all([
-      supabase.from('high_council_members').select('id, name, active, sort_order').order('sort_order'),
+    const [mRes, wRes, mwRes, aRes] = await Promise.all([
+      supabase.from('high_council_members').select('id, name, active, sort_order, user_id').order('sort_order'),
       supabase.from('wards').select('*').order('name'),
       supabase.from('hc_member_wards').select('hc_member_id, ward_id'),
+      supabase.from('profiles').select('id, full_name, email').eq('app', 'magnify').eq('status', 'approved').order('full_name'),
     ]);
     setMembers((mRes.data as HCMember[]) ?? []);
     setWards((wRes.data as Ward[]) ?? []);
+    setAccounts((aRes.data as Account[]) ?? []);
     const map: Record<string, Set<string>> = {};
     ((mwRes.data as { hc_member_id: string; ward_id: string }[]) ?? []).forEach(r => {
       (map[r.hc_member_id] ??= new Set<string>()).add(r.ward_id);
@@ -102,6 +109,52 @@ export function HighCouncilScreen({ navigation }: any) {
     setBusy(p => ({ ...p, [key]: false }));
   }
 
+  async function linkAccount(memberId: string, userId: string) {
+    setBusy(p => ({ ...p, [memberId]: true }));
+    const { error } = await supabase.from('high_council_members').update({ user_id: userId }).eq('id', memberId);
+    if (error) showError(error.message);
+    setLinkModalFor(null);
+    await fetchAll();
+    setBusy(p => ({ ...p, [memberId]: false }));
+  }
+
+  async function unlinkAccount(memberId: string) {
+    setBusy(p => ({ ...p, [memberId]: true }));
+    const { error } = await supabase.from('high_council_members').update({ user_id: null }).eq('id', memberId);
+    if (error) showError(error.message);
+    await fetchAll();
+    setBusy(p => ({ ...p, [memberId]: false }));
+  }
+
+  function startRename(m: HCMember) {
+    setEditingId(m.id);
+    setNameDraft(m.name);
+  }
+
+  async function saveRename(memberId: string) {
+    const name = nameDraft.trim();
+    if (!name) { setEditingId(null); return; }
+    setBusy(p => ({ ...p, [memberId]: true }));
+    const { error } = await supabase.from('high_council_members').update({ name }).eq('id', memberId);
+    if (error) showError(error.message);
+    setEditingId(null);
+    await fetchAll();
+    setBusy(p => ({ ...p, [memberId]: false }));
+  }
+
+  const accountById = React.useMemo(() => {
+    const map: Record<string, Account> = {};
+    accounts.forEach(a => { map[a.id] = a; });
+    return map;
+  }, [accounts]);
+
+  // user_ids already linked to a roster member (so the picker can flag them)
+  const linkedUserIds = React.useMemo(() => {
+    const map: Record<string, string> = {}; // user_id -> member name
+    members.forEach(m => { if (m.user_id) map[m.user_id] = m.name; });
+    return map;
+  }, [members]);
+
   const activeCount = members.filter(m => m.active).length;
 
   return (
@@ -154,31 +207,85 @@ export function HighCouncilScreen({ navigation }: any) {
           members.map(m => {
             const assigned = memberWards[m.id] ?? new Set<string>();
             const memberBusy = !!busy[m.id];
+            const linkedAccount = m.user_id ? accountById[m.user_id] : null;
+            const isEditing = editingId === m.id;
             return (
               <View key={m.id} style={[styles.memberCard, !m.active && styles.memberInactive]}>
                 <View style={styles.memberTop}>
-                  <Text style={[styles.memberName, !m.active && styles.memberNameInactive]} numberOfLines={1}>
-                    {m.name}
-                  </Text>
+                  {isEditing ? (
+                    <TextInput
+                      style={[styles.input, { flex: 1, marginRight: Spacing.sm }]}
+                      value={nameDraft}
+                      onChangeText={setNameDraft}
+                      autoFocus
+                      autoCapitalize="words"
+                      onSubmitEditing={() => saveRename(m.id)}
+                      returnKeyType="done"
+                    />
+                  ) : (
+                    <Text style={[styles.memberName, !m.active && styles.memberNameInactive]} numberOfLines={1}>
+                      {m.name}
+                    </Text>
+                  )}
                   <View style={styles.memberActions}>
-                    <TouchableOpacity
-                      style={[styles.statusPill, m.active ? styles.statusActive : styles.statusInactive, memberBusy && styles.btnDisabled]}
-                      onPress={() => toggleActive(m)}
-                      disabled={memberBusy}
-                    >
-                      <Text style={[styles.statusPillText, m.active ? styles.statusActiveText : styles.statusInactiveText]}>
-                        {m.active ? t('highCouncil.active') : t('highCouncil.inactive')}
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.trashBtn, memberBusy && styles.btnDisabled]}
-                      onPress={() => removeMember(m)}
-                      disabled={memberBusy}
-                    >
-                      <Ionicons name="trash-outline" size={18} color={Colors.error} />
-                    </TouchableOpacity>
+                    {isEditing ? (
+                      <>
+                        <TouchableOpacity style={styles.iconBtn} onPress={() => saveRename(m.id)} disabled={memberBusy}>
+                          <Ionicons name="checkmark" size={20} color={Colors.success} />
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.iconBtn} onPress={() => setEditingId(null)}>
+                          <Ionicons name="close" size={20} color={Colors.gray[500]} />
+                        </TouchableOpacity>
+                      </>
+                    ) : (
+                      <>
+                        <TouchableOpacity style={styles.iconBtn} onPress={() => startRename(m)} disabled={memberBusy}>
+                          <Ionicons name="pencil-outline" size={16} color={Colors.gray[500]} />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[styles.statusPill, m.active ? styles.statusActive : styles.statusInactive, memberBusy && styles.btnDisabled]}
+                          onPress={() => toggleActive(m)}
+                          disabled={memberBusy}
+                        >
+                          <Text style={[styles.statusPillText, m.active ? styles.statusActiveText : styles.statusInactiveText]}>
+                            {m.active ? t('highCouncil.active') : t('highCouncil.inactive')}
+                          </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[styles.trashBtn, memberBusy && styles.btnDisabled]}
+                          onPress={() => removeMember(m)}
+                          disabled={memberBusy}
+                        >
+                          <Ionicons name="trash-outline" size={18} color={Colors.error} />
+                        </TouchableOpacity>
+                      </>
+                    )}
                   </View>
                 </View>
+
+                {/* Account link */}
+                {linkedAccount ? (
+                  <View style={styles.linkRow}>
+                    <Ionicons name="link" size={14} color={Colors.success} />
+                    <Text style={styles.linkEmail} numberOfLines={1}>{linkedAccount.email}</Text>
+                    <TouchableOpacity onPress={() => unlinkAccount(m.id)} disabled={memberBusy}>
+                      <Text style={styles.unlinkText}>{t('highCouncil.unlink')}</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : m.user_id ? (
+                  <View style={styles.linkRow}>
+                    <Ionicons name="link" size={14} color={Colors.gray[400]} />
+                    <Text style={styles.linkEmailMuted} numberOfLines={1}>{t('highCouncil.linkedUnknown')}</Text>
+                    <TouchableOpacity onPress={() => unlinkAccount(m.id)} disabled={memberBusy}>
+                      <Text style={styles.unlinkText}>{t('highCouncil.unlink')}</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <TouchableOpacity style={styles.linkBtn} onPress={() => setLinkModalFor(m.id)} disabled={memberBusy}>
+                    <Ionicons name="link-outline" size={14} color={Colors.primary} />
+                    <Text style={styles.linkBtnText}>{t('highCouncil.linkAccount')}</Text>
+                  </TouchableOpacity>
+                )}
 
                 <Text style={styles.wardsLabel}>{t('highCouncil.wardsLabel')}</Text>
                 <View style={styles.chipWrap}>
@@ -202,6 +309,36 @@ export function HighCouncilScreen({ navigation }: any) {
           })
         )}
       </ScrollView>
+
+      {/* Link-to-account picker */}
+      <Modal visible={linkModalFor !== null} transparent animationType="slide" onRequestClose={() => setLinkModalFor(null)}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setLinkModalFor(null)}>
+          <View style={styles.modalSheet} onStartShouldSetResponder={() => true}>
+            <Text style={styles.modalTitle}>{t('highCouncil.linkTitle')}</Text>
+            <Text style={styles.modalHint}>{t('highCouncil.linkModalHint')}</Text>
+            <ScrollView style={{ maxHeight: 360 }} keyboardShouldPersistTaps="handled">
+              {accounts.length === 0 ? (
+                <Text style={styles.empty}>{t('highCouncil.noAccounts')}</Text>
+              ) : accounts.map(a => {
+                const takenBy = linkedUserIds[a.id];
+                return (
+                  <TouchableOpacity
+                    key={a.id}
+                    style={[styles.modalItem, !!takenBy && styles.btnDisabled]}
+                    disabled={!!takenBy}
+                    onPress={() => linkModalFor && linkAccount(linkModalFor, a.id)}
+                  >
+                    <Text style={styles.modalItemText}>{a.full_name || a.email}</Text>
+                    <Text style={styles.modalItemSub} numberOfLines={1}>
+                      {a.email}{takenBy ? ` · ${t('highCouncil.alreadyLinked')} ${takenBy}` : ''}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -252,6 +389,23 @@ const styles = StyleSheet.create({
   statusActiveText: { color: Colors.success },
   statusInactiveText: { color: Colors.gray[500] },
   trashBtn: { padding: Spacing.xs },
+  iconBtn: { padding: Spacing.xs },
+  linkRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, marginBottom: Spacing.sm },
+  linkEmail: { flex: 1, fontSize: FontSize.xs, color: Colors.gray[600], fontWeight: '600' },
+  linkEmailMuted: { flex: 1, fontSize: FontSize.xs, color: Colors.gray[400], fontStyle: 'italic' },
+  unlinkText: { fontSize: FontSize.xs, color: Colors.error, fontWeight: '700' },
+  linkBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', marginBottom: Spacing.sm },
+  linkBtnText: { fontSize: FontSize.xs, color: Colors.primary, fontWeight: '700' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  modalSheet: {
+    backgroundColor: Colors.white, borderTopLeftRadius: Radius.lg, borderTopRightRadius: Radius.lg,
+    padding: Spacing.lg, paddingBottom: Spacing.xl,
+  },
+  modalTitle: { fontSize: FontSize.lg, fontWeight: '800', color: Colors.primary, marginBottom: Spacing.xs },
+  modalHint: { fontSize: FontSize.xs, color: Colors.gray[500], marginBottom: Spacing.md, lineHeight: 18 },
+  modalItem: { paddingVertical: Spacing.sm, borderBottomWidth: 1, borderBottomColor: Colors.gray[100] },
+  modalItemText: { fontSize: FontSize.sm, fontWeight: '600', color: Colors.gray[800] },
+  modalItemSub: { fontSize: FontSize.xs, color: Colors.gray[500], marginTop: 2 },
   wardsLabel: { fontSize: FontSize.xs, fontWeight: '600', color: Colors.gray[500], marginBottom: Spacing.xs },
   chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.xs },
   chip: {

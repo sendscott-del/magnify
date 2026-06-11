@@ -42,7 +42,7 @@ export function HCKanbanScreen({ navigation }: any) {
   const [callings, setCallings] = useState<Calling[]>([]);
   const [wards, setWards] = useState<Ward[]>([]);
   const [rawSpMembers, setRawSpMembers] = useState<{ name: string; role: string }[]>([]);
-  const [rawHcMembers, setRawHcMembers] = useState<{ name: string }[]>([]);
+  const [rawHcMembers, setRawHcMembers] = useState<{ name: string; user_id: string | null }[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [hcApprovalMap, setHcApprovalMap] = useState<Record<string, boolean>>({});
   const [hcMemberIdMap, setHcMemberIdMap] = useState<Record<string, string>>({});
@@ -78,11 +78,14 @@ export function HCKanbanScreen({ navigation }: any) {
   }, [rawSpMembers, rawHcMembers, t]);
 
   // "Just mine" toggle: only meaningful when the signed-in user appears in the assignee list.
+  // Prefer a hard user_id link from the roster; fall back to exact full-name match.
   const myAssigneeName = useMemo(() => {
+    const linked = profile?.id ? rawHcMembers.find(m => m.user_id && m.user_id === profile.id) : undefined;
+    if (linked) return linked.name;
     const me = profile?.full_name;
     if (!me) return null;
     return assigneeOptions.some(o => o.name === me) ? me : null;
-  }, [profile?.full_name, assigneeOptions]);
+  }, [profile?.id, profile?.full_name, rawHcMembers, assigneeOptions]);
   const showingJustMine = myAssigneeName !== null && assigneeFilter === myAssigneeName;
 
   const { demoMode } = useDemoMode();
@@ -104,10 +107,10 @@ export function HCKanbanScreen({ navigation }: any) {
         { name: 'Brother Park',       role: 'second_counselor' },
       ]);
       setRawHcMembers([
-        { name: 'Brother Reyes' },
-        { name: 'Brother Tanaka' },
-        { name: 'Brother Lopez' },
-        { name: 'Brother Kim' },
+        { name: 'Brother Reyes', user_id: null },
+        { name: 'Brother Tanaka', user_id: null },
+        { name: 'Brother Lopez', user_id: null },
+        { name: 'Brother Kim', user_id: null },
       ]);
       setHcMemberIdMap({});
       setHcApprovalMap({});
@@ -125,7 +128,7 @@ export function HCKanbanScreen({ navigation }: any) {
         .order('created_at', { ascending: false }),
       supabase.from('wards').select('*').order('name'),
       supabase.from('sp_members').select('id,name,role').eq('active', true).order('sort_order'),
-      supabase.from('high_council_members').select('id,name,sort_order').eq('active', true).order('sort_order'),
+      supabase.from('high_council_members').select('id,name,sort_order,user_id').eq('active', true).order('sort_order'),
       supabase.from('hc_approvals').select('calling_id,hc_member_id,approved'),
       supabase.from('hc_member_wards').select('hc_member_id, ward_id'),
       supabase.from('ward_sustainings').select('calling_id, ward_id, sustained').eq('sustained', true),
@@ -133,7 +136,7 @@ export function HCKanbanScreen({ navigation }: any) {
     setCallings((callingsRes.data as Calling[]) ?? []);
     setWards((wardsRes.data as Ward[]) ?? []);
     setRawSpMembers((spMembersRes.data ?? []).map((m: any) => ({ name: m.name, role: m.role })));
-    setRawHcMembers((hcMembersRes.data ?? []).map((m: any) => ({ name: m.name })));
+    setRawHcMembers((hcMembersRes.data ?? []).map((m: any) => ({ name: m.name, user_id: m.user_id ?? null })));
 
     // Build HC member name→id map
     const nameToId: Record<string, string> = {};

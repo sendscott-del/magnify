@@ -161,7 +161,7 @@ const spStyles = StyleSheet.create({
 });
 
 // ─── HC Approval ─────────────────────────────────────────────────────────────
-interface HCMember { id: string; name: string; sort_order: number; active: boolean; }
+interface HCMember { id: string; name: string; sort_order: number; active: boolean; user_id?: string | null; }
 interface HCApproval { id: string; calling_id: string; hc_member_id: string; approved: boolean; approved_at: string | null; }
 
 function HCApprovalSection({ hcMembers, hcApprovals, canToggle, spOverride, onToggle }: {
@@ -1060,7 +1060,13 @@ export function CallingDetailScreen({ route, navigation }: any) {
     set_apart: calling.set_apart_by,
   };
   const assignedName = stageAssignmentField[calling.stage] ?? null;
-  const isAssignedUser = !!(assignedName && profile?.full_name && assignedName === profile.full_name);
+  // Identify the logged-in user: prefer a hard user_id link from the roster,
+  // fall back to exact full-name match (covers SP members and unlinked HC).
+  const myLinkedHcName = profile?.id ? (hcMembers.find(m => m.user_id && m.user_id === profile.id)?.name ?? null) : null;
+  const isAssignedUser = !!(assignedName && (
+    (myLinkedHcName && assignedName === myLinkedHcName) ||
+    (profile?.full_name && assignedName === profile.full_name)
+  ));
 
   const advanceCtx: AdvanceContext = { spAllApproved, hcThresholdMet, isAssignedUser };
   const canAdvance = role ? canAdvanceStage(role, calling.stage, calling.type, advanceCtx) : false;

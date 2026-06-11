@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.35.0',
+    date: '2026-06-11',
+    enhancements: [
+      'High Council screen: you can now link a roster member to their registered Magnify account. Once linked, the HC board recognizes that person reliably — the previous behavior matched only by exact name spelling.',
+      'High Council screen: rename a roster member inline (pencil icon) to align the name with their account.',
+    ],
+    bugFixes: [
+      'The HC board “Just mine” filter and the “you are assigned” highlight now follow the account link when present, instead of depending on an exact full-name match.',
+    ],
+  },
+  {
     version: '2.34.0',
     date: '2026-06-11',
     enhancements: [
