@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.31.1',
+    date: '2026-06-10',
+    enhancements: [],
+    bugFixes: [
+      'Fixed the top Gathered bar overlapping the iOS status bar and Dynamic Island when running as the installed app — it now sits below them with a proper safe-area inset.',
+    ],
+  },
+  {
     version: '2.31.0',
     date: '2026-06-10',
     enhancements: [

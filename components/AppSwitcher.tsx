@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Linking, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -48,6 +49,7 @@ export function AppSwitcher() {
   const { language, setLanguage, t } = useLanguage();
   const [otherApps, setOtherApps] = useState<AppInfo[]>([]);
   const [expanded, setExpanded] = useState(false);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (!user) return;
@@ -82,7 +84,7 @@ export function AppSwitcher() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.bar}>
+      <View style={[styles.bar, { paddingTop: insets.top + 6 }]}>
         <TouchableOpacity
           style={styles.leftGroup}
           onPress={() => hasOtherApps && setExpanded(!expanded)}

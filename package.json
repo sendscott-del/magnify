@@ -1,11 +1,11 @@
 {
   "name": "magnify",
-  "version": "2.31.0",
+  "version": "2.31.1",
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web",
     "build:web": "node scripts/generate-changelog.js && expo export --platform web && node scripts/postbuild.js"
   },
