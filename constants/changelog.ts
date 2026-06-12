@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.35.1',
+    date: '2026-06-12',
+    enhancements: [
+      'Liken (gospel library & drafting) now appears in the Gathered app switcher.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.35.0',
     date: '2026-06-11',
     enhancements: [
