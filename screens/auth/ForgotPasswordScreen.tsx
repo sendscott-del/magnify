@@ -66,6 +66,8 @@ export function ForgotPasswordScreen({ navigation }: any) {
             <View>
               <View style={styles.successBanner}>
                 <Text style={styles.successText}>{t('forgotPassword.sent')}</Text>
+                <Text style={styles.successEmail}>{email.trim()}</Text>
+                <Text style={styles.successHint}>{t('forgotPassword.sentHint')}</Text>
               </View>
               <Button
                 title={t('forgotPassword.backToSignIn')}
@@ -178,6 +180,18 @@ const styles = StyleSheet.create({
   successText: {
     color: '#166534',
     fontSize: FontSize.sm,
+  },
+  successEmail: {
+    color: '#166534',
+    fontSize: FontSize.sm,
+    fontWeight: '700',
+    marginTop: 4,
+  },
+  successHint: {
+    color: '#166534',
+    fontSize: FontSize.xs,
+    opacity: 0.85,
+    marginTop: 6,
   },
   btn: { marginTop: Spacing.sm },
   switchRow: { alignItems: 'center', marginTop: Spacing.lg },

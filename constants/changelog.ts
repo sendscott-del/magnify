@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.36.0',
+    date: '2026-06-14',
+    enhancements: [
+      'The password-reset confirmation now shows the exact email address the link was sent to, so you can catch a mistyped address right away.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.35.1',
     date: '2026-06-12',
     enhancements: [

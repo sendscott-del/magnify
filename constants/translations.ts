@@ -25,7 +25,8 @@ export const translations = {
     'forgotPassword.subtitle': 'Enter your email address and we\'ll send you a link to reset your password.',
     'forgotPassword.enterEmail': 'Please enter your email address.',
     'forgotPassword.sendLink': 'Send Reset Link',
-    'forgotPassword.sent': 'Check your email! We\'ve sent a password reset link. It may take a minute to arrive.',
+    'forgotPassword.sent': 'Check your email! We\'ve sent a password reset link to:',
+    'forgotPassword.sentHint': 'It may take a minute to arrive. Wrong address? Go back and try again.',
     'forgotPassword.backToSignIn': 'Back to Sign In',
 
     // Auth - Reset Password
@@ -629,7 +630,8 @@ export const translations = {
     'forgotPassword.subtitle': 'Ingrese su correo electrónico y le enviaremos un enlace para restablecer su contraseña.',
     'forgotPassword.enterEmail': 'Por favor ingrese su correo electrónico.',
     'forgotPassword.sendLink': 'Enviar Enlace',
-    'forgotPassword.sent': '¡Revise su correo! Hemos enviado un enlace para restablecer su contraseña. Puede tardar un minuto en llegar.',
+    'forgotPassword.sent': '¡Revise su correo! Hemos enviado un enlace para restablecer su contraseña a:',
+    'forgotPassword.sentHint': 'Puede tardar un minuto en llegar. ¿Dirección incorrecta? Vuelva e inténtelo de nuevo.',
     'forgotPassword.backToSignIn': 'Volver a Iniciar Sesión',
 
     // Auth - Reset Password
