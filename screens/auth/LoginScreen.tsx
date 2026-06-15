@@ -11,6 +11,11 @@ import { Button } from '../../components/ui/Button';
 import { MagnifyLogo } from '../../components/icons/MagnifyLogo';
 import { Colors, FontSize, Spacing, Radius } from '../../constants/theme';
 
+// Shared demo account — sign-in triggers Magnify's Demo Mode (isReviewDemoUser),
+// which shows only fictional fixture data. Powers the no-credentials demo button.
+const DEMO_EMAIL = 'applereview@gatheredin.app';
+const DEMO_PASSWORD = 'MagnifyReview!2026';
+
 export function LoginScreen({ navigation }: any) {
   const { signIn } = useAuth();
   const { t, language, setLanguage } = useLanguage();
@@ -18,6 +23,7 @@ export function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
   const [error, setError] = useState('');
 
   async function handleLogin() {
@@ -30,6 +36,14 @@ export function LoginScreen({ navigation }: any) {
     const { error: err } = await signIn(email.trim(), password);
     if (err) setError(err.message);
     setLoading(false);
+  }
+
+  async function tryDemo() {
+    setError('');
+    setDemoLoading(true);
+    const { error: err } = await signIn(DEMO_EMAIL, DEMO_PASSWORD);
+    if (err) setError(t('login.demoError'));
+    setDemoLoading(false);
   }
 
   return (
@@ -92,6 +106,18 @@ export function LoginScreen({ navigation }: any) {
           >
             <Text style={styles.switchLink}>{t('login.forgotPassword')}</Text>
           </TouchableOpacity>
+
+          <View style={styles.demoBlock}>
+            <Button
+              title={t('login.tryDemo')}
+              onPress={tryDemo}
+              loading={demoLoading}
+              variant="outline"
+              fullWidth
+              size="lg"
+            />
+            <Text style={styles.demoSub}>{t('login.tryDemoSub')}</Text>
+          </View>
 
           <TouchableOpacity
             onPress={() => navigation.navigate('Register')}
@@ -198,6 +224,18 @@ const styles = StyleSheet.create({
   },
   signInBtn: { marginTop: Spacing.sm },
   forgotRow: { alignItems: 'center', marginTop: Spacing.md },
+  demoBlock: {
+    marginTop: Spacing.lg,
+    paddingTop: Spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: Colors.gray[100],
+  },
+  demoSub: {
+    textAlign: 'center',
+    color: Colors.gray[500],
+    fontSize: FontSize.xs,
+    marginTop: Spacing.sm,
+  },
   switchRow: { alignItems: 'center', marginTop: Spacing.lg },
   switchText: { fontSize: FontSize.sm, color: Colors.gray[500] },
   switchLink: { color: Colors.primary, fontWeight: '600' },

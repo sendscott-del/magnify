@@ -19,6 +19,9 @@ export const translations = {
     'login.createAccount': 'Create Account',
     'login.fillAllFields': 'Please fill in all fields.',
     'login.forgotPassword': 'Forgot password?',
+    'login.tryDemo': 'Try the demo',
+    'login.tryDemoSub': 'Explore a sample stake — no sign-in needed',
+    'login.demoError': "Couldn't start the demo. Please try again.",
 
     // Auth - Forgot Password
     'forgotPassword.title': 'Reset Password',
@@ -624,6 +627,9 @@ export const translations = {
     'login.createAccount': 'Crear Cuenta',
     'login.fillAllFields': 'Por favor complete todos los campos.',
     'login.forgotPassword': '¿Olvidó su contraseña?',
+    'login.tryDemo': 'Probar la demostración',
+    'login.tryDemoSub': 'Explora una estaca de muestra — sin iniciar sesión',
+    'login.demoError': 'No se pudo iniciar la demostración. Inténtalo de nuevo.',
 
     // Auth - Forgot Password
     'forgotPassword.title': 'Restablecer Contraseña',

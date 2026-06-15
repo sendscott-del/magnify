@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.37.0',
+    date: '2026-06-15',
+    enhancements: [
+      'Added a "Try the demo" button to the sign-in screen — one tap opens a fully-functional sample stake with fictional data only (no account, no real callings or members). Built for app-store testers and to show the app to others.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.36.0',
     date: '2026-06-14',
     enhancements: [
