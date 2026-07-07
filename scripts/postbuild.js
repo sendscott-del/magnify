@@ -60,6 +60,16 @@ if (fs.existsSync(swSrc)) {
   console.warn('[postbuild] web-public/sw.js not found — skipping SW copy');
 }
 
+// 3b. Copy the PWA install page (+ its icon) from web-public → dist so it is
+// served statically (also whitelisted in vercel.json rewrites).
+for (const f of ['install.html', 'install-icon.png']) {
+  const src = path.join(root, 'web-public', f);
+  if (fs.existsSync(src)) {
+    fs.copyFileSync(src, path.join(distDir, f));
+    console.log(`[postbuild] Copied ${f} to dist/`);
+  }
+}
+
 // 4. Inject meta tags + manifest link + SW registration script
 let html = fs.readFileSync(indexPath, 'utf-8');
 
