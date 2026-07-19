@@ -7,6 +7,7 @@
  * 2. Write dist/manifest.json (PWA manifest)
  * 3. Copy web-public/sw.js → dist/sw.js (service worker)
  * 4. Inject PWA meta tags + manifest link + SW registration into index.html
+ * 5. Inject desktop-layout CSS (centered max-width column on large screens)
  */
 
 const fs = require('fs');
@@ -121,6 +122,27 @@ const swSnippet = `
 if (!html.includes("serviceWorker.register('/sw.js')")) {
   html = html.replace('</body>', `${swSnippet}\n</body>`);
   console.log('[postbuild] Injected service worker registration');
+}
+
+// 5. Desktop layout: on large screens (≥1024px) constrain the app to a
+// centered 900px column instead of rendering full-bleed edge-to-edge.
+// Web-export-only by construction (this script never touches native builds).
+// Below 1024px nothing changes.
+const desktopLayoutCss = `
+    <style id="desktop-layout">
+      @media (min-width: 1024px) {
+        #root {
+          max-width: 900px;
+          margin: 0 auto;
+        }
+        body {
+          background: #f7f8fb;
+        }
+      }
+    </style>`;
+if (!html.includes('id="desktop-layout"')) {
+  html = html.replace('</head>', `${desktopLayoutCss}\n  </head>`);
+  console.log('[postbuild] Injected desktop-layout CSS');
 }
 
 fs.writeFileSync(indexPath, html);

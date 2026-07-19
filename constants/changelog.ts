@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.37.1',
+    date: '2026-07-19',
+    enhancements: [],
+    bugFixes: [
+      'Web: on large desktop screens the app no longer stretches edge-to-edge — it now sits in a centered column (max 900px wide) for easier reading. Phones, tablets, and the native apps are unchanged.',
+    ],
+  },
+  {
     version: '2.37.0',
     date: '2026-06-15',
     enhancements: [

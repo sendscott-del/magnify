@@ -2,6 +2,12 @@
 
 Append-only, newest first. Every working session adds one entry at the TOP: date, what changed, any infra facts touched (database, domain, auth, secrets). Infra changes also go into `CLAUDE.md` immediately, not just here.
 
+## 2026-07-19 — Desktop web layout: centered 900px column (v2.37.1)
+
+- Web-only fix: on viewports ≥1024px the app rendered full-bleed edge-to-edge. Added step 5 to `scripts/postbuild.js` — injects a `<style id="desktop-layout">` block into the exported `dist/index.html` (`#root` max-width 900px + `margin: 0 auto`, body background `#f7f8fb`, all inside `@media (min-width: 1024px)`). Below 1024px and on native nothing changes (postbuild only touches the web export).
+- Verified locally: `npm run build:web` succeeds, CSS present in dist, screenshots at 1280px (centered column) and 1000px (unchanged full-bleed).
+- No infra touched. State: v2.37.1 pushed to main → Vercel deploy. Pre-existing uncommitted `app.json` versionCode bump left untouched.
+
 ## 2026-07-15 — Doc system initialized (history reconstructed from git)
 
 - 2026-03-28: initial scaffold on the shared Supabase project — schema deliberately preserved Sparkle Pro's existing tables; Magnify's own tables are unprefixed.
