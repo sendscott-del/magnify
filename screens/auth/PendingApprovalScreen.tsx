@@ -1,18 +1,40 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { Button } from '../../components/ui/Button';
-import { Colors, FontSize, Spacing } from '../../constants/theme';
+import { Colors, FontSize, Spacing, Radius } from '../../constants/theme';
 import { ROLE_LABELS } from '../../constants/callings';
 import { UserRole } from '../../lib/database.types';
+import { supabase } from '../../lib/supabase';
 
 export function PendingApprovalScreen() {
   const { profile, user, signOut, refreshProfile } = useAuth();
   const { t } = useLanguage();
+  const [requestOpen, setRequestOpen] = useState(false);
+  const [stakeName, setStakeName] = useState('');
+  const [stakeAbbr, setStakeAbbr] = useState('');
+  const [requestBusy, setRequestBusy] = useState(false);
+  const [requestSent, setRequestSent] = useState(false);
+  const [requestErr, setRequestErr] = useState('');
+
+  async function submitStakeRequest() {
+    const name = stakeName.trim();
+    if (!name || !user) return;
+    setRequestBusy(true);
+    setRequestErr('');
+    const { error } = await supabase.from('stake_requests').insert({
+      requester_user_id: user.id,
+      proposed_name: name,
+      proposed_abbreviation: stakeAbbr.trim() || null,
+    });
+    setRequestBusy(false);
+    if (error) setRequestErr(error.message);
+    else setRequestSent(true);
+  }
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
       <Text style={styles.icon}>⏳</Text>
       <Text style={styles.title}>{t('pending.title')}</Text>
       <Text style={styles.desc}>{t('pending.desc')}</Text>
@@ -48,17 +70,86 @@ export function PendingApprovalScreen() {
         fullWidth
         style={{ marginTop: Spacing.sm }}
       />
-    </View>
+
+      {/* Vetted "create your stake" path: writes a stake_request that the
+          platform owner approves in the Gather hub; on approval this account
+          becomes that stake's first admin. */}
+      <View style={styles.requestBox}>
+        {requestSent ? (
+          <Text style={styles.requestSent}>{t('pending.stakeRequestSent')}</Text>
+        ) : (
+          <>
+            <Text style={styles.requestQ}>{t('pending.otherStakeQ')}</Text>
+            {requestOpen ? (
+              <>
+                <TextInput
+                  style={styles.requestInput}
+                  value={stakeName}
+                  onChangeText={setStakeName}
+                  placeholder={t('pending.stakeName')}
+                  placeholderTextColor={Colors.gray[400]}
+                  autoCapitalize="words"
+                />
+                <TextInput
+                  style={styles.requestInput}
+                  value={stakeAbbr}
+                  onChangeText={setStakeAbbr}
+                  placeholder={t('pending.stakeAbbr')}
+                  placeholderTextColor={Colors.gray[400]}
+                  autoCapitalize="characters"
+                />
+                {requestErr ? <Text style={styles.requestErr}>{requestErr}</Text> : null}
+                <Button
+                  title={requestBusy ? '…' : t('pending.submitStakeRequest')}
+                  onPress={submitStakeRequest}
+                  fullWidth
+                  disabled={requestBusy || !stakeName.trim()}
+                  style={{ marginTop: Spacing.xs }}
+                />
+              </>
+            ) : (
+              <TouchableOpacity onPress={() => setRequestOpen(true)}>
+                <Text style={styles.requestLink}>{t('pending.requestStake')}</Text>
+              </TouchableOpacity>
+            )}
+          </>
+        )}
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     alignItems: 'center',
     justifyContent: 'center',
     padding: Spacing.xl,
     backgroundColor: Colors.gray[50],
+  },
+  requestBox: {
+    width: '100%',
+    marginTop: Spacing.xl,
+    paddingTop: Spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: Colors.gray[200],
+    alignItems: 'center',
+  },
+  requestQ: { fontSize: FontSize.sm, color: Colors.gray[500] },
+  requestLink: {
+    fontSize: FontSize.sm, color: Colors.primary, fontWeight: '700',
+    marginTop: Spacing.xs, padding: Spacing.xs,
+  },
+  requestInput: {
+    width: '100%', backgroundColor: Colors.white, borderWidth: 1.5,
+    borderColor: Colors.gray[200], borderRadius: Radius.md,
+    paddingHorizontal: Spacing.sm, paddingVertical: Spacing.sm,
+    fontSize: FontSize.sm, color: Colors.black, marginTop: Spacing.sm,
+  },
+  requestErr: { fontSize: FontSize.xs, color: Colors.error, marginTop: Spacing.xs },
+  requestSent: {
+    fontSize: FontSize.sm, color: Colors.success, fontWeight: '600',
+    textAlign: 'center', lineHeight: 20,
   },
   icon: { fontSize: 56, marginBottom: Spacing.md },
   title: {

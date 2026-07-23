@@ -11,6 +11,7 @@ import { Input } from '../../components/ui/Input';
 import { MagnifyLogo } from '../../components/icons/MagnifyLogo';
 import { Colors, FontSize, Spacing, Radius } from '../../constants/theme';
 import { notifyAccessRequest } from '../../lib/slack';
+import { supabase } from '../../lib/supabase';
 
 export function RegisterScreen({ navigation }: any) {
   const { signUp } = useAuth();
@@ -19,9 +20,11 @@ export function RegisterScreen({ navigation }: any) {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [inviteWarning, setInviteWarning] = useState('');
 
   async function handleRegister() {
     if (!fullName || !email || !password) {
@@ -31,11 +34,22 @@ export function RegisterScreen({ navigation }: any) {
     setLoading(true);
     setError('');
     const { error: err } = await signUp(email, password, fullName, 'stake_clerk');
-    setLoading(false);
     if (err) {
+      setLoading(false);
       setError(err.message);
       return;
     }
+    // Invite code maps this (still-pending) account to its stake, which routes
+    // the approval to that stake's own admins instead of ours.
+    if (inviteCode.trim()) {
+      const { error: redeemErr } = await supabase.rpc('gather_redeem_stake_invite', {
+        p_code: inviteCode.trim(),
+      });
+      if (redeemErr) {
+        setInviteWarning(`${t('register.inviteFailed')} ${redeemErr.message.replace(/^.*gather_redeem_stake_invite:\s*/, '')}`);
+      }
+    }
+    setLoading(false);
     notifyAccessRequest({ name: fullName, email, role: 'Pending' }).catch(() => {});
     setSuccess(true);
   }
@@ -46,6 +60,7 @@ export function RegisterScreen({ navigation }: any) {
         <Text style={styles.successIcon}>✅</Text>
         <Text style={styles.successTitle}>{t('register.successTitle')}</Text>
         <Text style={styles.successDesc}>{t('register.successDesc')}</Text>
+        {inviteWarning ? <Text style={styles.inviteWarning}>{inviteWarning}</Text> : null}
         <TouchableOpacity
           onPress={() => navigation.navigate('Login')}
           style={styles.backLink}
@@ -104,6 +119,14 @@ export function RegisterScreen({ navigation }: any) {
             isPassword
             placeholder={t('register.passwordPlaceholder')}
             leftIcon="lock-closed-outline"
+          />
+          <Input
+            label={t('register.inviteCode')}
+            value={inviteCode}
+            onChangeText={setInviteCode}
+            placeholder={t('register.inviteCodePlaceholder')}
+            autoCapitalize="characters"
+            leftIcon="ticket-outline"
           />
 
           {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -206,5 +229,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: Spacing.sm,
     lineHeight: 24,
+  },
+  inviteWarning: {
+    fontSize: FontSize.sm,
+    color: Colors.error,
+    textAlign: 'center',
+    marginTop: Spacing.md,
+    lineHeight: 20,
   },
 });

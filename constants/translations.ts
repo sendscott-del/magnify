@@ -58,6 +58,9 @@ export const translations = {
     'register.successTitle': 'Account Created',
     'register.successDesc': "Your account is pending approval by the Stake Clerk or Stake Presidency. You'll be able to log in once approved.",
     'register.backToSignIn': 'Back to Sign In',
+    'register.inviteCode': 'Invite code (optional)',
+    'register.inviteCodePlaceholder': 'From your stake leader',
+    'register.inviteFailed': "Your account was created, but the invite code didn't work:",
 
     // Auth - Pending
     'pending.title': 'Awaiting Approval',
@@ -67,6 +70,12 @@ export const translations = {
     'pending.requestedRole': 'Requested Role',
     'pending.refreshStatus': 'Refresh Status',
     'pending.signOut': 'Sign Out',
+    'pending.otherStakeQ': 'Leading a different stake?',
+    'pending.requestStake': 'Request your own stake',
+    'pending.stakeName': 'Stake name (e.g. Springfield Illinois Stake)',
+    'pending.stakeAbbr': 'Abbreviation (optional)',
+    'pending.submitStakeRequest': 'Submit request',
+    'pending.stakeRequestSent': "Request sent. Once it's approved you'll become your stake's first admin — refresh your status to check.",
 
     // Navigation / Tabs
     'nav.new': 'New',
@@ -450,8 +459,14 @@ export const translations = {
 
     // Pending access screen
     'pendingAccess.title': 'Pending Access',
-    'pendingAccess.gatherNote': 'Access approvals have moved to the Gather hub. This list is read-only — approve or reject requests in Gather.',
-    'pendingAccess.manageInGather': 'Manage access in Gather ↗',
+    'pendingAccess.gatherNote': 'You can approve or deny your stake’s requests right here. The Gather hub remains the suite-wide admin surface.',
+    'pendingAccess.manageInGather': 'Open Gather ↗',
+    'pendingAccess.approveAs': 'Approve as…',
+    'pendingAccess.deny': 'Deny',
+    'pendingAccess.reallyDeny': 'Really deny?',
+    'pendingAccess.inviteTitle': 'Invite members',
+    'pendingAccess.inviteHint': 'Create a code for your stake’s leaders to enter when they sign up — it routes them to your stake automatically. Codes last 30 days (up to 20 uses).',
+    'pendingAccess.createInvite': 'Create invite code',
 
     // Slack settings screen
     'slackSettings.activeOf': 'of',
@@ -459,6 +474,8 @@ export const translations = {
 
     // Help Screen
     'help.accessPermissions': 'Access Permissions',
+    'help.multiStake': 'Multiple Stakes & Invites',
+    'help.multiStakeBody': 'Magnify keeps each stake completely separate — your callings, rosters, and approvals are visible only to your own stake\'s leaders. Admins can invite new members with a code (Settings → Pending Access → Invite members): anyone who enters it at sign-up lands in your stake, and your admins approve them on the Pending Access screen. A leader from another stake can request their own stake from the "Awaiting Approval" screen after creating an account.',
     'help.title': 'User Guide',
     'help.about': 'About Magnify',
     'help.aboutBody': 'Magnify is a stake callings workflow management tool for The Church of Jesus Christ of Latter-day Saints. It tracks callings from initial consideration through final recording, ensuring the right people take action at each stage.',
@@ -659,6 +676,9 @@ export const translations = {
     'register.fullNamePlaceholder': 'Su nombre completo',
     'register.emailPlaceholder': 'su@correo.com',
     'register.passwordPlaceholder': 'Al menos 8 caracteres',
+    'register.inviteCode': 'Código de invitación (opcional)',
+    'register.inviteCodePlaceholder': 'De su líder de estaca',
+    'register.inviteFailed': 'Su cuenta fue creada, pero el código de invitación no funcionó:',
     'register.yourRole': 'Su Funci\u00f3n',
     'register.requestAccess': 'Solicitar Acceso',
     'register.haveAccount': '\u00bfYa tiene una cuenta? Iniciar Sesi\u00f3n',
@@ -675,6 +695,12 @@ export const translations = {
     'pending.requestedRole': 'Funci\u00f3n Solicitada',
     'pending.refreshStatus': 'Actualizar Estado',
     'pending.signOut': 'Cerrar Sesi\u00f3n',
+    'pending.otherStakeQ': '\u00bfDirige otra estaca?',
+    'pending.requestStake': 'Solicite su propia estaca',
+    'pending.stakeName': 'Nombre de la estaca (p. ej. Estaca Springfield Illinois)',
+    'pending.stakeAbbr': 'Abreviatura (opcional)',
+    'pending.submitStakeRequest': 'Enviar solicitud',
+    'pending.stakeRequestSent': 'Solicitud enviada. Cuando sea aprobada, usted ser\u00e1 el primer administrador de su estaca \u2014 actualice su estado para verificar.',
 
     // Navigation / Tabs
     'nav.new': 'Nuevo',
@@ -1058,8 +1084,14 @@ export const translations = {
 
     // Pending access screen
     'pendingAccess.title': 'Acceso Pendiente',
-    'pendingAccess.gatherNote': 'Las aprobaciones de acceso ahora se gestionan en el centro Gather. Esta lista es de solo lectura — apruebe o rechace solicitudes en Gather.',
-    'pendingAccess.manageInGather': 'Gestionar acceso en Gather ↗',
+    'pendingAccess.gatherNote': 'Puede aprobar o rechazar las solicitudes de su estaca aquí mismo. El centro Gather sigue siendo la superficie de administración de toda la suite.',
+    'pendingAccess.manageInGather': 'Abrir Gather ↗',
+    'pendingAccess.approveAs': 'Aprobar como…',
+    'pendingAccess.deny': 'Rechazar',
+    'pendingAccess.reallyDeny': '¿Rechazar de verdad?',
+    'pendingAccess.inviteTitle': 'Invitar miembros',
+    'pendingAccess.inviteHint': 'Cree un código para que los líderes de su estaca lo ingresen al registrarse — los dirige automáticamente a su estaca. Los códigos duran 30 días (hasta 20 usos).',
+    'pendingAccess.createInvite': 'Crear código de invitación',
 
     // Slack settings screen
     'slackSettings.activeOf': 'de',
@@ -1067,6 +1099,8 @@ export const translations = {
 
     // Help Screen
     'help.accessPermissions': 'Permisos de Acceso',
+    'help.multiStake': 'Varias Estacas e Invitaciones',
+    'help.multiStakeBody': 'Magnify mantiene cada estaca completamente separada — sus llamamientos, listas y aprobaciones solo son visibles para los líderes de su propia estaca. Los administradores pueden invitar a nuevos miembros con un código (Configuración → Acceso Pendiente → Invitar miembros): quien lo ingrese al registrarse queda en su estaca, y sus administradores lo aprueban en la pantalla de Acceso Pendiente. Un líder de otra estaca puede solicitar su propia estaca desde la pantalla "En Espera de Aprobación" después de crear una cuenta.',
     'help.title': 'Gu\u00eda del Usuario',
     'help.about': 'Acerca de Magnify',
     'help.aboutBody': 'Magnify es una herramienta de gesti\u00f3n del flujo de trabajo de llamamientos de estaca para La Iglesia de Jesucristo de los Santos de los \u00DAltimos D\u00EDas. Realiza un seguimiento de los llamamientos desde la consideraci\u00f3n inicial hasta el registro final, asegurando que las personas correctas tomen acci\u00f3n en cada etapa.',

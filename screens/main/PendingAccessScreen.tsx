@@ -11,14 +11,26 @@ import { useLanguage } from '../../context/LanguageContext';
 
 const GATHER_URL = 'https://gather.gatheredin.app/gather';
 
-// Read-only view of pending Magnify access requests. Approvals and
-// rejections moved to the Gather hub, which manages access for all apps
-// on the shared Supabase project.
+const APPROVABLE_ROLES: UserRole[] = [
+  'stake_president', 'first_counselor', 'second_counselor',
+  'high_councilor', 'stake_clerk', 'exec_secretary',
+];
+
+// Pending Magnify access requests for YOUR stake. Stake admins approve or
+// deny their own members here (delegated approval); the Gather hub remains
+// the suite-wide surface. Also hosts invite codes — the way a stake's
+// members land in the right stake when they sign up.
 export function PendingAccessScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { t } = useLanguage();
   const [pendingUsers, setPendingUsers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [armDenyId, setArmDenyId] = useState<string | null>(null);
+  const [inviteCode, setInviteCode] = useState<string | null>(null);
+  const [inviteBusy, setInviteBusy] = useState(false);
+  const [error, setError] = useState('');
 
   const fetchPendingUsers = useCallback(async () => {
     setLoading(true);
@@ -32,6 +44,36 @@ export function PendingAccessScreen({ navigation }: any) {
   function openGather() {
     if (Platform.OS === 'web') window.open(GATHER_URL, '_blank');
     else Linking.openURL(GATHER_URL);
+  }
+
+  async function approveAs(userId: string, role: UserRole) {
+    setBusyId(userId);
+    setError('');
+    const { error: err } = await supabase.rpc('magnify_approve_member', { p_user_id: userId, p_role: role });
+    if (err) setError(err.message.replace(/^.*magnify_approve_member:\s*/, ''));
+    setBusyId(null);
+    setExpandedId(null);
+    await fetchPendingUsers();
+  }
+
+  async function denyUser(userId: string) {
+    if (armDenyId !== userId) { setArmDenyId(userId); return; }
+    setBusyId(userId);
+    setError('');
+    const { error: err } = await supabase.rpc('magnify_deny_member', { p_user_id: userId });
+    if (err) setError(err.message.replace(/^.*magnify_deny_member:\s*/, ''));
+    setBusyId(null);
+    setArmDenyId(null);
+    await fetchPendingUsers();
+  }
+
+  async function createInvite() {
+    setInviteBusy(true);
+    setError('');
+    const { data, error: err } = await supabase.rpc('gather_create_stake_invite');
+    if (err) setError(err.message.replace(/^.*gather_create_stake_invite:\s*/, ''));
+    else setInviteCode(data as string);
+    setInviteBusy(false);
   }
 
   return (
@@ -54,6 +96,27 @@ export function PendingAccessScreen({ navigation }: any) {
           </View>
         </View>
 
+        {/* Invite members */}
+        <View style={styles.inviteCard}>
+          <Text style={styles.inviteTitle}>{t('pendingAccess.inviteTitle')}</Text>
+          <Text style={styles.inviteHint}>{t('pendingAccess.inviteHint')}</Text>
+          {inviteCode ? (
+            <View style={styles.inviteCodeBox}>
+              <Text style={styles.inviteCodeText} selectable>{inviteCode}</Text>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={[styles.inviteBtn, inviteBusy && { opacity: 0.5 }]}
+              onPress={createInvite}
+              disabled={inviteBusy}
+            >
+              <Text style={styles.inviteBtnText}>{inviteBusy ? '…' : t('pendingAccess.createInvite')}</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
         {loading ? (
           <ActivityIndicator color={Colors.primary} style={{ padding: Spacing.lg }} />
         ) : pendingUsers.length === 0 ? (
@@ -61,14 +124,51 @@ export function PendingAccessScreen({ navigation }: any) {
             <Text style={styles.emptyText}>{t('settings.noPending')}</Text>
           </View>
         ) : (
-          pendingUsers.map(u => (
-            <View key={u.id} style={styles.userCard}>
-              <Text style={styles.userName}>{u.full_name}</Text>
-              <Text style={styles.userEmail}>{u.email}</Text>
-              <Text style={styles.userRoleLabel}>{t('pending.requestedRole')}</Text>
-              <Text style={styles.userRoleValue}>{ROLE_LABELS[u.role as UserRole] ?? u.role}</Text>
-            </View>
-          ))
+          pendingUsers.map(u => {
+            const busy = busyId === u.id;
+            const expanded = expandedId === u.id;
+            const armed = armDenyId === u.id;
+            return (
+              <View key={u.id} style={styles.userCard}>
+                <Text style={styles.userName}>{u.full_name}</Text>
+                <Text style={styles.userEmail}>{u.email}</Text>
+                <Text style={styles.userRoleLabel}>{t('pending.requestedRole')}</Text>
+                <Text style={styles.userRoleValue}>{ROLE_LABELS[u.role as UserRole] ?? u.role}</Text>
+                <View style={styles.decisionRow}>
+                  <TouchableOpacity
+                    style={[styles.approveBtn, busy && { opacity: 0.5 }]}
+                    onPress={() => { setArmDenyId(null); setExpandedId(expanded ? null : u.id); }}
+                    disabled={busy}
+                  >
+                    <Text style={styles.approveBtnText}>{t('pendingAccess.approveAs')}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.denyBtn, armed && styles.denyBtnArmed, busy && { opacity: 0.5 }]}
+                    onPress={() => denyUser(u.id)}
+                    disabled={busy}
+                  >
+                    <Text style={[styles.denyBtnText, armed && styles.denyBtnTextArmed]}>
+                      {armed ? t('pendingAccess.reallyDeny') : t('pendingAccess.deny')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                {expanded && (
+                  <View style={styles.roleChips}>
+                    {APPROVABLE_ROLES.map(r => (
+                      <TouchableOpacity
+                        key={r}
+                        style={[styles.roleChip, busy && { opacity: 0.5 }]}
+                        onPress={() => approveAs(u.id, r)}
+                        disabled={busy}
+                      >
+                        <Text style={styles.roleChipText}>{ROLE_LABELS[r]}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+            );
+          })
         )}
       </ScrollView>
     </View>
@@ -110,4 +210,42 @@ const styles = StyleSheet.create({
   userEmail: { fontSize: FontSize.sm, color: Colors.gray[500], marginTop: 1 },
   userRoleLabel: { fontSize: FontSize.xs, fontWeight: '600', color: Colors.gray[500], marginTop: Spacing.sm },
   userRoleValue: { fontSize: FontSize.sm, color: Colors.gray[800], fontWeight: '500' },
+  inviteCard: {
+    backgroundColor: Colors.white, borderRadius: Radius.md, padding: Spacing.md,
+    marginBottom: Spacing.md, borderWidth: 1, borderColor: Colors.gray[200], ...(Shadow as any),
+  },
+  inviteTitle: { fontSize: FontSize.md, fontWeight: '700', color: Colors.gray[900] },
+  inviteHint: { fontSize: FontSize.xs, color: Colors.gray[500], marginTop: 2, lineHeight: 18 },
+  inviteBtn: {
+    alignSelf: 'flex-start', marginTop: Spacing.sm,
+    paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs,
+    borderRadius: Radius.sm, backgroundColor: Colors.primary,
+  },
+  inviteBtnText: { color: Colors.white, fontSize: FontSize.sm, fontWeight: '700' },
+  inviteCodeBox: {
+    marginTop: Spacing.sm, backgroundColor: Colors.gray[50], borderRadius: Radius.sm,
+    borderWidth: 1, borderColor: Colors.gray[200], padding: Spacing.sm, alignItems: 'center',
+  },
+  inviteCodeText: { fontSize: FontSize.xl, fontWeight: '800', color: Colors.primary, letterSpacing: 2 },
+  errorText: { fontSize: FontSize.sm, color: Colors.error, marginBottom: Spacing.sm },
+  decisionRow: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.sm },
+  approveBtn: {
+    paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs,
+    borderRadius: Radius.sm, backgroundColor: Colors.primary,
+  },
+  approveBtnText: { color: Colors.white, fontSize: FontSize.sm, fontWeight: '700' },
+  denyBtn: {
+    paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs,
+    borderRadius: Radius.sm, backgroundColor: '#fef2f2',
+    borderWidth: 1, borderColor: '#fecaca',
+  },
+  denyBtnArmed: { backgroundColor: Colors.error, borderColor: Colors.error },
+  denyBtnText: { color: '#b91c1c', fontSize: FontSize.sm, fontWeight: '700' },
+  denyBtnTextArmed: { color: Colors.white },
+  roleChips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.xs, marginTop: Spacing.sm },
+  roleChip: {
+    paddingHorizontal: Spacing.sm, paddingVertical: 6, borderRadius: Radius.sm,
+    borderWidth: 1, borderColor: Colors.primary, backgroundColor: Colors.primaryFade,
+  },
+  roleChipText: { fontSize: FontSize.xs, color: Colors.primary, fontWeight: '700' },
 });

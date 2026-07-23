@@ -22,13 +22,14 @@
 --   mapping from gather_approve_stake_request BEFORE approval, so the
 --   not-exists guard protects them. Their members need the invite-code flow
 --   (Phase 2b) before that stake can take signups.
--- • DEFERRED, documented: profiles SELECT stays suite-wide (table is shared
---   with Sparkle and every Gathered app — needs a coordinated re-key);
---   slack_settings SELECT stays 'authenticated' (pending users read the
---   webhook to notify admins pre-approval; per-stake Slack lands when a 2nd
---   stake configures it); the push edge function counts globally (service
---   role) — scope it when a 2nd stake goes live. FORCE RLS is not used: the
---   gather_* SECURITY DEFINER RPCs (add/rename wards) rely on owner bypass.
+-- • Slack is OUR STAKE ONLY (Scott, 2026-07-09): reads scoped to same-stake,
+--   with a stakeless-pending fallback so the pre-approval signup notify keeps
+--   working. Users mapped to another stake read nothing → all notify* helpers
+--   silently no-op for them, which is the desired behavior.
+-- • DEFERRED, documented: profiles SELECT re-key ships as its own follow-up
+--   migration (table is shared with Sparkle); the push edge function is
+--   scoped in a separate deploy. FORCE RLS is not used: the gather_*
+--   SECURITY DEFINER RPCs (add/rename wards) rely on owner bypass.
 
 -- 0. Scalar resolver (column defaults can't take a setof function) ─────────────
 create or replace function current_user_stake_single()
@@ -293,7 +294,16 @@ create policy "Clerks and presidents can manage sp_members" on sp_members for al
       and role in ('stake_president','stake_clerk'))
 );
 
--- slack_settings (writes stake-scoped; SELECT deliberately unchanged — see top) ─
+-- slack_settings — OUR STAKE ONLY (Scott's call 2026-07-09). Reads: same-stake,
+-- plus stakeless (pending, pre-approval) users so the signup flow can still
+-- notify admins — those users belong to no stake yet, and today all such
+-- signups are ours. A user mapped to a DIFFERENT stake cannot read our webhook.
+drop policy if exists "slack_settings_select" on slack_settings;
+create policy "slack_settings_select" on slack_settings for select using (
+  stake_id in (select current_user_stake())
+  or (auth.role() = 'authenticated'
+      and not exists (select 1 from user_stakes where user_id = auth.uid()))
+);
 drop policy if exists "slack_settings_manage" on slack_settings;
 create policy "slack_settings_manage" on slack_settings for all using (
   stake_id in (select current_user_stake())

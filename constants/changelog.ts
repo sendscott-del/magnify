@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.38.0',
+    date: '2026-07-09',
+    enhancements: [
+      'Multi-stake support: Magnify can now serve more than one stake, with each stake’s callings, rosters, and approvals completely walled off from every other stake’s — enforced by the database itself, not just the app.',
+      'Invite codes: admins can create a code (Settings → Pending Access → Invite members) that new members enter when signing up, landing them in the right stake automatically.',
+      'Approvals moved in-app: stake admins now approve or deny their own stake’s pending members directly on the Pending Access screen — pick a role to approve, two-tap to deny.',
+      'A leader from another stake can request their own stake from the "Awaiting Approval" screen; once granted, they become that stake’s first admin.',
+      'Slack notifications are scoped to our stake only — other stakes’ activity never posts to our channels, and they cannot see our Slack settings.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.37.1',
     date: '2026-07-19',
     enhancements: [],

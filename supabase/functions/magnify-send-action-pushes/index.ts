@@ -32,8 +32,9 @@ interface Calling {
   sustain_by: string | null;
   set_apart_by: string | null;
   record_by: string | null;
+  stake_id: string;
 }
-interface HcMember { id: string; name: string }
+interface HcMember { id: string; name: string; stake_id: string }
 interface HcApproval { calling_id: string; hc_member_id: string; approved: boolean }
 interface HcMemberWard { hc_member_id: string; ward_id: string }
 interface WardSust { calling_id: string; ward_id: string }
@@ -49,20 +50,25 @@ interface Subscription {
 
 function computeCountForUser(
   profile: Profile,
+  userStakeId: string | null,
   callings: Calling[],
   hcMembers: HcMember[],
   approvalSet: Set<string>,
   hcWardCoverage: Map<string, Set<string>>,
   sustainedWardMap: Map<string, Set<string>>,
 ): number {
+  // Stake isolation: only this user's stake counts toward their badge. A user
+  // with no stake mapping gets 0 (they shouldn't see any rows in-app either).
+  if (!userStakeId) return 0;
   const myName = profile.full_name;
-  const myHcId = hcMembers.find(m => m.name === myName)?.id ?? null;
+  const myHcId = hcMembers.find(m => m.name === myName && m.stake_id === userStakeId)?.id ?? null;
   const myWards = myHcId ? hcWardCoverage.get(myHcId) ?? new Set<string>() : new Set<string>();
   const inPresidency = SP_PRESIDENCY_ROLES.includes(profile.role);
   const isClerk = SP_CLERK_ROLES.includes(profile.role);
 
   let count = 0;
   for (const c of callings) {
+    if (c.stake_id !== userStakeId) continue;
     if (HC_STAGES.includes(c.stage)) {
       // Only count the assignee for the CURRENT stage. Prior-stage
       // assignees are done — they shouldn't keep accumulating badges.
@@ -118,9 +124,9 @@ Deno.serve(async (req: Request) => {
   // Pull everything we need in parallel.
   const [callingsRes, hcMembersRes, approvalsRes, hcWardsRes, wardSustRes, subsRes] = await Promise.all([
     supa.from("callings")
-      .select("id, type, ward_id, stage, extend_by, sustain_by, set_apart_by, record_by")
+      .select("id, type, ward_id, stage, extend_by, sustain_by, set_apart_by, record_by, stake_id")
       .eq("rejected", false).neq("stage", "complete"),
-    supa.from("high_council_members").select("id, name").eq("active", true),
+    supa.from("high_council_members").select("id, name, stake_id").eq("active", true),
     supa.from("hc_approvals").select("calling_id, hc_member_id, approved"),
     supa.from("hc_member_wards").select("hc_member_id, ward_id"),
     supa.from("ward_sustainings").select("calling_id, ward_id, sustained").eq("sustained", true),
@@ -152,14 +158,17 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  // Fetch the relevant profiles in one query.
+  // Fetch the relevant profiles + stake mappings in one query each.
   const userIds = Array.from(new Set(subs.map(s => s.user_id)));
-  const { data: profilesData } = await supa
-    .from("profiles")
-    .select("id, full_name, role")
-    .in("id", userIds);
+  const [{ data: profilesData }, { data: stakesData }] = await Promise.all([
+    supa.from("profiles").select("id, full_name, role").in("id", userIds),
+    supa.from("user_stakes").select("user_id, stake_id").in("user_id", userIds),
+  ]);
   const profileMap = new Map<string, Profile>(
     (profilesData ?? []).map((p: Profile) => [p.id, p]),
+  );
+  const stakeMap = new Map<string, string>(
+    (stakesData ?? []).map((r: { user_id: string; stake_id: string }) => [r.user_id, r.stake_id]),
   );
 
   let sent = 0;
@@ -168,7 +177,7 @@ Deno.serve(async (req: Request) => {
     const profile = profileMap.get(sub.user_id);
     if (!profile) continue;
 
-    const newCount = computeCountForUser(profile, callings, hcMembers, approvalSet, hcWardCoverage, sustainedWardMap);
+    const newCount = computeCountForUser(profile, stakeMap.get(sub.user_id) ?? null, callings, hcMembers, approvalSet, hcWardCoverage, sustainedWardMap);
 
     if (newCount === sub.last_count) continue;
 

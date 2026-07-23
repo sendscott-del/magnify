@@ -208,6 +208,10 @@ export function HelpScreen({ navigation }: any) {
           <PermissionsTable t={t as (key: string) => string} />
         </Section>
 
+        <Section title={t('help.multiStake')}>
+          <Text style={styles.body}>{t('help.multiStakeBody')}</Text>
+        </Section>
+
         <Section title={t('help.stages')}>
           <Item label={t('stage.ideas')} description={t('help.stage.ideas')} />
           <Item label={t('stage.for_approval')} description={t('help.stage.for_approval')} />
