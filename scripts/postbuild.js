@@ -74,6 +74,19 @@ for (const f of ['install.html', 'install-icon.png']) {
 // 4. Inject meta tags + manifest link + SW registration script
 let html = fs.readFileSync(indexPath, 'utf-8');
 
+// Expo's web template omits viewport-fit=cover, so env(safe-area-inset-top)
+// is always 0 — react-native-safe-area-context's web provider measures that
+// exact CSS value, so the Gathered bar's insets.top padding collapses and the
+// iOS status bar overlaps the app when installed to the home screen. Add
+// viewport-fit=cover so the safe-area insets report real values.
+if (!html.includes('viewport-fit=cover')) {
+  html = html.replace(
+    /(<meta name="viewport" content="[^"]*)("\s*\/?>)/,
+    '$1, viewport-fit=cover$2'
+  );
+  console.log('[postbuild] Added viewport-fit=cover to viewport meta');
+}
+
 // Expo's web template emits `<link rel="icon" href="/favicon.ico" />` but
 // we never generate a favicon.ico. Browsers therefore either 404 or fall
 // back to a default — including in the Chrome bookmark bar, where it

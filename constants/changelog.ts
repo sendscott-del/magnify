@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.38.1',
+    date: '2026-08-02',
+    enhancements: [],
+    bugFixes: [
+      'Fixed the top Gathered bar overlapping the iPhone status bar / Dynamic Island when Magnify is installed to the home screen — the bar now reserves space below the clock instead of content sliding up behind it.',
+    ],
+  },
+  {
     version: '2.38.0',
     date: '2026-07-09',
     enhancements: [
