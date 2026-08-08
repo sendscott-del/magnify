@@ -27,9 +27,11 @@ interface Props {
   calling: Calling;
   onPress: () => void;
   isNew?: boolean;
+  /** Stake-calling ward-sustaining progress, supplied by the HC board. */
+  meta?: { sustainDone: number; sustainTotal: number; sustainingOnly: boolean };
 }
 
-export function CallingCard({ calling, onPress, isNew }: Props) {
+export function CallingCard({ calling, onPress, isNew, meta }: Props) {
   const { t } = useLanguage();
 
   const STAGE_LABELS: Record<string, string> = {
@@ -92,6 +94,21 @@ export function CallingCard({ calling, onPress, isNew }: Props) {
           <Text style={styles.stageText}>{STAGE_LABELS[calling.stage]}</Text>
         </View>
       </View>
+
+      {meta && meta.sustainTotal > 0 && (
+        <View style={styles.sustainRow}>
+          <Text style={styles.sustainProgress}>
+            {t('hcBoard.sustainedProgress')
+              .replace('{done}', String(meta.sustainDone))
+              .replace('{total}', String(meta.sustainTotal))}
+          </Text>
+          {meta.sustainingOnly && (
+            <View style={styles.setApartChip}>
+              <Text style={styles.setApartChipText}>{t('hcBoard.alreadySetApart')}</Text>
+            </View>
+          )}
+        </View>
+      )}
 
       {calling.is_release && !calling.rejected && (
         <View style={styles.releaseBanner}>
@@ -203,6 +220,29 @@ const styles = StyleSheet.create({
     fontSize: FontSize.sm - 1,
     fontWeight: '600',
     color: Colors.gray[700],
+  },
+  sustainRow: {
+    marginTop: Spacing.xs,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 6,
+  },
+  sustainProgress: {
+    fontSize: FontSize.xs,
+    color: Colors.gray[600],
+    fontWeight: '700',
+  },
+  setApartChip: {
+    backgroundColor: Colors.success + '1F',
+    borderRadius: Radius.sm,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  setApartChipText: {
+    fontSize: FontSize.xs - 1,
+    color: Colors.success,
+    fontWeight: '800',
   },
   releaseBanner: {
     marginTop: Spacing.xs,

@@ -19,9 +19,11 @@ interface Props {
    *  monitor with 8 columns, which is why Sustain spilled into Set Apart in
    *  v2.24.0). Native horizontal-scroll mode keeps the original behavior. */
   fluid?: boolean;
+  /** Extra per-card annotation (e.g. stake-calling sustaining progress). */
+  cardMeta?: (calling: Calling) => { sustainDone: number; sustainTotal: number; sustainingOnly: boolean } | undefined;
 }
 
-export function KanbanColumn({ title, callings, onCardPress, color = Colors.primary, headerAction, viewedIds, fluid }: Props) {
+export function KanbanColumn({ title, callings, onCardPress, color = Colors.primary, headerAction, viewedIds, fluid, cardMeta }: Props) {
   const { t } = useLanguage();
   return (
     <View style={[styles.column, fluid && styles.columnFluid]}>
@@ -37,7 +39,7 @@ export function KanbanColumn({ title, callings, onCardPress, color = Colors.prim
           <EmptyState icon="list-outline" title={t('hcBoard.nothingHere')} />
         ) : (
           callings.map(c => (
-            <CallingCard key={c.id} calling={c} onPress={() => onCardPress(c)} isNew={viewedIds ? !viewedIds.has(c.id) : false} />
+            <CallingCard key={c.id} calling={c} onPress={() => onCardPress(c)} isNew={viewedIds ? !viewedIds.has(c.id) : false} meta={cardMeta?.(c)} />
           ))
         )}
       </ScrollView>

@@ -205,9 +205,39 @@ export function HCKanbanScreen({ navigation }: any) {
     setRefreshing(false);
   }
 
+  // A stake calling must be sustained in EVERY ward. That takes weeks, but the
+  // person's own ward often sustains first and the card gets advanced to
+  // set-apart — dragging it out from under the remaining wards. So sustaining
+  // is tracked as a per-ward checklist ALONGSIDE the stage, not as a stage
+  // gate: while any ward is outstanding the card keeps appearing in Sustain,
+  // whatever stage it has actually reached.
+  function wardsOutstanding(c: Calling): number {
+    if (c.type !== 'stake_calling') return 0;
+    if (c.stage === 'complete' || c.rejected) return 0;
+    const sustained = sustainedWardMap[c.id] ?? new Set<string>();
+    return wards.filter(w => !sustained.has(w.id)).length;
+  }
+  // Past the sustain stage but still collecting ward sustainings.
+  function isSustainingOnly(c: Calling): boolean {
+    const past = ['set_apart', 'record'];
+    return past.includes(c.stage) && wardsOutstanding(c) > 0;
+  }
+
+  function sustainMeta(c: Calling) {
+    if (c.type !== 'stake_calling' || wards.length === 0) return undefined;
+    const outstanding = wardsOutstanding(c);
+    if (outstanding === 0 && c.stage !== 'sustain') return undefined;
+    return {
+      sustainDone: wards.length - outstanding,
+      sustainTotal: wards.length,
+      sustainingOnly: isSustainingOnly(c),
+    };
+  }
+
   function filteredCallings(stages: string[]) {
     return callings.filter(c => {
-      if (!stages.includes(c.stage)) return false;
+      const sustainCol = stages.includes('sustain');
+      if (!stages.includes(c.stage) && !(sustainCol && isSustainingOnly(c))) return false;
       if (typeFilter !== 'all' && c.type !== typeFilter) return false;
       if (wardFilter !== 'all' && c.ward_id !== wardFilter) return false;
       if (assigneeFilter !== 'all') {
@@ -234,7 +264,7 @@ export function HCKanbanScreen({ navigation }: any) {
         // in any of the HC member's assigned wards. Ward callings live in
         // one ward; stake callings need sustaining in every ward (tracked
         // per-ward via ward_sustainings).
-        if (c.stage === 'sustain') {
+        if (c.stage === 'sustain' || isSustainingOnly(c)) {
           const hcMemberId = hcMemberIdMap[assigneeFilter];
           const myWards = hcMemberId ? hcWardCoverage[hcMemberId] : undefined;
           if (myWards && myWards.size > 0) {
@@ -262,11 +292,18 @@ export function HCKanbanScreen({ navigation }: any) {
   }
 
   function generateScript(ward: Ward): string {
-    // Stake callings are sustained in every ward in the stake, not only the
-    // member's home ward — include them regardless of ward_id.
-    const sustaining = callings.filter(c =>
-      c.stage === 'sustain' && (c.ward_id === ward.id || c.type === 'stake_calling')
-    );
+    // Stake callings are sustained in every ward, not only the member's home
+    // ward. A stake calling that has moved past sustain (its own ward already
+    // sustained and set apart) still belongs in the remaining wards' scripts
+    // until they've each sustained it — hence isSustainingOnly.
+    const sustaining = callings.filter(c => {
+      const inScope = c.ward_id === ward.id || c.type === 'stake_calling';
+      if (!inScope) return false;
+      if (c.stage === 'sustain') return true;
+      if (!isSustainingOnly(c)) return false;
+      // Only for wards that still owe a sustaining.
+      return !(sustainedWardMap[c.id] ?? new Set<string>()).has(ward.id);
+    });
     const locale = language === 'es' ? 'es-US' : 'en-US';
     const date = new Date().toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' });
 
@@ -459,6 +496,7 @@ export function HCKanbanScreen({ navigation }: any) {
                 callings={filteredCallings(col.stages)}
                 viewedIds={viewedIds}
                 onCardPress={openCard}
+                cardMeta={col.stages.includes('sustain') ? sustainMeta : undefined}
                 fluid
                 headerAction={col.stages.includes('sustain') ? (
                   <TouchableOpacity
@@ -489,6 +527,7 @@ export function HCKanbanScreen({ navigation }: any) {
               callings={filteredCallings(col.stages)}
               viewedIds={viewedIds}
               onCardPress={openCard}
+              cardMeta={col.stages.includes('sustain') ? sustainMeta : undefined}
               headerAction={col.stages.includes('sustain') ? (
                 <TouchableOpacity
                   style={styles.scriptBtn}

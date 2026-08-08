@@ -60,11 +60,13 @@ function formatDateTime(d?: string | null) {
 }
 
 // ─── Ward Sustaining ─────────────────────────────────────────────────────────
-function WardSustainingSection({ wards, sustainings, canToggle, onToggle }: {
+function WardSustainingSection({ wards, sustainings, canToggle, onToggle, onMarkRemaining }: {
   wards: Ward[]; sustainings: WardSustaining[]; canToggle: boolean;
   onToggle: (wardId: string, existing: WardSustaining | undefined) => Promise<void>;
+  onMarkRemaining?: () => void;
 }) {
   const { t } = useLanguage();
+  const remaining = wards.filter(w => !(sustainings.find(sx => sx.ward_id === w.id)?.sustained ?? false)).length;
   return (
     <View style={wsStyles.container}>
       <Text style={wsStyles.title}>{t('detail.wardSustainings')}</Text>
@@ -81,10 +83,24 @@ function WardSustainingSection({ wards, sustainings, canToggle, onToggle }: {
         })}
       </View>
       <Text style={wsStyles.hint}>{sustainings.filter(s => s.sustained).length}/{wards.length} {t('detail.wardsSustained')}</Text>
+      {/* Escape hatch: a ward that will never report (no high councilor, etc.)
+          would otherwise pin the card in Sustain forever. Logged as an override. */}
+      {canToggle && remaining > 0 && onMarkRemaining && (
+        <TouchableOpacity style={wsStyles.overrideBtn} onPress={onMarkRemaining}>
+          <Text style={wsStyles.overrideBtnText}>{t('detail.markRemainingSustained')}</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
 const wsStyles = StyleSheet.create({
+  overrideBtn: {
+    marginTop: Spacing.sm, alignSelf: 'flex-start',
+    paddingHorizontal: Spacing.sm, paddingVertical: 6,
+    borderRadius: Radius.sm, borderWidth: 1, borderColor: Colors.gray[300],
+    backgroundColor: Colors.gray[50],
+  },
+  overrideBtnText: { fontSize: FontSize.xs, fontWeight: '700', color: Colors.gray[600] },
   container: { backgroundColor: Colors.white, borderRadius: Radius.md, padding: Spacing.md, marginBottom: Spacing.md, borderWidth: 1, borderColor: Colors.gray[200] },
   title: { fontSize: FontSize.md, fontWeight: '700', color: Colors.gray[800], marginBottom: Spacing.sm },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.xs },
@@ -764,6 +780,44 @@ export function CallingDetailScreen({ route, navigation }: any) {
     setWardSustainingsList((data as WardSustaining[]) ?? []);
   }
 
+  async function handleMarkRemainingSustained() {
+    if (!calling || !profile || isDemo) return;
+    const confirmed = Platform.OS === 'web'
+      ? window.confirm(t('detail.markRemainingConfirm'))
+      : await new Promise<boolean>(resolve =>
+          Alert.alert(t('detail.markRemainingSustained'), t('detail.markRemainingConfirm'), [
+            { text: t('detail.cancel'), onPress: () => resolve(false) },
+            { text: t('detail.markRemainingSustained'), onPress: () => resolve(true) },
+          ])
+        );
+    if (!confirmed) return;
+
+    const now = new Date().toISOString();
+    const missing = allWards.filter(w => {
+      const ws = wardSustainingsList.find(sx => sx.ward_id === w.id);
+      return !(ws?.sustained ?? false);
+    });
+    for (const w of missing) {
+      const existing = wardSustainingsList.find(sx => sx.ward_id === w.id);
+      if (existing) {
+        await supabase.from('ward_sustainings')
+          .update({ sustained: true, sustained_at: now, sustained_by: profile.id })
+          .eq('id', existing.id);
+      } else {
+        await supabase.from('ward_sustainings')
+          .insert({ calling_id: calling.id, ward_id: w.id, sustained: true, sustained_at: now, sustained_by: profile.id });
+      }
+    }
+    await supabase.from('calling_log').insert({
+      calling_id: calling.id,
+      action: `${t('log.remainingWardsOverride')} (${missing.map(w => w.abbreviation).join(', ')})`,
+      performed_by: profile.id,
+    });
+    await fetchData();
+    setSuccessMsg(t('log.remainingWardsOverride'));
+    setTimeout(() => setSuccessMsg(''), 3000);
+  }
+
   async function handleAdvance() {
     if (!calling || !profile) return;
     const next = getNextStage(calling.stage, calling.type, !!calling.is_release);
@@ -1296,6 +1350,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
             sustainings={wardSustainingsList}
             canToggle={!!(role && ALL_APPROVED.includes(role as any))}
             onToggle={handleWardSustainingToggle}
+            onMarkRemaining={handleMarkRemainingSustained}
           />
         )}
 

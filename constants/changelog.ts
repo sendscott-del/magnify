@@ -9,6 +9,16 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.42.0',
+    date: '2026-08-08',
+    enhancements: [
+      'Stake callings no longer disappear from Sustain before every ward has sustained them. Previously the member\'s own ward would sustain, someone would advance the card to Set Apart, and the remaining wards never saw it. Now sustaining is tracked as a per-ward checklist alongside the stage: the card stays in the Sustain column — and in each remaining ward\'s sustaining script — until every ward has reported, even while it moves ahead to Set Apart and Record.',
+      'Those cards show "Sustained in X of Y wards", and carry an ALREADY SET APART tag once the ordinance is done, so nobody repeats it.',
+      'New override on a calling\'s detail page: "Mark remaining wards sustained", for when a ward simply cannot report. It fills in the rest and records the override (with the ward list) in the calling history.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.41.0',
     date: '2026-08-08',
     enhancements: [
