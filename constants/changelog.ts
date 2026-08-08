@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.41.0',
+    date: '2026-08-08',
+    enhancements: [
+      'When you create a Release you now choose explicitly whether it is a ward calling (one ward announces it) or a stake calling (every ward announces it). Before, it guessed from whether you picked a ward, so releasing a high councilor — a stake calling — landed in just one ward\'s script.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.40.1',
     date: '2026-08-08',
     enhancements: [],

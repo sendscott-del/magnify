@@ -41,16 +41,17 @@ export function NewCallingScreen({ navigation }: any) {
   ];
 
   const [selType, setSelType] = useState<CallingType | 'release'>('ward_calling');
+  // Scope of a release is chosen EXPLICITLY, never inferred from the ward
+  // picker: a stake calling (e.g. high councilor) is announced in every ward
+  // even though the person has a home ward.
+  const [releaseScope, setReleaseScope] = useState<CallingType>('ward_calling');
   const [memberName, setMemberName] = useState('');
   const [wardId, setWardId] = useState('');
   const [wardName, setWardName] = useState('');
   const isRelease = selType === 'release';
-  // A release keeps type ward/stake so all sustain routing works untouched:
-  // ward chosen → the covering HC announces it; no ward → stake-wide, every
-  // ward sustains (like any stake calling).
-  const type: CallingType = isRelease
-    ? (wardId ? 'ward_calling' : 'stake_calling')
-    : selType;
+  // Releases carry a real calling type so sustain routing is untouched:
+  // ward_calling → only that ward's script; stake_calling → every ward's.
+  const type: CallingType = isRelease ? releaseScope : selType;
   const [callingName, setCallingName] = useState('');
   const [customCallingName, setCustomCallingName] = useState('');
   const [ordinationType, setOrdinationType] = useState<'elder' | 'high_priest'>('elder');
@@ -274,9 +275,31 @@ export function NewCallingScreen({ navigation }: any) {
         )}
 
         {isRelease && (
-          <View style={styles.infoBox}>
-            <Text style={styles.infoText}>{t('new.releaseInfo')}</Text>
-          </View>
+          <>
+            <View style={styles.infoBox}>
+              <Text style={styles.infoText}>{t('new.releaseInfo')}</Text>
+            </View>
+
+            {/* Scope: which sustaining scripts this release appears in. */}
+            <Text style={styles.sectionLabel}>{t('new.releaseScopeLabel')}</Text>
+            <View style={styles.typeRow}>
+              {([
+                { value: 'ward_calling' as CallingType, label: t('type.ward_calling'), hint: t('new.releaseScopeWardHint') },
+                { value: 'stake_calling' as CallingType, label: t('type.stake_calling'), hint: t('new.releaseScopeStakeHint') },
+              ]).map(opt => (
+                <TouchableOpacity
+                  key={opt.value}
+                  style={[styles.scopeBtn, releaseScope === opt.value && styles.typeBtnActive]}
+                  onPress={() => setReleaseScope(opt.value)}
+                >
+                  <Text style={[styles.typeLabel, releaseScope === opt.value && styles.typeLabelActive]}>
+                    {opt.label}
+                  </Text>
+                  <Text style={styles.scopeHint}>{opt.hint}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </>
         )}
 
         {/* Member Name */}
@@ -292,7 +315,9 @@ export function NewCallingScreen({ navigation }: any) {
         <Text style={styles.fieldLabel}>
           {t('new.ward')}{' '}
           <Text style={styles.optionalLabel}>
-            {isRelease ? t('new.releaseWardHint') : t('detail.optional')}
+            {isRelease
+              ? (releaseScope === 'ward_calling' ? t('new.releaseWardHintWard') : t('new.releaseWardHintStake'))
+              : t('detail.optional')}
           </Text>
         </Text>
         <TouchableOpacity
@@ -600,6 +625,16 @@ const styles = StyleSheet.create({
     width: 48, height: 48, borderRadius: 10, marginBottom: 6,
     alignItems: 'center', justifyContent: 'center',
     backgroundColor: Colors.warning + '22',
+  },
+  scopeBtn: {
+    flex: 1, alignItems: 'center', justifyContent: 'center',
+    paddingVertical: Spacing.sm + 2, paddingHorizontal: Spacing.sm,
+    borderRadius: Radius.md, borderWidth: 1.5, borderColor: Colors.gray[200],
+    backgroundColor: Colors.white, ...(Shadow as any),
+  },
+  scopeHint: {
+    fontSize: FontSize.xs - 1, color: Colors.gray[500],
+    textAlign: 'center', marginTop: 2, lineHeight: 14,
   },
   typeLabel: { fontSize: FontSize.xs, fontWeight: '600', color: Colors.gray[600], textAlign: 'center' },
   typeLabelActive: { color: Colors.primary },
