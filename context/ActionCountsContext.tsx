@@ -132,6 +132,7 @@ export function ActionCountsProvider({ children }: { children: React.ReactNode }
     // Mirror the total to the home-screen icon while the app is open.
     // Push events update it when the app is closed.
     setLocalAppBadge(hc + sp);
+    import('../lib/nativePush').then(m => m.setNativeBadge(hc + sp)).catch(() => {});
   }, [profile?.full_name, isPresidency, isClerk, demoMode]);
 
   useEffect(() => {

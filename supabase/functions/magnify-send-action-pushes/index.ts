@@ -38,7 +38,14 @@ interface HcMember { id: string; name: string; stake_id: string }
 interface HcApproval { calling_id: string; hc_member_id: string; approved: boolean }
 interface HcMemberWard { hc_member_id: string; ward_id: string }
 interface WardSust { calling_id: string; ward_id: string }
-interface Profile { id: string; full_name: string; role: string }
+interface Profile { id: string; full_name: string; role: string; language?: string | null }
+interface NativeToken {
+  id: string;
+  user_id: string;
+  token: string;
+  platform: string;
+  last_count: number;
+}
 interface Subscription {
   id: string;
   user_id: string;
@@ -132,6 +139,10 @@ Deno.serve(async (req: Request) => {
     supa.from("ward_sustainings").select("calling_id, ward_id, sustained").eq("sustained", true),
     supa.from("magnify_push_subscriptions").select("id, user_id, endpoint, p256dh, auth, last_count"),
   ]);
+  const { data: nativeTokensData } = await supa
+    .from("magnify_native_push_tokens")
+    .select("id, user_id, token, platform, last_count");
+  const nativeTokens: NativeToken[] = nativeTokensData ?? [];
 
   const callings: Calling[] = callingsRes.data ?? [];
   const hcMembers: HcMember[] = hcMembersRes.data ?? [];
@@ -152,16 +163,16 @@ Deno.serve(async (req: Request) => {
   }
   const subs: Subscription[] = subsRes.data ?? [];
 
-  if (subs.length === 0) {
+  if (subs.length === 0 && nativeTokens.length === 0) {
     return new Response(JSON.stringify({ subscribers: 0, sent: 0 }), {
       headers: { "Content-Type": "application/json" },
     });
   }
 
   // Fetch the relevant profiles + stake mappings in one query each.
-  const userIds = Array.from(new Set(subs.map(s => s.user_id)));
+  const userIds = Array.from(new Set([...subs.map(s => s.user_id), ...nativeTokens.map(n => n.user_id)]));
   const [{ data: profilesData }, { data: stakesData }] = await Promise.all([
-    supa.from("profiles").select("id, full_name, role").in("id", userIds),
+    supa.from("profiles").select("id, full_name, role, language").in("id", userIds),
     supa.from("user_stakes").select("user_id, stake_id").in("user_id", userIds),
   ]);
   const profileMap = new Map<string, Profile>(
@@ -209,8 +220,64 @@ Deno.serve(async (req: Request) => {
     }
   }
 
+  // ── Native (Expo Push API) ────────────────────────────────────────────────
+  // Badge always updates; a visible banner only when the count INCREASED
+  // (something new needs the user), never on decreases.
+  let nativeSent = 0;
+  let nativePruned = 0;
+  const expoMessages: { message: Record<string, unknown>; row: NativeToken; newCount: number }[] = [];
+  for (const nt of nativeTokens) {
+    const profile = profileMap.get(nt.user_id);
+    if (!profile) continue;
+    const newCount = computeCountForUser(profile, stakeMap.get(nt.user_id) ?? null, callings, hcMembers, approvalSet, hcWardCoverage, sustainedWardMap);
+    if (newCount === nt.last_count) continue;
+    const es = (profile.language ?? "en") === "es";
+    const message: Record<string, unknown> = { to: nt.token, badge: newCount };
+    if (newCount > nt.last_count) {
+      message.title = "Magnify";
+      message.body = es
+        ? `${newCount} llamamiento${newCount === 1 ? "" : "s"} necesita${newCount === 1 ? "" : "n"} su atención`
+        : `${newCount} calling${newCount === 1 ? "" : "s"} need${newCount === 1 ? "s" : ""} your action`;
+      message.sound = "default";
+      if (nt.platform === "android") message.channelId = "default";
+    }
+    expoMessages.push({ message, row: nt, newCount });
+  }
+
+  for (let i = 0; i < expoMessages.length; i += 100) {
+    const chunk = expoMessages.slice(i, i + 100);
+    try {
+      const res = await fetch("https://exp.host/--/api/v2/push/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(chunk.map(c => c.message)),
+      });
+      const json = await res.json();
+      const tickets: Array<{ status: string; details?: { error?: string } }> = json?.data ?? [];
+      for (let j = 0; j < chunk.length; j++) {
+        const ticket = tickets[j];
+        const { row, newCount } = chunk[j];
+        if (ticket?.status === "ok") {
+          await supa.from("magnify_native_push_tokens").update({
+            last_count: newCount,
+            last_pushed_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          }).eq("id", row.id);
+          nativeSent++;
+        } else if (ticket?.details?.error === "DeviceNotRegistered") {
+          await supa.from("magnify_native_push_tokens").delete().eq("id", row.id);
+          nativePruned++;
+        } else {
+          console.error("expo push failed", { id: row.id, ticket });
+        }
+      }
+    } catch (err) {
+      console.error("expo push batch failed", err);
+    }
+  }
+
   return new Response(
-    JSON.stringify({ subscribers: subs.length, sent, pruned }),
+    JSON.stringify({ subscribers: subs.length, sent, pruned, nativeTokens: nativeTokens.length, nativeSent, nativePruned }),
     { headers: { "Content-Type": "application/json" } },
   );
 });

@@ -141,21 +141,13 @@ if (!html.includes("serviceWorker.register('/sw.js')")) {
 // centered 900px column instead of rendering full-bleed edge-to-edge.
 // Web-export-only by construction (this script never touches native builds).
 // Below 1024px nothing changes.
-const desktopLayoutCss = `
-    <style id="desktop-layout">
-      @media (min-width: 1024px) {
-        #root {
-          max-width: 900px;
-          margin: 0 auto;
-        }
-        body {
-          background: #f7f8fb;
-        }
-      }
-    </style>`;
-if (!html.includes('id="desktop-layout"')) {
-  html = html.replace('</head>', `${desktopLayoutCss}\n  </head>`);
-  console.log('[postbuild] Injected desktop-layout CSS');
+// DESKTOP LAYOUT DECISION (Scott, 2026-08-08): desktop web is FULL WIDTH.
+// A centered 900px column shipped in v2.37.1 and was reported as a bug —
+// do NOT reintroduce a max-width column here. If the built page ever shows
+// a narrow centered app again, this file is where it came from.
+if (html.includes('id="desktop-layout"')) {
+  html = html.replace(/<style id="desktop-layout">[\s\S]*?<\/style>/, '');
+  console.log('[postbuild] Removed legacy desktop-layout CSS');
 }
 
 fs.writeFileSync(indexPath, html);

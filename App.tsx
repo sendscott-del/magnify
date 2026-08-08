@@ -7,6 +7,11 @@ import { LanguageProvider } from './context/LanguageContext';
 import { DemoModeProvider } from './context/DemoModeContext';
 import { ActionCountsProvider } from './context/ActionCountsContext';
 import { AppNavigator } from './navigation/AppNavigator';
+import { configureForegroundNotifications } from './lib/nativePush';
+
+// Show native notifications as banners when the app is foregrounded
+// (no-op on web and on binaries without expo-notifications).
+configureForegroundNotifications();
 
 export default function App() {
   return (

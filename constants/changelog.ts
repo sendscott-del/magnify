@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.40.0',
+    date: '2026-08-08',
+    enhancements: [
+      'Native push notifications for the App Store app: once you update to the new build and allow notifications, the app icon badge stays in sync and you get a banner when new callings need your action (in your language). Requires the new store build — older builds keep working, just without push.',
+      'Android (installed from the website): pushes are no longer invisible — Android phones now show a real notification ("N callings need your action") since Android Chrome has no icon-badge support. iPhone/desktop keep the quiet badge-only behavior.',
+    ],
+    bugFixes: [
+      'Desktop web is back to full width — the centered narrow column (added in 2.37.1) is removed for good.',
+    ],
+  },
+  {
     version: '2.39.0',
     date: '2026-08-08',
     enhancements: [

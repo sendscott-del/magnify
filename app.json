@@ -40,7 +40,8 @@
       "orientation": "portrait"
     },
     "plugins": [
-      "expo-font"
+      "expo-font",
+      "expo-notifications"
     ],
     "extra": {
       "eas": {

@@ -35,7 +35,9 @@ Magnify is the stake callings workflow app for stake/ward leadership of The Chur
 ## Gotchas
 
 - **`profiles` is SHARED across apps and scoped by an `app` column. Every profiles query must filter `.eq('app', ...)`.** A cross-app data leak (Magnify↔Sparkle Pro) was fixed 2026-06-08; a pending-queue leak was fixed 2026-06-10. Signup tags `app=magnify`.
-- Stage 2 multi-tenant migration is committed but not applied — don't assume `stake_id` columns exist in the live DB.
+- **Multi-tenant Stage 2 IS applied to the live DB (2026-07-09):** every Magnify table carries NOT NULL `stake_id`, all RLS is same-stake via `current_user_stake()`, inserts default the stake via `current_user_stake_single()`. Profiles visibility is stake-scoped too (`user_in_my_stake()`).
+- **Desktop web is FULL WIDTH (Scott's call, 2026-08-08).** The centered 900px column (v2.37.1) was reported as a bug and removed in `scripts/postbuild.js` — do not reintroduce a desktop max-width.
+- **Native push:** the App Store/Play binaries use `expo-notifications` → Expo Push API (tokens in `magnify_native_push_tokens`); web/PWA uses Web Push (`magnify_push_subscriptions`). All expo-notifications imports are LAZY (`require` in try/catch) so one OTA bundle serves old binaries (runtimeVersion policy = appVersion, pinned 1.0.0) without crashing — keep it that way.
 - Demo mode: "Try the demo" (v2.37.0) and the App Review account are locked to fixture data; demo-account RLS lockdown landed 2026-07-08. Don't loosen demo RLS.
 - TS 5.7+ needs an explicit `Uint8Array`/BufferSource cast for the VAPID key (fixed 2026-05-17; it silently breaks builds).
 - Android build needs the `patch-package` fix for foojay-resolver-convention (Gradle 9); don't remove `patches/`.

@@ -64,6 +64,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Native push: once signed in with an approved Magnify profile, register
+  // this device's Expo push token (no-ops on web and on pre-push binaries).
+  useEffect(() => {
+    if (user?.id && profile?.status === 'approved') {
+      import('../lib/nativePush').then(m => m.registerNativePush(user.id)).catch(() => {});
+    }
+  }, [user?.id, profile?.status]);
+
   async function fetchProfile(userId: string) {
     const { data } = await supabase
       .from('profiles')
