@@ -760,7 +760,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
 
   async function handleAdvance() {
     if (!calling || !profile) return;
-    const next = getNextStage(calling.stage, calling.type);
+    const next = getNextStage(calling.stage, calling.type, !!calling.is_release);
     if (!next) return;
     if (isDemo) {
       // Demo: update local state only — never call supabase or Slack.
@@ -771,7 +771,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
     }
 
     setActionLoading(true);
-    const label = getAdvanceLabel(calling.stage, calling.type);
+    const label = getAdvanceLabel(calling.stage, calling.type, !!calling.is_release);
     const update: any = { stage: next };
     if (next === 'complete') update.completed_at = new Date().toISOString();
 
@@ -806,7 +806,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
 
   async function handleMoveBack() {
     if (!calling || !profile) return;
-    const prev = getPrevStage(calling.stage, calling.type);
+    const prev = getPrevStage(calling.stage, calling.type, !!calling.is_release);
     if (!prev) return;
     if (isDemo) {
       setCalling(p => p ? ({ ...p, stage: prev } as Calling) : p);
@@ -1069,7 +1069,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
   ));
 
   const advanceCtx: AdvanceContext = { spAllApproved, hcThresholdMet, isAssignedUser };
-  const canAdvance = role ? canAdvanceStage(role, calling.stage, calling.type, advanceCtx) : false;
+  const canAdvance = role ? canAdvanceStage(role, calling.stage, calling.type, advanceCtx, !!calling.is_release) : false;
   const canRejectCalling = role ? canReject(role, calling.stage) : false;
   const canBack = role ? canMoveback(role) : false;
   const canDel = role ? canDelete(role) : false;
@@ -1081,8 +1081,8 @@ export function CallingDetailScreen({ route, navigation }: any) {
   const taskAssignees: Assignee[] = [...spAssignees, ...hcAssignees];
 
   const clerkName = allProfiles.find(p => p.role === 'stake_clerk')?.full_name ?? null;
-  const advanceLabel = getAdvanceLabel(calling.stage, calling.type);
-  const prevStage = getPrevStage(calling.stage, calling.type);
+  const advanceLabel = getAdvanceLabel(calling.stage, calling.type, !!calling.is_release);
+  const prevStage = getPrevStage(calling.stage, calling.type, !!calling.is_release);
   const isComplete = calling.stage === 'complete';
 
   const showSustaining = calling.type === 'stake_calling' && ['sustain','set_apart','record','complete'].includes(calling.stage);
@@ -1120,7 +1120,11 @@ export function CallingDetailScreen({ route, navigation }: any) {
         </TouchableOpacity>
         <View style={styles.headerBadges}>
           <ProductIcon kind={TYPE_ICON_KIND[calling.type]} size={28} />
-          <Badge label={TYPE_LABELS[calling.type]} color={TYPE_COLORS[calling.type]} />
+          {calling.is_release ? (
+            <Badge label={t('type.release').toUpperCase()} color={Colors.warning} />
+          ) : (
+            <Badge label={TYPE_LABELS[calling.type]} color={TYPE_COLORS[calling.type]} />
+          )}
           <View style={{ width: Spacing.xs }} />
           <Badge label={STAGE_LABELS[calling.stage]} stage={calling.stage} />
         </View>

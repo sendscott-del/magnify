@@ -16,6 +16,32 @@ export async function postToWebhook(webhookUrl: string, text: string): Promise<v
 
 const SP_STAGES = ['ideas', 'for_approval', 'stake_approved'];
 
+// One-tap approval-queue reminders (buttons on the HC / SP boards, admin-only).
+// Route to the same channels the stage-change notifications use.
+export async function notifyHcApprovalReminder(count: number, requestedBy: string): Promise<void> {
+  const { data: settings } = await supabase
+    .from('slack_settings')
+    .select('webhook_url')
+    .eq('active', true)
+    .eq('event_type', 'hc_stage_change');
+  if (!settings?.length) return;
+  const linkStr = APP_URL ? `\n<${APP_URL}/hc|Open the HC Board>` : '';
+  const text = `:bell: *Reminder from ${requestedBy}:* ${count} calling${count === 1 ? '' : 's'} ${count === 1 ? 'is' : 'are'} waiting in the High Council approval queue. Please open Magnify and make your approvals.${linkStr}`;
+  for (const s of settings) await postToWebhook(s.webhook_url, text);
+}
+
+export async function notifySpApprovalReminder(count: number, requestedBy: string): Promise<void> {
+  const { data: settings } = await supabase
+    .from('slack_settings')
+    .select('webhook_url')
+    .eq('active', true)
+    .eq('event_type', 'sp_stage_change');
+  if (!settings?.length) return;
+  const linkStr = APP_URL ? `\n<${APP_URL}/board|Open the SP Board>` : '';
+  const text = `:bell: *Reminder from ${requestedBy}:* ${count} calling${count === 1 ? '' : 's'} ${count === 1 ? 'is' : 'are'} in the Stake Presidency approval queue. Please open Magnify and approve.${linkStr}`;
+  for (const s of settings) await postToWebhook(s.webhook_url, text);
+}
+
 export async function notifyStageChange({
   memberName, callingName, wardName, fromStage, toStage, toStageKey, performedBy, callingId, assigneeName,
 }: {

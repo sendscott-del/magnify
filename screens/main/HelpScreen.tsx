@@ -224,6 +224,10 @@ export function HelpScreen({ navigation }: any) {
           <Item label={t('stage.complete')} description={t('help.stage.complete')} />
         </Section>
 
+        <Section title={t('help.releases')}>
+          <Text style={styles.body}>{t('help.releasesBody')}</Text>
+        </Section>
+
         <Section title={t('help.mpOrdination')}>
           <Text style={styles.body}>{t('help.mpOrdinationBody')}</Text>
         </Section>

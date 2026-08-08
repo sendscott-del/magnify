@@ -9,6 +9,15 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.39.0',
+    date: '2026-08-08',
+    enhancements: [
+      'New "Release" entry type on the New tab (stake presidency only): announce a release without creating a new calling. It goes straight to the Stake Presidency approval queue, and only the Stake President\'s approval moves it on — directly to the Sustain column on the HC board, clearly badged RELEASE. A ward release reaches that ward\'s covering high councilor; a stake-level release (no ward selected) goes to every ward, just like stake-calling sustainings. After it\'s announced, one tap completes it.',
+      'One-tap Slack reminders: an "HC reminder" button on the High Council board (visible to the stake presidency, clerk, and executive secretary) posts a nudge to the High Council channel with the number of callings waiting for their approval; an "SP reminder" button on the Stake Presidency board does the same for the presidency channel and its approval queue.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.38.1',
     date: '2026-08-02',
     enhancements: [],

@@ -40,6 +40,7 @@ export interface Calling {
   release_current_calling?: string | null;
   release_ward_id?: string | null;
   release_done?: boolean | null;
+  is_release?: boolean;
   created_by: string;
   created_at: string;
   completed_at?: string;

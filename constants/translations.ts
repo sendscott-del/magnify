@@ -108,6 +108,7 @@ export const translations = {
     'type.ward_calling': 'Ward Calling',
     'type.stake_calling': 'Stake Calling',
     'type.mp_ordination': 'MP Ordination',
+    'type.release': 'Release',
     'type.ward_calling_short': 'Ward',
     'type.stake_calling_short': 'Stake',
     'type.mp_ordination_short': 'MP',
@@ -149,6 +150,8 @@ export const translations = {
 
     // SP Board
     'spBoard.title': 'Stake Presidency',
+    'spBoard.reminderBtn': 'SP reminder',
+    'spBoard.reminderSent': 'Reminder sent',
     'spBoard.filterAll': 'All',
 
     // HC Board
@@ -159,6 +162,8 @@ export const translations = {
     'hcBoard.allWards': 'All Wards',
     'hcBoard.allAssignees': 'All people',
     'hcBoard.justMine': 'Just mine',
+    'hcBoard.reminderBtn': 'HC reminder',
+    'hcBoard.reminderSent': 'Reminder sent',
     'hcBoard.filterByWard': 'Filter by Ward',
     'hcBoard.filterByAssignee': 'Filter by Assignee',
     'hcBoard.clearFilter': 'Clear',
@@ -368,6 +373,12 @@ export const translations = {
 
     // Activity log
     'log.mpCreated': 'MP Ordination created — sent directly to HC Approval',
+    'log.releaseCreated': 'Release submitted for Stake Presidency approval',
+    'new.releaseInfo': 'A release is an announcement only — no new calling. Once the Stake President approves it, it goes straight to the Sustain column on the HC board so it can be announced in the right ward(s), then completed.',
+    'new.releaseWardHint': '(leave empty for a stake-level release — every ward announces it)',
+    'new.releaseCallingLabel': 'Calling being released',
+    'new.releaseCallingPlaceholder': 'e.g. Ward Council, Stake Sunday School President',
+    'new.submitRelease': 'Submit Release for Approval',
     'log.callingSubmitted': 'Calling created and submitted for Stake Presidency approval',
     'log.callingIdeas': 'Calling created and added to Ideas',
 
@@ -474,6 +485,8 @@ export const translations = {
 
     // Help Screen
     'help.accessPermissions': 'Access Permissions',
+    'help.releases': 'Releases',
+    'help.releasesBody': 'A Release (New tab, stake presidency only) announces that someone is being released without creating a new calling. It waits in the Stake Presidency approval queue until the Stake President approves it, then jumps straight to the Sustain column on the HC board, badged RELEASE. Pick a ward to send it to that ward\'s covering high councilor, or leave the ward empty for a stake-level release that every ward announces. Once announced, tap once more to complete it — no set-apart or record steps.',
     'help.multiStake': 'Multiple Stakes & Invites',
     'help.multiStakeBody': 'Magnify keeps each stake completely separate — your callings, rosters, and approvals are visible only to your own stake\'s leaders. Admins can invite new members with a code (Settings → Pending Access → Invite members): anyone who enters it at sign-up lands in your stake, and your admins approve them on the Pending Access screen. A leader from another stake can request their own stake from the "Awaiting Approval" screen after creating an account.',
     'help.title': 'User Guide',
@@ -733,6 +746,7 @@ export const translations = {
     'type.ward_calling': 'Llamamiento de Barrio',
     'type.stake_calling': 'Llamamiento de Estaca',
     'type.mp_ordination': 'Ordenaci\u00f3n de SM',
+    'type.release': 'Relevo',
     'type.ward_calling_short': 'Barrio',
     'type.stake_calling_short': 'Estaca',
     'type.mp_ordination_short': 'SM',
@@ -774,6 +788,8 @@ export const translations = {
 
     // SP Board
     'spBoard.title': 'Presidencia de Estaca',
+    'spBoard.reminderBtn': 'Recordatorio PE',
+    'spBoard.reminderSent': 'Recordatorio enviado',
     'spBoard.filterAll': 'Todo',
 
     // HC Board
@@ -784,6 +800,8 @@ export const translations = {
     'hcBoard.allWards': 'Todos los Barrios',
     'hcBoard.allAssignees': 'Todas las personas',
     'hcBoard.justMine': 'Solo los míos',
+    'hcBoard.reminderBtn': 'Recordatorio CA',
+    'hcBoard.reminderSent': 'Recordatorio enviado',
     'hcBoard.filterByWard': 'Filtrar por Barrio',
     'hcBoard.filterByAssignee': 'Filtrar por Asignado',
     'hcBoard.clearFilter': 'Limpiar',
@@ -993,6 +1011,12 @@ export const translations = {
 
     // Activity log
     'log.mpCreated': 'Ordenaci\u00f3n MP creada \u2014 enviada directamente a Aprobaci\u00f3n del AC',
+    'log.releaseCreated': 'Relevo enviado para aprobación de la Presidencia de Estaca',
+    'new.releaseInfo': 'Un relevo es solo un anuncio — sin nuevo llamamiento. Cuando el Presidente de Estaca lo aprueba, pasa directamente a la columna Sostener del tablero del CA para anunciarse en el barrio o barrios correspondientes, y luego se completa.',
+    'new.releaseWardHint': '(deje vacío para un relevo a nivel de estaca — todos los barrios lo anuncian)',
+    'new.releaseCallingLabel': 'Llamamiento a relevar',
+    'new.releaseCallingPlaceholder': 'p. ej. Consejo de Barrio, Presidente de la Escuela Dominical de Estaca',
+    'new.submitRelease': 'Enviar Relevo para Aprobación',
     'log.callingSubmitted': 'Llamamiento creado y enviado para aprobaci\u00f3n de la Presidencia de Estaca',
     'log.callingIdeas': 'Llamamiento creado y agregado a Ideas',
 
@@ -1099,6 +1123,8 @@ export const translations = {
 
     // Help Screen
     'help.accessPermissions': 'Permisos de Acceso',
+    'help.releases': 'Relevos',
+    'help.releasesBody': 'Un Relevo (pestaña Nuevo, solo presidencia de estaca) anuncia que alguien es relevado sin crear un nuevo llamamiento. Espera en la cola de aprobación de la Presidencia de Estaca hasta que el Presidente de Estaca lo aprueba, y entonces pasa directamente a la columna Sostener del tablero del CA, marcado como RELEVO. Elija un barrio para enviarlo al sumo consejero que cubre ese barrio, o deje el barrio vacío para un relevo a nivel de estaca que todos los barrios anuncian. Una vez anunciado, un toque más lo completa — sin pasos de apartamiento ni registro.',
     'help.multiStake': 'Varias Estacas e Invitaciones',
     'help.multiStakeBody': 'Magnify mantiene cada estaca completamente separada — sus llamamientos, listas y aprobaciones solo son visibles para los líderes de su propia estaca. Los administradores pueden invitar a nuevos miembros con un código (Configuración → Acceso Pendiente → Invitar miembros): quien lo ingrese al registrarse queda en su estaca, y sus administradores lo aprueban en la pantalla de Acceso Pendiente. Un líder de otra estaca puede solicitar su propia estaca desde la pantalla "En Espera de Aprobación" después de crear una cuenta.',
     'help.title': 'Gu\u00eda del Usuario',

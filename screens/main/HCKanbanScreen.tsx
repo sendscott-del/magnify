@@ -18,11 +18,24 @@ import { EnableNotificationsBanner } from '../../components/EnableNotificationsB
 import { Colors, Spacing, FontSize, Radius } from '../../constants/theme';
 import { useLanguage } from '../../context/LanguageContext';
 import { useIsDesktopWeb } from '../../lib/useDeviceWidth';
+import { notifyHcApprovalReminder } from '../../lib/slack';
 
 export function HCKanbanScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { profile } = useAuth();
   const { t, language } = useLanguage();
+  const [reminderBusy, setReminderBusy] = useState(false);
+  const [reminderSent, setReminderSent] = useState(false);
+
+  async function sendHcReminder() {
+    if (reminderBusy || reminderSent) return;
+    setReminderBusy(true);
+    const count = callings.filter(c => c.stage === 'hc_approval' && !c.rejected).length;
+    await notifyHcApprovalReminder(count, profile?.full_name ?? 'Stake Presidency');
+    setReminderBusy(false);
+    setReminderSent(true);
+    setTimeout(() => setReminderSent(false), 60000);
+  }
   const isDesktopWeb = useIsDesktopWeb();
 
   const HC_COLUMNS = [
@@ -348,6 +361,18 @@ export function HCKanbanScreen({ navigation }: any) {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <Text style={styles.title}>{t('hcBoard.title')}</Text>
+        {['stake_president', 'first_counselor', 'second_counselor', 'stake_clerk', 'exec_secretary'].includes(profile?.role ?? '') && (
+          <TouchableOpacity
+            style={[styles.reminderBtn, reminderSent && styles.reminderBtnDone]}
+            onPress={sendHcReminder}
+            disabled={reminderBusy || reminderSent}
+          >
+            <Ionicons name={reminderSent ? 'checkmark' : 'notifications-outline'} size={14} color={reminderSent ? Colors.success : Colors.primary} />
+            <Text style={[styles.reminderBtnText, reminderSent && { color: Colors.success }]}>
+              {reminderSent ? t('hcBoard.reminderSent') : reminderBusy ? '…' : t('hcBoard.reminderBtn')}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <EnableNotificationsBanner />
@@ -595,8 +620,17 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md,
     backgroundColor: Colors.white, borderBottomWidth: 1, borderBottomColor: Colors.gray[100],
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.sm,
   },
   title: { fontSize: FontSize.xxl, fontWeight: '800', color: Colors.primary },
+  reminderBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    paddingHorizontal: Spacing.sm, paddingVertical: 6,
+    borderRadius: Radius.sm, borderWidth: 1, borderColor: Colors.primary,
+    backgroundColor: Colors.primaryFade,
+  },
+  reminderBtnDone: { borderColor: Colors.success, backgroundColor: '#ecfdf5' },
+  reminderBtnText: { fontSize: FontSize.xs, fontWeight: '700', color: Colors.primary },
   filterBar: { backgroundColor: Colors.white, borderBottomWidth: 1, borderBottomColor: Colors.gray[100] },
   filterRow: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs, flexDirection: 'row', gap: Spacing.xs },
   filterRow2: { flexDirection: 'row', paddingHorizontal: Spacing.md, paddingBottom: Spacing.xs, gap: Spacing.xs, flexWrap: 'wrap' },

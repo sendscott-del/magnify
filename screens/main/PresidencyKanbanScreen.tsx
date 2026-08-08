@@ -16,6 +16,8 @@ import { DisclaimerFooter } from '../../components/ui/DisclaimerFooter';
 import { Colors, Spacing, FontSize, Radius } from '../../constants/theme';
 import { useLanguage } from '../../context/LanguageContext';
 import { useIsDesktopWeb } from '../../lib/useDeviceWidth';
+import { Ionicons } from '@expo/vector-icons';
+import { notifySpApprovalReminder } from '../../lib/slack';
 
 const ACTIVE_STAGES = ['ideas', 'for_approval', 'stake_approved'];
 
@@ -47,6 +49,19 @@ export function PresidencyKanbanScreen({ navigation }: any) {
   const [mineOnly, setMineOnly] = useState(false);
 
   const canSeeRejected = profile?.role === 'stake_president';
+
+  const [reminderBusy, setReminderBusy] = useState(false);
+  const [reminderSent, setReminderSent] = useState(false);
+
+  async function sendSpReminder() {
+    if (reminderBusy || reminderSent) return;
+    setReminderBusy(true);
+    const count = callings.filter(c => c.stage === 'for_approval' && !c.rejected).length;
+    await notifySpApprovalReminder(count, profile?.full_name ?? 'Stake Presidency');
+    setReminderBusy(false);
+    setReminderSent(true);
+    setTimeout(() => setReminderSent(false), 60000);
+  }
 
   // "Just mine" matches the SP badge logic: cards in for_approval (role-gated)
   // or cards where my name is in extend / sustain / set_apart / record_by.
@@ -140,6 +155,18 @@ export function PresidencyKanbanScreen({ navigation }: any) {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <Text style={styles.title}>{t('spBoard.title')}</Text>
+        {(isPresidency || isClerk) && (
+          <TouchableOpacity
+            style={[styles.reminderBtn, reminderSent && styles.reminderBtnDone]}
+            onPress={sendSpReminder}
+            disabled={reminderBusy || reminderSent}
+          >
+            <Ionicons name={reminderSent ? 'checkmark' : 'notifications-outline'} size={14} color={reminderSent ? Colors.success : Colors.primary} />
+            <Text style={[styles.reminderBtnText, reminderSent && { color: Colors.success }]}>
+              {reminderSent ? t('spBoard.reminderSent') : reminderBusy ? '…' : t('spBoard.reminderBtn')}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
       <ScrollView
         horizontal
@@ -241,8 +268,17 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md,
     backgroundColor: Colors.white, borderBottomWidth: 1, borderBottomColor: Colors.gray[100],
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.sm,
   },
   title: { fontSize: FontSize.xxl, fontWeight: '800', color: Colors.primary },
+  reminderBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    paddingHorizontal: Spacing.sm, paddingVertical: 6,
+    borderRadius: Radius.sm, borderWidth: 1, borderColor: Colors.primary,
+    backgroundColor: Colors.primaryFade,
+  },
+  reminderBtnDone: { borderColor: Colors.success, backgroundColor: '#ecfdf5' },
+  reminderBtnText: { fontSize: FontSize.xs, fontWeight: '700', color: Colors.primary },
   filterRow: {
     maxHeight: 44, backgroundColor: Colors.white,
     borderBottomWidth: 1, borderBottomColor: Colors.gray[100],

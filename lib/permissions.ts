@@ -35,8 +35,15 @@ export interface AdvanceContext {
  *   sustain → set_apart:          ADMIN_GROUP or assigned sustain_by user
  *   set_apart → record:           ADMIN_GROUP or assigned set_apart_by user
  *   record → complete:            ADMIN_GROUP only
+ *
+ * Releases (isRelease) short-circuit the pipeline: for_approval → sustain →
+ * complete. Leaving for_approval is the Stake President's click alone — the
+ * all-3-approved path never applies to a release.
  */
-export function canAdvanceStage(role: UserRole, stage: Stage, _type: CallingType, ctx?: AdvanceContext): boolean {
+export function canAdvanceStage(role: UserRole, stage: Stage, _type: CallingType, ctx?: AdvanceContext, isRelease = false): boolean {
+  if (isRelease && stage === 'for_approval') {
+    return role === 'stake_president';
+  }
   switch (stage) {
     case 'ideas':
       // Only the Stake President can move from Ideas to For Approval
@@ -96,7 +103,15 @@ export function canDelete(role: UserRole): boolean {
   return ADMIN_GROUP.includes(role);
 }
 
-export function getNextStage(stage: Stage, type: CallingType): Stage | null {
+export function getNextStage(stage: Stage, type: CallingType, isRelease = false): Stage | null {
+  if (isRelease) {
+    // Announcement-only: approve → announce (sustain) → done.
+    switch (stage) {
+      case 'for_approval': return 'sustain';
+      case 'sustain': return 'complete';
+      default: return null;
+    }
+  }
   const isMP = type === 'mp_ordination';
   switch (stage) {
     case 'ideas': return 'for_approval';
@@ -112,7 +127,14 @@ export function getNextStage(stage: Stage, type: CallingType): Stage | null {
   }
 }
 
-export function getPrevStage(stage: Stage, type: CallingType): Stage | null {
+export function getPrevStage(stage: Stage, type: CallingType, isRelease = false): Stage | null {
+  if (isRelease) {
+    switch (stage) {
+      case 'sustain': return 'for_approval';
+      case 'complete': return 'sustain';
+      default: return null;
+    }
+  }
   const isMP = type === 'mp_ordination';
   switch (stage) {
     case 'for_approval': return 'ideas';
@@ -128,7 +150,14 @@ export function getPrevStage(stage: Stage, type: CallingType): Stage | null {
   }
 }
 
-export function getAdvanceLabel(stage: Stage, _type: CallingType): string {
+export function getAdvanceLabel(stage: Stage, _type: CallingType, isRelease = false): string {
+  if (isRelease) {
+    switch (stage) {
+      case 'for_approval': return 'Approve Release → Sustain';
+      case 'sustain': return 'Announced — Complete';
+      default: return 'Advance';
+    }
+  }
   switch (stage) {
     case 'ideas': return 'Submit for Approval';
     case 'for_approval': return 'Stake Presidency Approves';

@@ -25,10 +25,14 @@ export function NewCallingScreen({ navigation }: any) {
   const { t } = useLanguage();
   const { demoMode } = useDemoMode();
 
-  const TYPE_OPTIONS: { label: string; value: CallingType; kind: 'ward' | 'stake' | 'mp' }[] = [
+  const isPresidencyUser = ['stake_president', 'first_counselor', 'second_counselor'].includes(profile?.role ?? '');
+
+  const TYPE_OPTIONS: { label: string; value: CallingType | 'release'; kind: 'ward' | 'stake' | 'mp' | 'release' }[] = [
     { label: t('type.ward_calling'), value: 'ward_calling', kind: 'ward' },
     { label: t('type.stake_calling'), value: 'stake_calling', kind: 'stake' },
     { label: t('type.mp_ordination'), value: 'mp_ordination', kind: 'mp' },
+    // Releases are announcement-only and stake-presidency-created.
+    ...(isPresidencyUser ? [{ label: t('type.release'), value: 'release' as const, kind: 'release' as const }] : []),
   ];
 
   const ORDINATION_OPTIONS = [
@@ -36,10 +40,17 @@ export function NewCallingScreen({ navigation }: any) {
     { label: t('ordination.highPriest'), value: 'high_priest' },
   ];
 
-  const [type, setType] = useState<CallingType>('ward_calling');
+  const [selType, setSelType] = useState<CallingType | 'release'>('ward_calling');
   const [memberName, setMemberName] = useState('');
   const [wardId, setWardId] = useState('');
   const [wardName, setWardName] = useState('');
+  const isRelease = selType === 'release';
+  // A release keeps type ward/stake so all sustain routing works untouched:
+  // ward chosen → the covering HC announces it; no ward → stake-wide, every
+  // ward sustains (like any stake calling).
+  const type: CallingType = isRelease
+    ? (wardId ? 'ward_calling' : 'stake_calling')
+    : selType;
   const [callingName, setCallingName] = useState('');
   const [customCallingName, setCustomCallingName] = useState('');
   const [ordinationType, setOrdinationType] = useState<'elder' | 'high_priest'>('elder');
@@ -80,9 +91,11 @@ export function NewCallingScreen({ navigation }: any) {
   }
 
   async function handleSave(targetStage: 'ideas' | 'for_approval') {
-    const finalCallingName = type === 'mp_ordination'
-      ? `Melchizedek Priesthood Ordination (${ordinationType === 'elder' ? t('ordination.elder') : t('ordination.highPriest')})`
-      : (callingName === 'Other' ? customCallingName : callingName);
+    const finalCallingName = isRelease
+      ? customCallingName
+      : type === 'mp_ordination'
+        ? `Melchizedek Priesthood Ordination (${ordinationType === 'elder' ? t('ordination.elder') : t('ordination.highPriest')})`
+        : (callingName === 'Other' ? customCallingName : callingName);
 
     if (!memberName.trim()) { setError(t('validation.memberNameRequired')); return; }
     if (!finalCallingName.trim()) { setError(t('validation.callingRequired')); return; }
@@ -90,8 +103,9 @@ export function NewCallingScreen({ navigation }: any) {
     setLoading(targetStage === 'ideas' ? 'ideas' : 'approval');
     setError('');
 
-    // MP ordinations skip straight to HC Approval; all others go to Ideas
-    const stage = type === 'mp_ordination' ? 'hc_approval' : 'ideas';
+    // MP ordinations skip straight to HC Approval; releases go straight to the
+    // Stake Presidency approval queue; all others go to Ideas
+    const stage = isRelease ? 'for_approval' : type === 'mp_ordination' ? 'hc_approval' : 'ideas';
 
     // Demo mode: don't write to the real DB. Show the success state with a
     // synthetic calling so the trainer can walk the rest of the flow.
@@ -112,16 +126,17 @@ export function NewCallingScreen({ navigation }: any) {
 
     const payload: any = {
       type,
+      is_release: isRelease,
       member_name: memberName.trim(),
       calling_name: finalCallingName.trim(),
       ward_id: wardId || null,
       stage,
       rejected: false,
-      bishop_approved: type === 'ward_calling' ? bishopApproved : false,
+      bishop_approved: !isRelease && type === 'ward_calling' ? bishopApproved : false,
       notes: notes.trim() || null,
-      release_member_name: releaseMemberName.trim() || null,
-      release_current_calling: releaseCurrentCalling.trim() || null,
-      release_ward_id: releaseWardId || null,
+      release_member_name: isRelease ? null : releaseMemberName.trim() || null,
+      release_current_calling: isRelease ? null : releaseCurrentCalling.trim() || null,
+      release_ward_id: isRelease ? null : releaseWardId || null,
       created_by: user?.id,
     };
 
@@ -145,9 +160,11 @@ export function NewCallingScreen({ navigation }: any) {
     if (newCalling) {
       supabase.from('calling_log').insert({
         calling_id: newCalling.id,
-        action: type === 'mp_ordination'
-          ? t('log.mpCreated')
-          : t('log.callingIdeas'),
+        action: isRelease
+          ? t('log.releaseCreated')
+          : type === 'mp_ordination'
+            ? t('log.mpCreated')
+            : t('log.callingIdeas'),
         to_stage: stage,
         performed_by: user?.id,
       }).then(() => {});
@@ -228,16 +245,22 @@ export function NewCallingScreen({ navigation }: any) {
           {TYPE_OPTIONS.map(opt => (
             <TouchableOpacity
               key={opt.value}
-              style={[styles.typeBtn, type === opt.value && styles.typeBtnActive]}
+              style={[styles.typeBtn, selType === opt.value && styles.typeBtnActive]}
               onPress={() => {
-                setType(opt.value);
+                setSelType(opt.value);
                 setCallingName('');
                 setCustomCallingName('');
                 setBishopApproved(false);
               }}
             >
-              <ProductIcon kind={opt.kind} size={32} style={styles.typeIconImg} />
-              <Text style={[styles.typeLabel, type === opt.value && styles.typeLabelActive]}>
+              {opt.kind === 'release' ? (
+                <View style={styles.releaseIconWrap}>
+                  <Ionicons name="person-remove-outline" size={26} color="#92600a" />
+                </View>
+              ) : (
+                <ProductIcon kind={opt.kind} size={32} style={styles.typeIconImg} />
+              )}
+              <Text style={[styles.typeLabel, selType === opt.value && styles.typeLabelActive]}>
                 {opt.label}
               </Text>
             </TouchableOpacity>
@@ -250,6 +273,12 @@ export function NewCallingScreen({ navigation }: any) {
           </View>
         )}
 
+        {isRelease && (
+          <View style={styles.infoBox}>
+            <Text style={styles.infoText}>{t('new.releaseInfo')}</Text>
+          </View>
+        )}
+
         {/* Member Name */}
         <Input
           label={t('new.memberName')}
@@ -259,8 +288,13 @@ export function NewCallingScreen({ navigation }: any) {
           leftIcon="person-outline"
         />
 
-        {/* Ward Picker (optional) */}
-        <Text style={styles.fieldLabel}>{t('new.ward')} <Text style={styles.optionalLabel}>{t('detail.optional')}</Text></Text>
+        {/* Ward Picker (optional; for releases, empty = stake-wide) */}
+        <Text style={styles.fieldLabel}>
+          {t('new.ward')}{' '}
+          <Text style={styles.optionalLabel}>
+            {isRelease ? t('new.releaseWardHint') : t('detail.optional')}
+          </Text>
+        </Text>
         <TouchableOpacity
           style={styles.pickerBtn}
           onPress={() => setShowWardPicker(true)}
@@ -272,7 +306,14 @@ export function NewCallingScreen({ navigation }: any) {
         </TouchableOpacity>
 
         {/* Calling / Ordination */}
-        {type === 'mp_ordination' ? (
+        {isRelease ? (
+          <Input
+            label={t('new.releaseCallingLabel')}
+            value={customCallingName}
+            onChangeText={setCustomCallingName}
+            placeholder={t('new.releaseCallingPlaceholder')}
+          />
+        ) : type === 'mp_ordination' ? (
           <>
             <Text style={styles.sectionLabel}>{t('new.ordinationType')}</Text>
             <View style={styles.typeRow}>
@@ -313,7 +354,7 @@ export function NewCallingScreen({ navigation }: any) {
         )}
 
         {/* Bishop Approved (ward callings only) */}
-        {type === 'ward_calling' && (
+        {!isRelease && type === 'ward_calling' && (
           <TouchableOpacity
             style={styles.checkRow}
             onPress={() => setBishopApproved(!bishopApproved)}
@@ -325,7 +366,8 @@ export function NewCallingScreen({ navigation }: any) {
           </TouchableOpacity>
         )}
 
-        {/* Member to be Released */}
+        {/* Member to be Released (attach to a calling — not for standalone releases) */}
+        {!isRelease && (
         <View style={styles.releaseSection}>
           <Text style={styles.sectionLabel}>{t('release.sectionTitle')} <Text style={styles.optionalLabel}>({t('detail.optional')})</Text></Text>
           <Text style={styles.releaseHint}>{t('release.hint')}</Text>
@@ -353,6 +395,7 @@ export function NewCallingScreen({ navigation }: any) {
             <Text style={styles.pickerArrow}>▼</Text>
           </TouchableOpacity>
         </View>
+        )}
 
         {/* Notes */}
         <Input
@@ -367,7 +410,7 @@ export function NewCallingScreen({ navigation }: any) {
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
         <Button
-          title={type === 'mp_ordination' ? t('new.submitToHCApproval') : t('new.submitIdea')}
+          title={isRelease ? t('new.submitRelease') : type === 'mp_ordination' ? t('new.submitToHCApproval') : t('new.submitIdea')}
           onPress={() => handleSave('ideas')}
           loading={loading !== null}
           disabled={loading !== null}
@@ -553,6 +596,11 @@ const styles = StyleSheet.create({
   },
   typeBtnActive: { borderColor: Colors.primary, backgroundColor: Colors.primaryFade },
   typeIconImg: { width: 48, height: 48, borderRadius: 10, marginBottom: 6 },
+  releaseIconWrap: {
+    width: 48, height: 48, borderRadius: 10, marginBottom: 6,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: Colors.warning + '22',
+  },
   typeLabel: { fontSize: FontSize.xs, fontWeight: '600', color: Colors.gray[600], textAlign: 'center' },
   typeLabelActive: { color: Colors.primary },
   infoBox: {

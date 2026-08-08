@@ -84,12 +84,20 @@ export function CallingCard({ calling, onPress, isNew }: Props) {
       </View>
 
       <View style={styles.foot}>
-        <Text style={styles.typeLabel}>{(TYPE_LABELS[calling.type] ?? '').toUpperCase()}</Text>
+        <Text style={styles.typeLabel}>
+          {(calling.is_release ? t('type.release') : TYPE_LABELS[calling.type] ?? '').toUpperCase()}
+        </Text>
         <View style={styles.stageRow}>
           <View style={[styles.stageDot, { backgroundColor: stageColor }]} />
           <Text style={styles.stageText}>{STAGE_LABELS[calling.stage]}</Text>
         </View>
       </View>
+
+      {calling.is_release && !calling.rejected && (
+        <View style={styles.releaseBanner}>
+          <Text style={styles.releaseText}>{t('type.release').toUpperCase()}</Text>
+        </View>
+      )}
 
       {calling.rejected && (
         <View style={styles.rejectedBanner}>
@@ -195,6 +203,19 @@ const styles = StyleSheet.create({
     fontSize: FontSize.sm - 1,
     fontWeight: '600',
     color: Colors.gray[700],
+  },
+  releaseBanner: {
+    marginTop: Spacing.xs,
+    backgroundColor: Colors.warning + '22',
+    borderRadius: Radius.sm,
+    padding: 3,
+    alignItems: 'center',
+  },
+  releaseText: {
+    fontSize: FontSize.xs,
+    color: '#92600a',
+    fontWeight: '800',
+    letterSpacing: 1,
   },
   rejectedBanner: {
     marginTop: Spacing.xs,
