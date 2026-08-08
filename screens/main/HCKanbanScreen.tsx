@@ -280,15 +280,23 @@ export function HCKanbanScreen({ navigation }: any) {
       return lines.join('\n').trim();
     }
 
+    // Two flavors of release: attached (a new calling that also releases the
+    // previous holder — release_* fields) and standalone (is_release cards,
+    // where member_name/calling_name ARE the release). Both read in the same
+    // releases motion; standalone releases must never appear as sustainings.
     const releases = sustaining.filter(c => c.release_member_name);
-    const regularCallings = sustaining.filter(c => c.type !== 'mp_ordination');
-    const ordinations = sustaining.filter(c => c.type === 'mp_ordination');
+    const standaloneReleases = sustaining.filter(c => c.is_release);
+    const regularCallings = sustaining.filter(c => c.type !== 'mp_ordination' && !c.is_release);
+    const ordinations = sustaining.filter(c => c.type === 'mp_ordination' && !c.is_release);
 
     // RELEASES — combined into one motion
-    if (releases.length > 0) {
+    if (releases.length + standaloneReleases.length > 0) {
       lines.push(t('script.releasesHeader'));
       lines.push('');
-      const releaseList = releases.map(c => `${c.release_member_name} ${t('script.as')} ${c.release_current_calling || t('script.unknownCalling')}`);
+      const releaseList = [
+        ...releases.map(c => `${c.release_member_name} ${t('script.as')} ${c.release_current_calling || t('script.unknownCalling')}`),
+        ...standaloneReleases.map(c => `${c.member_name} ${t('script.as')} ${c.calling_name}`),
+      ];
       lines.push(t('script.proposeRelease').replace('{list}', joinList(releaseList)));
       lines.push(t('script.releaseInFavor'));
       lines.push(t('script.thankYou'));

@@ -485,14 +485,20 @@ function TaskAssignmentsSection({ calling, assignees, clerkName, canEdit, onAssi
   onAssign: (field: string, name: string | null) => Promise<void>;
 }) {
   const { t } = useLanguage();
-  const TASK_FIELDS: { key: string; label: string; locked?: boolean }[] = [
-    { key: 'extend_by', label: t('detail.extendCalling') },
-    { key: 'sustain_by', label: t('detail.sustain') },
-    { key: 'set_apart_by', label: t('detail.setApart') },
-    { key: 'record_by', label: t('detail.record'), locked: true },
-  ];
+  const TASK_FIELDS: { key: string; label: string; locked?: boolean }[] = calling.is_release
+    ? [
+        // Releases: just who has the release conversation and who announces it.
+        { key: 'extend_by', label: t('detail.extendRelease') },
+        { key: 'sustain_by', label: t('detail.sustain') },
+      ]
+    : [
+        { key: 'extend_by', label: t('detail.extendCalling') },
+        { key: 'sustain_by', label: t('detail.sustain') },
+        { key: 'set_apart_by', label: t('detail.setApart') },
+        { key: 'record_by', label: t('detail.record'), locked: true },
+      ];
   const [pickerField, setPickerField] = useState<string | null>(null);
-  const visibleFields = TASK_FIELDS.filter(f => !(f.key === 'extend_by' && calling.type === 'mp_ordination'));
+  const visibleFields = TASK_FIELDS.filter(f => !(f.key === 'extend_by' && calling.type === 'mp_ordination' && !calling.is_release));
 
   return (
     <View style={taStyles.container}>

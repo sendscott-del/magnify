@@ -9,6 +9,15 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.40.1',
+    date: '2026-08-08',
+    enhancements: [],
+    bugFixes: [
+      'Releases now read correctly in the ward sustaining script: they appear under RELEASES ("We\'d like to release … a vote of thanks"), never as a proposed sustaining. A ward release shows in that ward\'s script; a stake-level release shows in every ward\'s script.',
+      'On a release\'s detail page, the task assignments are now just "Extend Release" and "Sustain" — the set-apart and record rows no longer appear.',
+    ],
+  },
+  {
     version: '2.40.0',
     date: '2026-08-08',
     enhancements: [
