@@ -22,11 +22,11 @@ Magnify is the stake callings workflow app for stake/ward leadership of The Chur
 - Supabase Auth (shared users across the suite; `user_apps` gates per-app access, Gather hub at gather.gatheredin.app manages access).
 - Key dirs: `screens/`, `components/`, `context/`, `lib/`, `navigation/`, `store/`, `constants/` (incl. `changelog.ts`), `supabase/` (numbered SQL migrations + `functions/`).
 - Push: pg_net trigger → Supabase Edge Function → Web Push → `setAppBadge()`.
-- Multi-tenant work in flight: Stage 1 (tenant foundation) committed 2026-07-06; Stage 2 (`stake_id` + RLS re-key) committed 2026-07-08 but the migration is **NOT YET APPLIED** to the database.
+- Multi-tenant: **fully applied and live.** Stage 1 (tenant foundation) 2026-07-06; Stage 2 (`stake_id` + RLS re-key) applied 2026-07-09 along with invite codes and delegated per-stake approval. Magnify serves multiple stakes with database-enforced isolation.
 
 ## Rules for this repo
 
-- Version lives in `package.json` (currently 2.37.x line); every user-facing change bumps it and appends `constants/changelog.ts` (the build runs `scripts/generate-changelog.js`).
+- Version lives in `package.json` (currently 2.41.x line); every user-facing change bumps it and appends `constants/changelog.ts` (the build runs `scripts/generate-changelog.js`).
 - Deploy = push to GitHub main → Vercel builds. Scott tests on Vercel, not local — push after every change. Native JS changes ship via expo-updates OTA; binary changes need EAS build + store submit.
 - Session docs: append `docs/SESSIONS.md` every session; update this file the moment an infra fact changes.
 - SQL changes go in `supabase/` as numbered migration files.
