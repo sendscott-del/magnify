@@ -35,6 +35,13 @@
         "simulator": true
       },
       "channel": "simulator"
+    },
+    "internal": {
+      "extends": "production",
+      "distribution": "internal",
+      "ios": {
+        "simulator": false
+      }
     }
   },
   "submit": {
