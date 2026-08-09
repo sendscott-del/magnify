@@ -32,6 +32,19 @@ Magnify is the stake callings workflow app for stake/ward leadership of The Chur
 - SQL changes go in `supabase/` as numbered migration files.
 - No secrets in committed files. No member names in fixtures, tests, or docs.
 
+## Delivery surfaces (verify EVERY one per release — see global tech-stack.md rule)
+
+| Surface | How it updates | Timeline | Verify by |
+|---|---|---|---|
+| Web (magnify.gatheredin.app) | Vercel on git push | ~2 min | load site / grep deployed bundle |
+| Installed PWA (iOS/Android home screen) | same Vercel deploy; SW refresh on next open | minutes | reload twice |
+| iOS App Store (live: build 7 → 12 pending) | `eas update` OTA, channel `production`, runtime PINNED `1.0.0` | applies on the SECOND full launch | curl u.expo.dev with the live build's runtime+channel headers; check in-app Release Notes version |
+| Android | NO Play presence — website serves the PWA | n/a | n/a |
+
+- **OTA runtime is PINNED to `1.0.0`** (app.json) so every store binary shares one channel while the store version moves. Consequence: JS published to this runtime must lazy-`require` any native module older binaries lack (expo-notifications already does). A native module that can't be guarded = deliberately bump the pin + publish to both runtimes during transition.
+- **EAS auth:** token at `~/.config/gatheredin/expo-token` (`EXPO_TOKEN=$(cat ~/.config/gatheredin/expo-token)`), account `leftfieldapps`. OTA publishing silently stopped for 2 months in 2026 when a login lapsed — after every `eas update`, verify the manifest endpoint serves it.
+- **ASC API:** keys in `~/.appstoreconnect/private_keys/` (424J7NT92Y = API, P4F5BY7BW2 = APNs); issuer `dff48c7f-f787-4bec-9f7c-def2559b6c58`, app `6778263386`.
+
 ## Gotchas
 
 - **`profiles` is SHARED across apps and scoped by an `app` column. Every profiles query must filter `.eq('app', ...)`.** A cross-app data leak (Magnify↔Sparkle Pro) was fixed 2026-06-08; a pending-queue leak was fixed 2026-06-10. Signup tags `app=magnify`.
