@@ -12,3 +12,7 @@ supabase/.temp/
 # Expo prebuild / local device-build artifacts
 /ios
 /android
+
+.adhoc-dist.p12
+.adhoc.mobileprovision
+credentials.json

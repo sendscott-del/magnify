@@ -41,7 +41,8 @@
       "distribution": "internal",
       "ios": {
         "simulator": false
-      }
+      },
+      "credentialsSource": "local"
     }
   },
   "submit": {
