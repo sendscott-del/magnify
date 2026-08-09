@@ -15,7 +15,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.magnify.stakes",
-      "buildNumber": "13",
+      "buildNumber": "15",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -49,7 +49,7 @@
       }
     },
     "owner": "leftfieldapps",
-    "runtimeVersion": "1.0.0",
+    "runtimeVersion": "1.1.0",
     "updates": {
       "url": "https://u.expo.dev/280bb166-4653-47e0-86dc-5ed0226e2fc3"
     }
