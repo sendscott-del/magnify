@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.43.1',
+    date: '2026-08-16',
+    enhancements: [],
+    bugFixes: [
+      'The on-screen keyboard no longer covers the box you are typing in. On a phone, tapping a field low on a form — Notes when adding a new entry, the comment box on a calling, the reason box when declining — could leave it hidden behind the keyboard with no way to scroll down to it. Forms now make room for the keyboard and bring the tapped field into view. This affected every form in the app, sign-in included.',
+    ],
+  },
+  {
     version: '2.43.0',
     date: '2026-08-11',
     enhancements: [

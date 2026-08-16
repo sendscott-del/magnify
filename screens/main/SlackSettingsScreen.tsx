@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
 import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme';
+import { KeyboardAwareScrollView } from '../../components/ui/KeyboardAwareScrollView';
 import { useLanguage } from '../../context/LanguageContext';
 
 interface SlackSetting { id: string; event_type: string; webhook_url: string; active: boolean; }
@@ -77,7 +78,7 @@ export function SlackSettingsScreen({ navigation }: any) {
         </View>
       </View>
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+      <KeyboardAwareScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         <View style={styles.card}>
           <Text style={styles.hint}>{t('settings.slackHint')}</Text>
           {[
@@ -125,7 +126,7 @@ export function SlackSettingsScreen({ navigation }: any) {
             );
           })}
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </View>
   );
 }

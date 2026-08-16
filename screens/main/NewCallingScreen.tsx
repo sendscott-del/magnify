@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
+  View, Text, StyleSheet, TouchableOpacity,
   Modal, FlatList, Platform, Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,6 +11,7 @@ import { useDemoMode } from '../../context/DemoModeContext';
 import { Ward, CallingType } from '../../lib/database.types';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
+import { KeyboardAwareScrollView } from '../../components/ui/KeyboardAwareScrollView';
 import { DisclaimerFooter } from '../../components/ui/DisclaimerFooter';
 import { ProductIcon } from '../../components/icons/ProductIcon';
 import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme';
@@ -210,10 +211,9 @@ export function NewCallingScreen({ navigation }: any) {
         <Text style={styles.subtitle}>{t('new.subtitle')}</Text>
       </View>
 
-      <ScrollView
+      <KeyboardAwareScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
       >
         {/* Confirmation banner */}
         {showConfirmation && (
@@ -444,7 +444,7 @@ export function NewCallingScreen({ navigation }: any) {
           style={styles.submitBtn}
         />
         <DisclaimerFooter />
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       {/* Ward Picker Modal */}
       <Modal

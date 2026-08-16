@@ -16,9 +16,11 @@ import { Calling, CallingLogEntry, WardSustaining, Ward, Stage, Profile, Calling
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { DisclaimerFooter } from '../../components/ui/DisclaimerFooter';
+import { KeyboardAwareScrollView } from '../../components/ui/KeyboardAwareScrollView';
 import { ProductIcon } from '../../components/icons/ProductIcon';
 import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme';
 import { useIsDesktopWeb } from '../../lib/useDeviceWidth';
+import { useKeyboardInset } from '../../lib/useKeyboardInset';
 import { STAGE_LABELS } from '../../constants/callings';
 import {
   canAdvanceStage, canReject, canMoveback, canDelete,
@@ -677,6 +679,9 @@ export function CallingDetailScreen({ route, navigation }: any) {
   const { t } = useLanguage();
   const { demoMode } = useDemoMode();
   const isDesktopWeb = useIsDesktopWeb();
+  // Bottom-sheet modals sit flush against the bottom edge, so the keyboard
+  // lands directly on top of their inputs. Lift them by the covered height.
+  const keyboardInset = useKeyboardInset();
   // True when the calling we're rendering is a fixture (id like demo-call-NNN).
   // In that state we still render the screen, but every Supabase write is a
   // no-op so demo activity never pollutes the real database.
@@ -1305,7 +1310,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
         )}
       </View>
 
-      <ScrollView
+      <KeyboardAwareScrollView
         style={styles.scroll}
         contentContainerStyle={[
           styles.scrollContent,
@@ -1542,7 +1547,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
           )}
         </View>
         <DisclaimerFooter />
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       {/* Desktop-web sticky right-rail action panel. Same handlers as the
           inline block above; mirrors the spec mockup (§4 of the handoff).
@@ -1584,7 +1589,10 @@ export function CallingDetailScreen({ route, navigation }: any) {
 
       {/* Decline Modal */}
       <Modal visible={showRejectModal} transparent animationType="slide" onRequestClose={() => setShowRejectModal(false)}>
-        <Pressable style={styles.modalOverlay} onPress={() => setShowRejectModal(false)}>
+        <Pressable
+          style={[styles.modalOverlay, keyboardInset > 0 && { paddingBottom: keyboardInset }]}
+          onPress={() => setShowRejectModal(false)}
+        >
           <Pressable style={styles.modalSheet} onPress={() => {}}>
             <Text style={styles.modalTitle}>{t('detail.declineCalling')}</Text>
             <Text style={styles.modalSubtitle}>{t('detail.declineCallingDesc')}</Text>
@@ -1606,7 +1614,10 @@ export function CallingDetailScreen({ route, navigation }: any) {
 
       {/* Edit Calling Details Modal */}
       <Modal visible={showEditModal} transparent animationType="slide" onRequestClose={() => setShowEditModal(false)}>
-        <Pressable style={styles.modalOverlay} onPress={() => setShowEditModal(false)}>
+        <Pressable
+          style={[styles.modalOverlay, keyboardInset > 0 && { paddingBottom: keyboardInset }]}
+          onPress={() => setShowEditModal(false)}
+        >
           <Pressable style={[styles.modalSheet, { maxHeight: '80%' }]} onPress={() => {}}>
             <ScrollView keyboardShouldPersistTaps="handled">
               <Text style={styles.modalTitle}>{t('detail.editDetails')}</Text>
