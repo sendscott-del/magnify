@@ -9,6 +9,15 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.43.0',
+    date: '2026-08-11',
+    enhancements: [
+      'Notes & Comments: anyone on the council — high councilors included — can now add a note to a calling. Notes are stamped with your name and time, and nobody can edit or overwrite anyone else\'s (you can remove your own). The main Notes field stays admin-only as before.',
+      'Smarter action badges for the Stake Presidency: a new idea only badges the Stake President, and never for ideas he submitted himself. A "For Approval" calling badges each counselor until they\'ve approved, and only badges the Stake President once BOTH counselors have approved — so his badge shows just the callings actually waiting on his final sign-off.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.42.0',
     date: '2026-08-08',
     enhancements: [

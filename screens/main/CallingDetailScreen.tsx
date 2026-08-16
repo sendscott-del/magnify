@@ -315,6 +315,83 @@ const notesStyles = StyleSheet.create({
   saveText: { fontSize: FontSize.sm, color: Colors.white, fontWeight: '600' },
 });
 
+// ─── Notes thread (append-only comments; anyone approved can add) ─────────────
+interface CallingNote { id: string; author_id: string | null; author_name: string; body: string; created_at: string; }
+function CommentsSection({ comments, myId, canPost, onAdd, onDelete }: {
+  comments: CallingNote[]; myId: string | undefined; canPost: boolean;
+  onAdd: (body: string) => Promise<boolean>; onDelete: (id: string) => void;
+}) {
+  const { t } = useLanguage();
+  const [draft, setDraft] = useState('');
+  const [posting, setPosting] = useState(false);
+
+  async function post() {
+    if (!draft.trim()) return;
+    setPosting(true);
+    const ok = await onAdd(draft);
+    setPosting(false);
+    if (ok) setDraft('');
+  }
+
+  return (
+    <View style={cmStyles.container}>
+      <Text style={cmStyles.title}>{t('detail.commentsTitle')}</Text>
+      {comments.length === 0 ? (
+        <Text style={cmStyles.empty}>{t('detail.commentsEmpty')}</Text>
+      ) : (
+        comments.map(c => (
+          <View key={c.id} style={cmStyles.comment}>
+            <View style={cmStyles.commentHead}>
+              <Text style={cmStyles.author}>{c.author_name}</Text>
+              <Text style={cmStyles.time}>{format(new Date(c.created_at), 'MMM d, h:mm a')}</Text>
+            </View>
+            <Text style={cmStyles.body}>{c.body}</Text>
+            {c.author_id && c.author_id === myId && (
+              <TouchableOpacity onPress={() => onDelete(c.id)}>
+                <Text style={cmStyles.delete}>{t('detail.delete')}</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        ))
+      )}
+      {canPost && (
+        <View style={cmStyles.addRow}>
+          <TextInput
+            style={cmStyles.input}
+            value={draft}
+            onChangeText={setDraft}
+            multiline
+            placeholder={t('detail.commentPlaceholder')}
+            placeholderTextColor={Colors.gray[400]}
+          />
+          <TouchableOpacity
+            style={[cmStyles.postBtn, (posting || !draft.trim()) && { opacity: 0.5 }]}
+            onPress={post}
+            disabled={posting || !draft.trim()}
+          >
+            <Text style={cmStyles.postText}>{posting ? '…' : t('detail.commentAdd')}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
+  );
+}
+const cmStyles = StyleSheet.create({
+  container: { backgroundColor: Colors.white, borderRadius: Radius.md, padding: Spacing.md, marginBottom: Spacing.md, borderWidth: 1, borderColor: Colors.gray[200] },
+  title: { fontSize: FontSize.md, fontWeight: '700', color: Colors.gray[800], marginBottom: Spacing.sm },
+  empty: { fontSize: FontSize.sm, color: Colors.gray[400], fontStyle: 'italic', marginBottom: Spacing.sm },
+  comment: { borderTopWidth: 1, borderTopColor: Colors.gray[100], paddingVertical: Spacing.sm },
+  commentHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 2 },
+  author: { fontSize: FontSize.sm, fontWeight: '700', color: Colors.gray[800] },
+  time: { fontSize: FontSize.xs, color: Colors.gray[400] },
+  body: { fontSize: FontSize.sm, color: Colors.gray[700], lineHeight: 20 },
+  delete: { fontSize: FontSize.xs, color: Colors.error, fontWeight: '600', marginTop: 4 },
+  addRow: { marginTop: Spacing.sm, borderTopWidth: 1, borderTopColor: Colors.gray[100], paddingTop: Spacing.sm },
+  input: { fontSize: FontSize.sm, color: Colors.gray[800], borderWidth: 1, borderColor: Colors.gray[300], borderRadius: Radius.sm, padding: Spacing.sm, minHeight: 56, textAlignVertical: 'top' },
+  postBtn: { alignSelf: 'flex-end', marginTop: Spacing.sm, paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs, borderRadius: Radius.sm, backgroundColor: Colors.primary },
+  postText: { fontSize: FontSize.sm, color: Colors.white, fontWeight: '600' },
+});
+
 // ─── Release Member ──────────────────────────────────────────────────────────
 function ReleaseMemberSection({ calling, wards, canEdit, onSave, onToggleDone }: {
   calling: Calling; wards: Ward[]; canEdit: boolean;
@@ -626,6 +703,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
   const [spMembers, setSpMembers] = useState<{ id: string; name: string; role: string }[]>([]);
   const [allProfiles, setAllProfiles] = useState<Profile[]>([]);
   const [wardSustainingsList, setWardSustainingsList] = useState<WardSustaining[]>([]);
+  const [comments, setComments] = useState<CallingNote[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
@@ -668,10 +746,11 @@ export function CallingDetailScreen({ route, navigation }: any) {
       setAllProfiles([]);
       setSpMembers([]);
       setWardSustainingsList([]);
+      setComments([]);
       setLoading(false);
       return;
     }
-    const [callingRes, logRes, wardsRes, spRes, hcMembersRes, hcApprovalsRes, profilesRes, spMembersRes, wardSustRes] = await Promise.all([
+    const [callingRes, logRes, wardsRes, spRes, hcMembersRes, hcApprovalsRes, profilesRes, spMembersRes, wardSustRes, commentsRes] = await Promise.all([
       supabase.from('callings').select('*, wards!callings_ward_id_fkey(id,name,abbreviation), profiles!created_by(id,full_name,email,role,status,created_at)').eq('id', callingId).single(),
       supabase.from('calling_log').select('*, profiles!performed_by(id,full_name,email,role,status,created_at)').eq('calling_id', callingId).order('created_at', { ascending: false }),
       supabase.from('wards').select('*').order('name'),
@@ -681,6 +760,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
       supabase.from('profiles').select('id,full_name,role,status,email,created_at').eq('app', 'magnify').eq('status', 'approved').order('full_name'),
       supabase.from('sp_members').select('id,name,role').eq('active', true).order('sort_order'),
       supabase.from('ward_sustainings').select('*').eq('calling_id', callingId),
+      supabase.from('calling_notes').select('id, author_id, author_name, body, created_at').eq('calling_id', callingId).order('created_at', { ascending: true }),
     ]);
     if (callingRes.error) console.error('callingRes error:', JSON.stringify(callingRes.error));
     setCalling(callingRes.data as Calling ?? null);
@@ -692,8 +772,31 @@ export function CallingDetailScreen({ route, navigation }: any) {
     setAllProfiles((profilesRes.data as Profile[]) ?? []);
     setSpMembers((spMembersRes.data as any[]) ?? []);
     setWardSustainingsList((wardSustRes.data as WardSustaining[]) ?? []);
+    setComments((commentsRes.data as CallingNote[]) ?? []);
     setLoading(false);
   }, [callingId, isDemo]);
+
+  async function addComment(body: string): Promise<boolean> {
+    if (!calling || !profile || isDemo) return false;
+    const { error } = await supabase.from('calling_notes').insert({
+      calling_id: calling.id,
+      author_id: profile.id,
+      author_name: profile.full_name,
+      body: body.trim(),
+    });
+    if (error) { Alert.alert(t('common.error'), error.message); return false; }
+    const { data } = await supabase.from('calling_notes')
+      .select('id, author_id, author_name, body, created_at')
+      .eq('calling_id', calling.id).order('created_at', { ascending: true });
+    setComments((data as CallingNote[]) ?? []);
+    return true;
+  }
+
+  async function deleteComment(id: string) {
+    if (isDemo) return;
+    await supabase.from('calling_notes').delete().eq('id', id);
+    setComments(prev => prev.filter(c => c.id !== id));
+  }
 
   useFocusEffect(useCallback(() => {
     fetchData();
@@ -1364,6 +1467,15 @@ export function CallingDetailScreen({ route, navigation }: any) {
             }
             setCalling(prev => prev ? { ...prev, notes: text || undefined } : prev);
           }}
+        />
+
+        {/* Notes thread — any approved leader (high councilors included) can add */}
+        <CommentsSection
+          comments={comments}
+          myId={profile?.id}
+          canPost={!!(role && ALL_APPROVED.includes(role as any))}
+          onAdd={addComment}
+          onDelete={deleteComment}
         />
 
         {/* Inline actions block — native + phone-width web. On desktop the

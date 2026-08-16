@@ -32,8 +32,10 @@ interface Calling {
   sustain_by: string | null;
   set_apart_by: string | null;
   record_by: string | null;
+  created_by: string | null;
   stake_id: string;
 }
+type SpApprovalMap = Record<string, { stake_president?: boolean; first_counselor?: boolean; second_counselor?: boolean }>;
 interface HcMember { id: string; name: string; stake_id: string }
 interface HcApproval { calling_id: string; hc_member_id: string; approved: boolean }
 interface HcMemberWard { hc_member_id: string; ward_id: string }
@@ -63,15 +65,16 @@ function computeCountForUser(
   approvalSet: Set<string>,
   hcWardCoverage: Map<string, Set<string>>,
   sustainedWardMap: Map<string, Set<string>>,
+  spApprovalMap: SpApprovalMap,
 ): number {
   // Stake isolation: only this user's stake counts toward their badge. A user
   // with no stake mapping gets 0 (they shouldn't see any rows in-app either).
   if (!userStakeId) return 0;
   const myName = profile.full_name;
+  const myId = profile.id;
+  const myRole = profile.role;
   const myHcId = hcMembers.find(m => m.name === myName && m.stake_id === userStakeId)?.id ?? null;
   const myWards = myHcId ? hcWardCoverage.get(myHcId) ?? new Set<string>() : new Set<string>();
-  const inPresidency = SP_PRESIDENCY_ROLES.includes(profile.role);
-  const isClerk = SP_CLERK_ROLES.includes(profile.role);
 
   let count = 0;
   for (const c of callings) {
@@ -110,8 +113,19 @@ function computeCountForUser(
         }
       }
     }
-    if (c.stage === "for_approval" && (inPresidency || isClerk)) {
-      count++;
+    // For Approval → each SP member is owed until they've approved; the
+    // president's sign-off is last and only surfaces once BOTH counselors have
+    // approved. Clerk/exec-sec are optional and not badged. (Mirrors
+    // ActionCountsContext.)
+    if (c.stage === "for_approval") {
+      const appr = spApprovalMap[c.id] ?? {};
+      if (myRole === "first_counselor" && !appr.first_counselor) count++;
+      else if (myRole === "second_counselor" && !appr.second_counselor) count++;
+      else if (myRole === "stake_president" && appr.first_counselor && appr.second_counselor && !appr.stake_president) count++;
+    } else if (c.stage === "ideas") {
+      // New idea → only the Stake President advances Ideas. Badge him for ideas
+      // he didn't submit himself; never his own.
+      if (myRole === "stake_president" && c.created_by !== myId) count++;
     }
   }
   return count;
@@ -131,7 +145,7 @@ Deno.serve(async (req: Request) => {
   // Pull everything we need in parallel.
   const [callingsRes, hcMembersRes, approvalsRes, hcWardsRes, wardSustRes, subsRes] = await Promise.all([
     supa.from("callings")
-      .select("id, type, ward_id, stage, extend_by, sustain_by, set_apart_by, record_by, stake_id")
+      .select("id, type, ward_id, stage, extend_by, sustain_by, set_apart_by, record_by, created_by, stake_id")
       .eq("rejected", false).neq("stage", "complete"),
     supa.from("high_council_members").select("id, name, stake_id").eq("active", true),
     supa.from("hc_approvals").select("calling_id, hc_member_id, approved"),
@@ -139,6 +153,13 @@ Deno.serve(async (req: Request) => {
     supa.from("ward_sustainings").select("calling_id, ward_id, sustained").eq("sustained", true),
     supa.from("magnify_push_subscriptions").select("id, user_id, endpoint, p256dh, auth, last_count"),
   ]);
+  const { data: spApprovalsData } = await supa
+    .from("stake_presidency_approvals")
+    .select("calling_id, role, approved");
+  const spApprovalMap: SpApprovalMap = {};
+  for (const a of (spApprovalsData ?? []) as Array<{ calling_id: string; role: string; approved: boolean }>) {
+    (spApprovalMap[a.calling_id] ??= {})[a.role as "stake_president" | "first_counselor" | "second_counselor"] = a.approved;
+  }
   const { data: nativeTokensData } = await supa
     .from("magnify_native_push_tokens")
     .select("id, user_id, token, platform, last_count");
@@ -188,7 +209,7 @@ Deno.serve(async (req: Request) => {
     const profile = profileMap.get(sub.user_id);
     if (!profile) continue;
 
-    const newCount = computeCountForUser(profile, stakeMap.get(sub.user_id) ?? null, callings, hcMembers, approvalSet, hcWardCoverage, sustainedWardMap);
+    const newCount = computeCountForUser(profile, stakeMap.get(sub.user_id) ?? null, callings, hcMembers, approvalSet, hcWardCoverage, sustainedWardMap, spApprovalMap);
 
     if (newCount === sub.last_count) continue;
 
@@ -229,7 +250,7 @@ Deno.serve(async (req: Request) => {
   for (const nt of nativeTokens) {
     const profile = profileMap.get(nt.user_id);
     if (!profile) continue;
-    const newCount = computeCountForUser(profile, stakeMap.get(nt.user_id) ?? null, callings, hcMembers, approvalSet, hcWardCoverage, sustainedWardMap);
+    const newCount = computeCountForUser(profile, stakeMap.get(nt.user_id) ?? null, callings, hcMembers, approvalSet, hcWardCoverage, sustainedWardMap, spApprovalMap);
     if (newCount === nt.last_count) continue;
     const es = (profile.language ?? "en") === "es";
     const message: Record<string, unknown> = { to: nt.token, badge: newCount };
