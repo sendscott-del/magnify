@@ -9,6 +9,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { notifySuggestion } from '../../lib/slack';
 import { supabase } from '../../lib/supabase';
 import { useIsDesktopWeb } from '../../lib/useDeviceWidth';
+import { useKeyboardInset } from '../../lib/useKeyboardInset';
 
 const SUBMIT_URL =
   'https://isogetmvnpimcmouakeg.supabase.co/functions/v1/submit-suggestion';
@@ -26,6 +27,9 @@ export function SuggestionFAB({ controlledOpen, onControlledClose }: Props = {})
   const { profile } = useAuth();
   const { t } = useLanguage();
   const isDesktopWeb = useIsDesktopWeb();
+  // KeyboardAvoidingView below is inert on web (react-native-web renders it as a
+  // plain View), so centre the sheet in the space the keyboard leaves instead.
+  const keyboardInset = useKeyboardInset();
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   function setOpen(v: boolean) {
@@ -111,7 +115,7 @@ export function SuggestionFAB({ controlledOpen, onControlledClose }: Props = {})
       {/* Modal */}
       <Modal visible={open} transparent animationType="fade">
         <KeyboardAvoidingView
-          style={styles.overlay}
+          style={[styles.overlay, keyboardInset > 0 && { paddingBottom: keyboardInset }]}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
           <TouchableOpacity style={styles.backdrop} onPress={() => setOpen(false)} />

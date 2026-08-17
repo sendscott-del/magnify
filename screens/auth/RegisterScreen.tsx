@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView,
+  View, Text, StyleSheet,
   TouchableOpacity, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from '../../components/ui/KeyboardAwareScrollView';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { Button } from '../../components/ui/Button';
@@ -76,10 +77,9 @@ export function RegisterScreen({ navigation }: any) {
       style={{ flex: 1, backgroundColor: Colors.gray[50] }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <ScrollView
+      <KeyboardAwareScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
       >
         {/* Navy hero band */}
         <View style={[styles.hero, { paddingTop: insets.top + Spacing.xxl }]}>
@@ -147,7 +147,7 @@ export function RegisterScreen({ navigation }: any) {
             <Text style={styles.backLinkText}>{t('register.haveAccount')}</Text>
           </TouchableOpacity>
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </KeyboardAvoidingView>
   );
 }

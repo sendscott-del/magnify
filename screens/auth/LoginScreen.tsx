@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView,
+  View, Text, StyleSheet,
   TouchableOpacity, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from '../../components/ui/KeyboardAwareScrollView';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { Input } from '../../components/ui/Input';
@@ -51,10 +52,9 @@ export function LoginScreen({ navigation }: any) {
       style={{ flex: 1, backgroundColor: Colors.gray[50] }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <ScrollView
+      <KeyboardAwareScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
       >
         {/* Navy hero band */}
         <View style={[styles.hero, { paddingTop: insets.top + Spacing.xxl }]}>
@@ -156,7 +156,7 @@ export function LoginScreen({ navigation }: any) {
         <Text style={styles.disclaimer}>
           Not an official product of, and is not endorsed by, The Church of Jesus Christ of Latter-day Saints.
         </Text>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </KeyboardAvoidingView>
   );
 }

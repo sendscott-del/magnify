@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView,
+  View, Text, StyleSheet,
   KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from '../../components/ui/KeyboardAwareScrollView';
 import { supabase } from '../../lib/supabase';
 import { useLanguage } from '../../context/LanguageContext';
 import { Input } from '../../components/ui/Input';
@@ -49,10 +50,9 @@ export function ResetPasswordScreen({ onComplete }: { onComplete: () => void }) 
       style={{ flex: 1, backgroundColor: Colors.gray[50] }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <ScrollView
+      <KeyboardAwareScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
       >
         <View style={[styles.hero, { paddingTop: insets.top + Spacing.xxl }]}>
           <View style={styles.brandRow}>
@@ -112,7 +112,7 @@ export function ResetPasswordScreen({ onComplete }: { onComplete: () => void }) 
             </View>
           )}
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </KeyboardAvoidingView>
   );
 }

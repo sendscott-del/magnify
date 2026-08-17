@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
 import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme';
+import { KeyboardAwareScrollView } from '../../components/ui/KeyboardAwareScrollView';
 import { useLanguage } from '../../context/LanguageContext';
 import { Ward } from '../../lib/database.types';
 
@@ -171,7 +172,7 @@ export function HighCouncilScreen({ navigation }: any) {
         </View>
       </View>
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         <Text style={styles.hint}>{t('highCouncil.hint')}</Text>
 
         {/* Add member */}
@@ -308,7 +309,7 @@ export function HighCouncilScreen({ navigation }: any) {
             );
           })
         )}
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       {/* Link-to-account picker */}
       <Modal visible={linkModalFor !== null} transparent animationType="slide" onRequestClose={() => setLinkModalFor(null)}>
