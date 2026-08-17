@@ -9,8 +9,21 @@ import { supabase } from '../../lib/supabase';
 import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme';
 import { KeyboardAwareScrollView } from '../../components/ui/KeyboardAwareScrollView';
 import { useLanguage } from '../../context/LanguageContext';
+import { TranslationKey } from '../../constants/translations';
 
 interface SlackSetting { id: string; event_type: string; webhook_url: string; active: boolean; }
+
+// Order shown in the UI. `hint` renders under the label for the channels whose
+// purpose isn't obvious from the name.
+const SLACK_EVENTS: { key: string; labelKey: TranslationKey; hintKey?: TranslationKey }[] = [
+  { key: 'sp_stage_change', labelKey: 'settings.spBoardWebhook' },
+  { key: 'sp_reminder', labelKey: 'settings.spReminderWebhook', hintKey: 'settings.reminderWebhookHint' },
+  { key: 'hc_stage_change', labelKey: 'settings.hcBoardWebhook' },
+  { key: 'hc_reminder', labelKey: 'settings.hcReminderWebhook', hintKey: 'settings.reminderWebhookHint' },
+  { key: 'rejection', labelKey: 'settings.rejectionWebhook' },
+  { key: 'user_access_request', labelKey: 'settings.accessRequestWebhook' },
+  { key: 'user_access_approved', labelKey: 'settings.accessApprovedWebhook' },
+];
 
 export function SlackSettingsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -73,7 +86,7 @@ export function SlackSettingsScreen({ navigation }: any) {
         <View>
           <Text style={styles.title}>{t('settings.slackNotifications')}</Text>
           <Text style={styles.subtitle}>
-            {activeCount} {t('slackSettings.activeOf')} 5 {t('slackSettings.active')}
+            {activeCount} {t('slackSettings.activeOf')} {SLACK_EVENTS.length} {t('slackSettings.active')}
           </Text>
         </View>
       </View>
@@ -81,20 +94,15 @@ export function SlackSettingsScreen({ navigation }: any) {
       <KeyboardAwareScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         <View style={styles.card}>
           <Text style={styles.hint}>{t('settings.slackHint')}</Text>
-          {[
-            { key: 'sp_stage_change', label: t('settings.spBoardWebhook') },
-            { key: 'hc_stage_change', label: t('settings.hcBoardWebhook') },
-            { key: 'rejection', label: t('settings.rejectionWebhook') },
-            { key: 'user_access_request', label: t('settings.accessRequestWebhook') },
-            { key: 'user_access_approved', label: t('settings.accessApprovedWebhook') },
-          ].map(({ key, label }) => {
+          {SLACK_EVENTS.map(({ key, labelKey, hintKey }) => {
             const active = slackSettings.find(s => s.event_type === key)?.active;
             return (
               <View key={key} style={styles.row}>
                 <View style={styles.labelRow}>
-                  <Text style={styles.label}>{label}</Text>
+                  <Text style={styles.label}>{t(labelKey)}</Text>
                   {active && <Text style={styles.activePill}>● {t('settings.active')}</Text>}
                 </View>
+                {hintKey && <Text style={styles.rowHint}>{t(hintKey)}</Text>}
                 <View style={styles.inputRow}>
                   <TextInput
                     style={styles.input}
@@ -150,6 +158,7 @@ const styles = StyleSheet.create({
   row: { marginBottom: Spacing.md },
   labelRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginBottom: Spacing.xs },
   label: { fontSize: FontSize.sm, fontWeight: '600', color: Colors.gray[700] },
+  rowHint: { fontSize: FontSize.xs, color: Colors.gray[500], marginBottom: Spacing.xs, lineHeight: 16 },
   activePill: { fontSize: FontSize.xs, color: Colors.success, fontWeight: '700' },
   inputRow: { flexDirection: 'row', gap: Spacing.sm, alignItems: 'center' },
   input: {

@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.44.0',
+    date: '2026-08-17',
+    enhancements: [
+      'Approval reminders can now go to the council\'s own Slack channel instead of the callings channel. Settings → Slack Notifications has two new webhooks — "HC Approval Reminders" and "SP Approval Reminders" — and the "Send reminder" buttons on the boards post there. Leave a reminder webhook blank and that board\'s reminders keep going where they always have.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.43.1',
     date: '2026-08-16',
     enhancements: [],
