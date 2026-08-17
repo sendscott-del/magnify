@@ -140,7 +140,8 @@ export async function notifyNewCallingPosted({
   submittedBy: string;
   stage: string;
 }): Promise<void> {
-  // Posts to SP channel only — SP is authorized to see names/callings
+  // Posts to the SP board channel only (#stakepresidencycallings) — SP is
+  // authorized to see names/callings. NOT the presidency's own channel.
   const { data: settings } = await supabase
     .from('slack_settings')
     .select('webhook_url')
