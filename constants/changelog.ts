@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.44.1',
+    date: '2026-08-18',
+    enhancements: [],
+    bugFixes: [
+      'Fixed the iPhone app freezing when you edit a calling. Opening the Calling or Ward dropdown inside "Edit Calling Details" left the sheet stuck — the list never appeared and nothing on screen responded, so a ward calling could not be switched to a stake calling. Both dropdowns now open inside the same sheet, with a Cancel link to go back, and your other edits are kept while you pick.',
+    ],
+  },
+  {
     version: '2.44.0',
     date: '2026-08-17',
     enhancements: [

@@ -727,8 +727,9 @@ export function CallingDetailScreen({ route, navigation }: any) {
   const [editBishopApproved, setEditBishopApproved] = useState(false);
   const [editOrdinationType, setEditOrdinationType] = useState<'elder' | 'high_priest'>('elder');
   const [editSaving, setEditSaving] = useState(false);
-  const [showEditWardPicker, setShowEditWardPicker] = useState(false);
-  const [showEditCallingPicker, setShowEditCallingPicker] = useState(false);
+  // Which pane of the edit sheet is showing. One Modal, three panes — see the
+  // comment on the Modal itself for why these are not Modals of their own.
+  const [editPane, setEditPane] = useState<'form' | 'ward' | 'calling'>('form');
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -1102,7 +1103,14 @@ export function CallingDetailScreen({ route, navigation }: any) {
     setEditWardName(calling.wards?.name ?? '');
     setEditBishopApproved(calling.bishop_approved ?? false);
     setEditOrdinationType(calling.ordination_type ?? 'elder');
+    setEditPane('form');
     setShowEditModal(true);
+  }
+
+  // Back / scrim tap: a picker pane returns to the form, the form closes the sheet.
+  function dismissEditLayer() {
+    if (editPane !== 'form') setEditPane('form');
+    else setShowEditModal(false);
   }
 
   function handleEditTypeChange(next: CallingType) {
@@ -1613,12 +1621,22 @@ export function CallingDetailScreen({ route, navigation }: any) {
       </Modal>
 
       {/* Edit Calling Details Modal */}
-      <Modal visible={showEditModal} transparent animationType="slide" onRequestClose={() => setShowEditModal(false)}>
+      {/* Edit Calling Details.
+
+          ONE Modal with three panes — form, ward picker, calling picker. The two
+          pickers used to be Modals of their own opened from inside this one, but
+          iOS cannot present a modal on top of a modal that is already presented:
+          the picker never appeared and the sheet stopped responding to touch
+          (reported on the App Store build 2026-08-18). Panes keep every edit in
+          state because the Modal itself never unmounts. Do not reintroduce a
+          nested Modal here. */}
+      <Modal visible={showEditModal} transparent animationType="slide" onRequestClose={dismissEditLayer}>
         <Pressable
           style={[styles.modalOverlay, keyboardInset > 0 && { paddingBottom: keyboardInset }]}
-          onPress={() => setShowEditModal(false)}
+          onPress={dismissEditLayer}
         >
-          <Pressable style={[styles.modalSheet, { maxHeight: '80%' }]} onPress={() => {}}>
+          {editPane === 'form' && (
+            <Pressable style={[styles.modalSheet, { maxHeight: '80%' }]} onPress={() => {}}>
             <ScrollView keyboardShouldPersistTaps="handled">
               <Text style={styles.modalTitle}>{t('detail.editDetails')}</Text>
               <Text style={styles.modalSubtitle}>{t('detail.editDetailsDesc')}</Text>
@@ -1655,7 +1673,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
               {editType !== 'mp_ordination' && (
                 <>
                   <Text style={styles.editFieldLabel}>{t('new.callingLabel')}</Text>
-                  <TouchableOpacity style={styles.editPickerBtn} onPress={() => setShowEditCallingPicker(true)}>
+                  <TouchableOpacity style={styles.editPickerBtn} onPress={() => setEditPane('calling')}>
                     <Text style={editCallingName ? styles.editPickerText : styles.editPickerPlaceholder}>
                       {editCallingName || t('new.selectCalling')}
                     </Text>
@@ -1699,7 +1717,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
               )}
 
               <Text style={styles.editFieldLabel}>{t('detail.ward')}</Text>
-              <TouchableOpacity style={styles.editPickerBtn} onPress={() => setShowEditWardPicker(true)}>
+              <TouchableOpacity style={styles.editPickerBtn} onPress={() => setEditPane('ward')}>
                 <Text style={editWardId ? styles.editPickerText : styles.editPickerPlaceholder}>
                   {editWardId ? editWardName : t('new.selectWard')}
                 </Text>
@@ -1729,80 +1747,86 @@ export function CallingDetailScreen({ route, navigation }: any) {
                 />
               </View>
             </ScrollView>
-          </Pressable>
-        </Pressable>
-      </Modal>
+            </Pressable>
+          )}
 
-      {/* Edit Ward Picker */}
-      <Modal visible={showEditWardPicker} transparent animationType="slide" onRequestClose={() => setShowEditWardPicker(false)}>
-        <Pressable style={styles.modalOverlay} onPress={() => setShowEditWardPicker(false)}>
-          <Pressable style={styles.editPickerSheet} onPress={() => {}}>
-            <Text style={styles.editPickerTitle}>{t('new.selectWardTitle')}</Text>
-            <TouchableOpacity
-              style={[styles.editPickerItem, !editWardId && styles.editPickerItemSelected]}
-              onPress={() => { setEditWardId(''); setEditWardName(''); setShowEditWardPicker(false); }}
-            >
-              <Text style={[styles.editPickerItemText, !editWardId && styles.editPickerItemTextSelected]}>{t('new.noWard')}</Text>
-            </TouchableOpacity>
-            <FlatList
-              data={allWards}
-              keyExtractor={w => w.id}
-              renderItem={({ item: w }) => (
-                <TouchableOpacity
-                  style={[styles.editPickerItem, editWardId === w.id && styles.editPickerItemSelected]}
-                  onPress={() => { setEditWardId(w.id); setEditWardName(w.name); setShowEditWardPicker(false); }}
-                >
-                  <Text style={[styles.editPickerItemText, editWardId === w.id && styles.editPickerItemTextSelected]}>{w.name}</Text>
-                  <Text style={styles.editPickerItemSub}>{w.abbreviation}</Text>
+          {editPane === 'ward' && (
+            <Pressable style={styles.editPickerSheet} onPress={() => {}}>
+              <View style={styles.editPickerHeader}>
+                <TouchableOpacity onPress={() => setEditPane('form')} hitSlop={12}>
+                  <Text style={styles.editPickerBack}>‹ {t('detail.cancel')}</Text>
                 </TouchableOpacity>
-              )}
-            />
-          </Pressable>
+                <Text style={styles.editPickerTitle}>{t('new.selectWardTitle')}</Text>
+              </View>
+              <TouchableOpacity
+                style={[styles.editPickerItem, !editWardId && styles.editPickerItemSelected]}
+                onPress={() => { setEditWardId(''); setEditWardName(''); setEditPane('form'); }}
+              >
+                <Text style={[styles.editPickerItemText, !editWardId && styles.editPickerItemTextSelected]}>{t('new.noWard')}</Text>
+              </TouchableOpacity>
+              <FlatList
+                data={allWards}
+                keyExtractor={w => w.id}
+                renderItem={({ item: w }) => (
+                  <TouchableOpacity
+                    style={[styles.editPickerItem, editWardId === w.id && styles.editPickerItemSelected]}
+                    onPress={() => { setEditWardId(w.id); setEditWardName(w.name); setEditPane('form'); }}
+                  >
+                    <Text style={[styles.editPickerItemText, editWardId === w.id && styles.editPickerItemTextSelected]}>{w.name}</Text>
+                    <Text style={styles.editPickerItemSub}>{w.abbreviation}</Text>
+                  </TouchableOpacity>
+                )}
+              />
+            </Pressable>
+          )}
+
+          {editPane === 'calling' && (
+            <Pressable style={styles.editPickerSheet} onPress={() => {}}>
+              <View style={styles.editPickerHeader}>
+                <TouchableOpacity onPress={() => setEditPane('form')} hitSlop={12}>
+                  <Text style={styles.editPickerBack}>‹ {t('detail.cancel')}</Text>
+                </TouchableOpacity>
+                <Text style={styles.editPickerTitle}>{t('new.selectCallingTitle')}</Text>
+              </View>
+              <FlatList
+                data={[
+                  ...CALLING_GROUPS.filter(g => {
+                    if (g.org === 'Other') return false;
+                    if (editType === 'ward_calling') return g.org === 'Bishopric' || g.org === 'Elders Quorum';
+                    if (editType === 'stake_calling') return g.org === 'Stake';
+                    return true;
+                  }).flatMap(g => [
+                    { type: 'header' as const, label: g.org, value: `__header__${g.org}` },
+                    ...g.callings.map(c => ({ type: 'item' as const, label: c, value: c })),
+                  ]),
+                  { type: 'item' as const, label: 'Other', value: 'Other' },
+                ]}
+                keyExtractor={item => item.value}
+                renderItem={({ item }) => {
+                  if (item.type === 'header') {
+                    return (
+                      <View style={styles.editPickerGroupHeader}>
+                        <Text style={styles.editPickerGroupText}>{item.label}</Text>
+                      </View>
+                    );
+                  }
+                  return (
+                    <TouchableOpacity
+                      style={[styles.editPickerItem, editCallingName === item.value && styles.editPickerItemSelected]}
+                      onPress={() => { setEditCallingName(item.value); setEditPane('form'); }}
+                    >
+                      <Text style={[styles.editPickerItemText, editCallingName === item.value && styles.editPickerItemTextSelected]}>
+                        {item.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                }}
+              />
+            </Pressable>
+          )}
         </Pressable>
       </Modal>
 
-      {/* Edit Calling Picker */}
-      <Modal visible={showEditCallingPicker} transparent animationType="slide" onRequestClose={() => setShowEditCallingPicker(false)}>
-        <Pressable style={styles.modalOverlay} onPress={() => setShowEditCallingPicker(false)}>
-          <Pressable style={styles.editPickerSheet} onPress={() => {}}>
-            <Text style={styles.editPickerTitle}>{t('new.selectCallingTitle')}</Text>
-            <FlatList
-              data={[
-                ...CALLING_GROUPS.filter(g => {
-                  if (g.org === 'Other') return false;
-                  if (editType === 'ward_calling') return g.org === 'Bishopric' || g.org === 'Elders Quorum';
-                  if (editType === 'stake_calling') return g.org === 'Stake';
-                  return true;
-                }).flatMap(g => [
-                  { type: 'header' as const, label: g.org, value: `__header__${g.org}` },
-                  ...g.callings.map(c => ({ type: 'item' as const, label: c, value: c })),
-                ]),
-                { type: 'item' as const, label: 'Other', value: 'Other' },
-              ]}
-              keyExtractor={item => item.value}
-              renderItem={({ item }) => {
-                if (item.type === 'header') {
-                  return (
-                    <View style={styles.editPickerGroupHeader}>
-                      <Text style={styles.editPickerGroupText}>{item.label}</Text>
-                    </View>
-                  );
-                }
-                return (
-                  <TouchableOpacity
-                    style={[styles.editPickerItem, editCallingName === item.value && styles.editPickerItemSelected]}
-                    onPress={() => { setEditCallingName(item.value); setShowEditCallingPicker(false); }}
-                  >
-                    <Text style={[styles.editPickerItemText, editCallingName === item.value && styles.editPickerItemTextSelected]}>
-                      {item.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              }}
-            />
-          </Pressable>
-        </Pressable>
-      </Modal>
     </View>
   );
 }
@@ -1911,8 +1935,10 @@ const styles = StyleSheet.create({
   editTypeBtnActive: { borderColor: Colors.primary, backgroundColor: Colors.primaryFade },
   editTypeLabel: { fontSize: FontSize.sm, fontWeight: '600', color: Colors.gray[600] },
   editTypeLabelActive: { color: Colors.primary },
+  editPickerHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.gray[100] },
+  editPickerBack: { fontSize: FontSize.md, fontWeight: '600', color: Colors.primary },
   editPickerSheet: { backgroundColor: Colors.white, borderTopLeftRadius: Radius.xl, borderTopRightRadius: Radius.xl, maxHeight: '70%', paddingTop: Spacing.lg },
-  editPickerTitle: { fontSize: FontSize.lg, fontWeight: '700', color: Colors.gray[900], paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.gray[100] },
+  editPickerTitle: { fontSize: FontSize.lg, fontWeight: '700', color: Colors.gray[900] },
   editPickerItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.gray[100] },
   editPickerItemSelected: { backgroundColor: Colors.primaryFade },
   editPickerItemText: { fontSize: FontSize.md, color: Colors.gray[800] },
