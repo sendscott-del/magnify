@@ -9,6 +9,30 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.45.0',
+    date: '2026-08-18',
+    enhancements: [
+      'The sustaining script now groups people called to the same position onto one line — "Brother A, Sister B, and Brother C as Stake YSA Committee" instead of naming the calling once per person. Releases group the same way. Previously every card was listed separately in the order it was entered (newest first), so several people called to the same position ended up scattered through the list. Entries are now sorted by calling, and names within a calling are sorted too, so the same board always reads out the same way. The calling title is left exactly as it was typed — it is never auto-pluralized.',
+    ],
+    bugFixes: [],
+  },
+  {
+    version: '2.44.1',
+    date: '2026-08-18',
+    enhancements: [],
+    bugFixes: [
+      'Fixed the iPhone app freezing when you edit a calling. Opening the Calling or Ward dropdown inside "Edit Calling Details" left the sheet stuck — the list never appeared and nothing on screen responded, so a ward calling could not be switched to a stake calling. Both dropdowns now open inside the same sheet, with a Cancel link to go back, and your other edits are kept while you pick.',
+    ],
+  },
+  {
+    version: '2.44.0',
+    date: '2026-08-17',
+    enhancements: [
+      'Approval reminders can now go to the council\'s own Slack channel instead of the callings channel. Settings → Slack Notifications has two new webhooks — "HC Approval Reminders" and "SP Approval Reminders" — and the "Send reminder" buttons on the boards post there. Leave a reminder webhook blank and that board\'s reminders keep going where they always have.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.43.1',
     date: '2026-08-16',
     enhancements: [],

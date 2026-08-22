@@ -291,6 +291,30 @@ export function HCKanbanScreen({ navigation }: any) {
     return items.slice(0, -1).join(', ') + `, ${and} ` + items[items.length - 1];
   }
 
+  /**
+   * Collapses entries that share a calling so a motion reads "A, B, and C as
+   * Primary Teacher" instead of naming the calling once per person. The board
+   * itself is ordered newest-entered-first, which scatters people called to the
+   * same position; grouping and sorting here makes the read-aloud script stable
+   * and predictable regardless of the order the cards were created in.
+   *
+   * The calling name is deliberately NOT pluralised. These are free-text titles
+   * in two languages ("Stake YSA Committee", "First Counselor in Stake Primary")
+   * and a guessed plural would be read aloud over the pulpit.
+   */
+  function groupByCalling(entries: { name: string; calling: string }[]): string[] {
+    const groups = new Map<string, string[]>();
+    for (const e of entries) {
+      const existing = groups.get(e.calling);
+      if (existing) existing.push(e.name);
+      else groups.set(e.calling, [e.name]);
+    }
+    const collator = new Intl.Collator(language === 'es' ? 'es' : 'en');
+    return [...groups.entries()]
+      .sort(([a], [b]) => collator.compare(a, b))
+      .map(([calling, names]) => `${joinList([...names].sort(collator.compare))} ${t('script.as')} ${calling}`);
+  }
+
   function generateScript(ward: Ward): string {
     // Stake callings are sustained in every ward, not only the member's home
     // ward. A stake calling that has moved past sustain (its own ward already
@@ -330,10 +354,13 @@ export function HCKanbanScreen({ navigation }: any) {
     if (releases.length + standaloneReleases.length > 0) {
       lines.push(t('script.releasesHeader'));
       lines.push('');
-      const releaseList = [
-        ...releases.map(c => `${c.release_member_name} ${t('script.as')} ${c.release_current_calling || t('script.unknownCalling')}`),
-        ...standaloneReleases.map(c => `${c.member_name} ${t('script.as')} ${c.calling_name}`),
-      ];
+      const releaseList = groupByCalling([
+        ...releases.map(c => ({
+          name: c.release_member_name as string,
+          calling: c.release_current_calling || t('script.unknownCalling'),
+        })),
+        ...standaloneReleases.map(c => ({ name: c.member_name, calling: c.calling_name })),
+      ]);
       lines.push(t('script.proposeRelease').replace('{list}', joinList(releaseList)));
       lines.push(t('script.releaseInFavor'));
       lines.push(t('script.thankYou'));
@@ -344,7 +371,7 @@ export function HCKanbanScreen({ navigation }: any) {
     if (regularCallings.length > 0) {
       lines.push(t('script.sustainingsHeader'));
       lines.push('');
-      const sustainList = regularCallings.map(c => `${c.member_name} ${t('script.as')} ${c.calling_name}`);
+      const sustainList = groupByCalling(regularCallings.map(c => ({ name: c.member_name, calling: c.calling_name })));
       lines.push(t('script.proposeSustain').replace('{list}', joinList(sustainList)));
       lines.push(t('script.thoseInFavor'));
       lines.push(t('script.thoseOpposed'));
