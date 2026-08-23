@@ -970,6 +970,17 @@ export function CallingDetailScreen({ route, navigation }: any) {
     setTimeout(() => setSuccessMsg(''), 3000);
   }
 
+  // A write that RLS refuses comes back as an error, not a throw. Every stage
+  // mutation below used to ignore it, so a refused move still wrote a
+  // calling_log entry and showed "Moved to X" while the card sat where it was —
+  // the high council spent 2026-08-23 clicking the same button five times. Never
+  // report success without checking.
+  function reportWriteFailure(message: string): void {
+    const body = `${t('detail.moveFailedBody')}\n\n${message}`;
+    if (Platform.OS === 'web') window.alert(`${t('detail.moveFailedTitle')}\n\n${body}`);
+    else Alert.alert(t('detail.moveFailedTitle'), body);
+  }
+
   async function handleAdvance() {
     if (!calling || !profile) return;
     const next = getNextStage(calling.stage, calling.type, !!calling.is_release);
@@ -1003,7 +1014,13 @@ export function CallingDetailScreen({ route, navigation }: any) {
     const update: any = { stage: next };
     if (next === 'complete') update.completed_at = new Date().toISOString();
 
-    await supabase.from('callings').update(update).eq('id', calling.id);
+    const { error: advanceErr } = await supabase.from('callings').update(update).eq('id', calling.id);
+    if (advanceErr) {
+      // Do NOT log or notify — the card did not move.
+      setActionLoading(false);
+      reportWriteFailure(advanceErr.message);
+      return;
+    }
     await supabase.from('calling_log').insert({
       calling_id: calling.id, action: label,
       from_stage: calling.stage, to_stage: next, performed_by: profile.id,
@@ -1054,7 +1071,12 @@ export function CallingDetailScreen({ route, navigation }: any) {
     if (!confirm) return;
 
     setActionLoading(true);
-    await supabase.from('callings').update({ stage: prev, completed_at: null }).eq('id', calling.id);
+    const { error: backErr } = await supabase.from('callings').update({ stage: prev, completed_at: null }).eq('id', calling.id);
+    if (backErr) {
+      setActionLoading(false);
+      reportWriteFailure(backErr.message);
+      return;
+    }
     await supabase.from('calling_log').insert({
       calling_id: calling.id, action: `${t('detail.movedBack')} ${STAGE_LABELS[prev]}`,
       from_stage: calling.stage, to_stage: prev, performed_by: profile.id,
