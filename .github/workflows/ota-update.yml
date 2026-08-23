@@ -1,0 +1,80 @@
+name: Publish OTA update
+
+# Manual only — never on push. An OTA reaches phones directly, and this repo has
+# already had one bad publish blacklist itself on every device in the fleet, so
+# publishing stays a deliberate act. Trigger it from the Actions tab, or via the
+# GitHub API, from any device — no laptop required.
+on:
+  workflow_dispatch:
+    inputs:
+      message:
+        description: 'Update message shown in EAS (e.g. "v2.47.0: edit-sheet fix")'
+        required: true
+        type: string
+      branch:
+        description: 'EAS Update branch'
+        required: true
+        default: 'production'
+        type: string
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fail early if the Expo token is missing
+        # Without this the eas step fails deep in the CLI with an opaque auth
+        # error. EXPO_TOKEN is an account access token for `leftfieldapps`.
+        run: |
+          if [ -z "${{ secrets.EXPO_TOKEN }}" ]; then
+            echo "::error::EXPO_TOKEN repository secret is not set. Add it under"
+            echo "::error::Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Show what will be published
+        run: |
+          echo "app version : $(node -p "require('./package.json').version")"
+          echo "runtime     : $(node -p "require('./app.json').expo.runtimeVersion")"
+          echo "branch      : ${{ inputs.branch }}"
+
+      - name: Publish
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        # --environment production is NOT optional. It pulls EXPO_PUBLIC_* from
+        # EAS's server-side env store; without it the bundle exports with empty
+        # Supabase config, throws at startup on device, and expo-updates silently
+        # rolls back and blacklists the update. That cost this app two months of
+        # a stale fleet in 2026. Keep the three vars in the EAS "production"
+        # environment in sync with .env.
+        run: |
+          npx eas-cli@latest update \
+            --branch "${{ inputs.branch }}" \
+            --environment production \
+            --message "${{ inputs.message }}" \
+            --non-interactive
+
+      - name: Verify the manifest actually serves it
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        # Serving is not delivering — a device only counts as updated once it has
+        # APPLIED the bundle, which takes a second launch and cannot be checked
+        # from CI. This only proves the update is being handed out.
+        run: |
+          RUNTIME=$(node -p "require('./app.json').expo.runtimeVersion")
+          echo "Asking u.expo.dev for runtime $RUNTIME on channel ${{ inputs.branch }}"
+          npx eas-cli@latest update:list --branch "${{ inputs.branch }}" --limit 3 --non-interactive
+
+      - name: Reminder
+        run: |
+          echo "::notice::Published. It applies on a device's SECOND launch."
+          echo "::notice::Only devices on runtime $(node -p "require('./app.json').expo.runtimeVersion") receive it."
+          echo "::notice::Confirm in-app under Settings -> Release Notes before calling it done."
