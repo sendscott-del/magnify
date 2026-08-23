@@ -22,7 +22,7 @@ import { STAGE_LABELS } from '../../constants/callings';
 
 export function NewCallingScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const { user, profile } = useAuth();
+  const { user, profile, isPresidency, isClerk } = useAuth();
   const { t } = useLanguage();
   const { demoMode } = useDemoMode();
 
@@ -66,6 +66,14 @@ export function NewCallingScreen({ navigation }: any) {
   const [loading, setLoading] = useState<'ideas' | 'approval' | null>(null);
   // All non-MP callings go to Ideas; MP goes to hc_approval
   const [showConfirmation, setShowConfirmation] = useState(false);
+  // Nothing created here lands on the HC board any more — ideas, releases and
+  // MP ordinations all start on the SP board — so send people there, unless
+  // they are a high councilor, who has no SP tab.
+  const canSeeSpBoard = isPresidency || isClerk;
+  const boardRoute = canSeeSpBoard ? 'PresidencyBoard' : 'HC';
+  const boardLabelKey = canSeeSpBoard ? 'new.goSPBoard' : 'new.goHCBoard';
+
+
   const [error, setError] = useState('');
 
   const [wards, setWards] = useState<Ward[]>([]);
@@ -105,9 +113,10 @@ export function NewCallingScreen({ navigation }: any) {
     setLoading(targetStage === 'ideas' ? 'ideas' : 'approval');
     setError('');
 
-    // MP ordinations skip straight to HC Approval; releases go straight to the
-    // Stake Presidency approval queue; all others go to Ideas
-    const stage = isRelease ? 'for_approval' : type === 'mp_ordination' ? 'hc_approval' : 'ideas';
+    // MP ordinations and releases both enter at the Stake Presidency approval
+    // queue; everything else starts as an Idea. MP used to be created straight
+    // at HC Approval, skipping the presidency entirely (changed 2026-08-22).
+    const stage = (isRelease || type === 'mp_ordination') ? 'for_approval' : 'ideas';
 
     // Demo mode: don't write to the real DB. Show the success state with a
     // synthetic calling so the trainer can walk the rest of the flow.
@@ -196,7 +205,7 @@ export function NewCallingScreen({ navigation }: any) {
         'Your calling recommendation has been submitted to the Stake Presidency for review.',
         [
           { text: 'Submit Another', onPress: () => {} },
-          { text: 'Go to HC Board', onPress: () => navigation.navigate('HC') },
+          { text: t(boardLabelKey), onPress: () => navigation.navigate(boardRoute) },
         ]
       );
     }
@@ -231,10 +240,10 @@ export function NewCallingScreen({ navigation }: any) {
                 <Text style={{ color: 'white', fontWeight: '600', fontSize: 13 }}>{t('new.submitAnother')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => { setShowConfirmation(false); navigation.navigate('HC'); }}
+                onPress={() => { setShowConfirmation(false); navigation.navigate(boardRoute); }}
                 style={{ paddingVertical: 8, paddingHorizontal: 16 }}
               >
-                <Text style={{ color: Colors.primary, fontWeight: '600', fontSize: 13 }}>{t('new.goHCBoard')}</Text>
+                <Text style={{ color: Colors.primary, fontWeight: '600', fontSize: 13 }}>{t(boardLabelKey)}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -435,7 +444,7 @@ export function NewCallingScreen({ navigation }: any) {
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
         <Button
-          title={isRelease ? t('new.submitRelease') : type === 'mp_ordination' ? t('new.submitToHCApproval') : t('new.submitIdea')}
+          title={isRelease ? t('new.submitRelease') : type === 'mp_ordination' ? t('new.submitToSPApproval') : t('new.submitIdea')}
           onPress={() => handleSave('ideas')}
           loading={loading !== null}
           disabled={loading !== null}

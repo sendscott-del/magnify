@@ -1156,16 +1156,14 @@ export function CallingDetailScreen({ route, navigation }: any) {
         if (editType !== 'ward_calling') update.bishop_approved = false;
       }
 
-      // Re-align stage if the current stage doesn't exist in the new type's flow.
-      // Non-MP stages skipped by MP: ideas, for_approval, stake_approved, issue_calling, ordained.
-      if (editType === 'mp_ordination') {
-        if (['ideas', 'for_approval', 'stake_approved'].includes(calling.stage)) {
-          update.stage = 'hc_approval';
-          changes.push(`Stage: ${STAGE_LABELS[calling.stage]} → ${STAGE_LABELS['hc_approval']}`);
-        } else if (['issue_calling', 'ordained'].includes(calling.stage)) {
-          update.stage = 'sustain';
-          changes.push(`Stage: ${STAGE_LABELS[calling.stage]} → ${STAGE_LABELS['sustain']}`);
-        }
+      // Re-align stage only if the current one doesn't exist in the new type's
+      // flow. MP shares the whole presidency run-up (ideas → for_approval →
+      // stake_approved → hc_approval) since 2026-08-22, so a card converted to
+      // MP now stays where it is; the only stage MP still skips is the extend
+      // step, which lands on sustain instead.
+      if (editType === 'mp_ordination' && ['issue_calling', 'ordained'].includes(calling.stage)) {
+        update.stage = 'sustain';
+        changes.push(`Stage: ${STAGE_LABELS[calling.stage]} → ${STAGE_LABELS['sustain']}`);
       }
     }
 

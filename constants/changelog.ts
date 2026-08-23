@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.46.0',
+    date: '2026-08-22',
+    enhancements: [
+      'Melchizedek Priesthood ordinations now go to the Stake Presidency approval queue when they are entered, instead of being created straight into HC Approval. They pick up the presidency approvals like any other recommendation and then move on to the High Council, still skipping the Extend Calling step (Sustain → Ordain → Record → Complete). Changing an existing card\'s type to MP Ordination no longer jumps it forward to HC Approval either — it stays in the column it is already in. MP ordinations already in flight were left where they are.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.45.0',
     date: '2026-08-18',
     enhancements: [
