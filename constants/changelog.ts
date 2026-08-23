@@ -9,6 +9,15 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.47.0',
+    date: '2026-08-23',
+    enhancements: [
+      'A calling can no longer leave the Stake Presidency approval queue with its task assignments blank. If Extend Calling, Sustain, or Set Apart / Ordain has nobody assigned, advancing now stops with a message naming exactly which ones are still empty, instead of letting the card move on and quietly stall further down the board with no sign of who owed the next step. Releases are held to the same rule for their two tasks, and MP ordinations for theirs. Record is not part of the check — it follows whoever holds the stake clerk role and cannot be set by hand.',
+      'The demo now has a fictional stake presidency and high council to assign from, so the assignment step can actually be walked through in a demo.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.46.0',
     date: '2026-08-22',
     enhancements: [
