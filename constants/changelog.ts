@@ -9,6 +9,15 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.47.1',
+    date: '2026-08-23',
+    enhancements: [],
+    bugFixes: [
+      'High councilors can move their callings forward again. Marking a calling "Ready to Set Apart / Ordain" (or ready for any next step) looked like it worked — the app said it moved and wrote a line in the activity log — but the card stayed put and a clerk had to move it by hand. The database was refusing the change because it checked whether you were assigned to the step you were moving INTO, which is normally the next person, not you. It now checks the step you are moving OUT of, which is the one you were assigned. This was fixed on the server, so it is already working everywhere, including the phone apps, with no update needed.',
+      'If a change ever is refused again, the app now says so plainly instead of reporting success. It no longer writes an activity-log entry for a move that did not happen.',
+    ],
+  },
+  {
     version: '2.47.0',
     date: '2026-08-23',
     enhancements: [
