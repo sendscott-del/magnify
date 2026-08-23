@@ -12,6 +12,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useDemoMode } from '../../context/DemoModeContext';
 import { getDemoAllCallings } from '../../lib/demoCallings';
 import { useLanguage } from '../../context/LanguageContext';
+import { TranslationKey } from '../../constants/translations';
 import { Calling, CallingLogEntry, WardSustaining, Ward, Stage, Profile, CallingType } from '../../lib/database.types';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
@@ -575,25 +576,55 @@ const rmStyles = StyleSheet.create({
 // ─── Task Assignments ─────────────────────────────────────────────────────────
 interface Assignee { name: string; subtitle: string; }
 
+type TaskField = { key: 'extend_by' | 'sustain_by' | 'set_apart_by' | 'record_by'; labelKey: TranslationKey; locked?: boolean };
+
+/**
+ * The task slots a card actually has, by kind. Single source of truth: the
+ * assignments UI renders these, and the advance gate in CallingDetailScreen
+ * requires them before a calling can leave the presidency queue — the two must
+ * not drift apart.
+ *
+ * `record_by` is `locked`: it is not picked by hand, it follows whoever holds
+ * the stake clerk role, so it counts as filled exactly when that role is.
+ */
+function taskFieldsFor(calling: { is_release?: boolean | null; type: CallingType }): TaskField[] {
+  if (calling.is_release) {
+    // Releases: just who has the release conversation and who announces it.
+    return [
+      { key: 'extend_by', labelKey: 'detail.extendRelease' },
+      { key: 'sustain_by', labelKey: 'detail.sustain' },
+    ];
+  }
+  const fields: TaskField[] = [
+    { key: 'extend_by', labelKey: 'detail.extendCalling' },
+    { key: 'sustain_by', labelKey: 'detail.sustain' },
+    { key: 'set_apart_by', labelKey: 'detail.setApart' },
+    { key: 'record_by', labelKey: 'detail.record', locked: true },
+  ];
+  // MP ordinations skip Extend Calling entirely.
+  return calling.type === 'mp_ordination' ? fields.filter(f => f.key !== 'extend_by') : fields;
+}
+
+/**
+ * Assignable slots still waiting on a person.
+ *
+ * `locked` slots are excluded on purpose: Record is not picked by hand, it
+ * follows whoever holds the stake clerk role, so nobody could clear it from
+ * this screen. Blocking on it would be a dead end with no button to press —
+ * a missing clerk is a roster problem, fixed in Settings, not here.
+ */
+function unassignedTaskFields(calling: Calling): TaskField[] {
+  return taskFieldsFor(calling).filter(f => !f.locked && !(calling as any)[f.key]);
+}
+
 function TaskAssignmentsSection({ calling, assignees, clerkName, canEdit, onAssign }: {
   calling: Calling; assignees: Assignee[]; clerkName: string | null; canEdit: boolean;
   onAssign: (field: string, name: string | null) => Promise<void>;
 }) {
   const { t } = useLanguage();
-  const TASK_FIELDS: { key: string; label: string; locked?: boolean }[] = calling.is_release
-    ? [
-        // Releases: just who has the release conversation and who announces it.
-        { key: 'extend_by', label: t('detail.extendRelease') },
-        { key: 'sustain_by', label: t('detail.sustain') },
-      ]
-    : [
-        { key: 'extend_by', label: t('detail.extendCalling') },
-        { key: 'sustain_by', label: t('detail.sustain') },
-        { key: 'set_apart_by', label: t('detail.setApart') },
-        { key: 'record_by', label: t('detail.record'), locked: true },
-      ];
+  const TASK_FIELDS = taskFieldsFor(calling).map(f => ({ ...f, label: t(f.labelKey) }));
   const [pickerField, setPickerField] = useState<string | null>(null);
-  const visibleFields = TASK_FIELDS.filter(f => !(f.key === 'extend_by' && calling.type === 'mp_ordination' && !calling.is_release));
+  const visibleFields = TASK_FIELDS;
 
   return (
     <View style={taStyles.container}>
@@ -747,10 +778,22 @@ export function CallingDetailScreen({ route, navigation }: any) {
         { id: 'demo-ward-5', name: 'Wilmette 2nd',   abbreviation: 'WC2' } as Ward,
       ]);
       setSpApprovals([]);
-      setHcMembers([]);
+      // Fictional rosters so the demo can actually exercise task assignment —
+      // without them the assignee picker is empty, and since a calling can no
+      // longer leave the presidency queue unassigned, the demo would dead-end
+      // at For Approval. Names are invented; never seed real members here.
+      setHcMembers([
+        { id: 'demo-hc-1', name: 'Brother Whitaker', sort_order: 1, active: true },
+        { id: 'demo-hc-2', name: 'Brother Okafor',   sort_order: 2, active: true },
+        { id: 'demo-hc-3', name: 'Brother Nakamura', sort_order: 3, active: true },
+      ]);
       setHcApprovals([]);
       setAllProfiles([]);
-      setSpMembers([]);
+      setSpMembers([
+        { id: 'demo-sp-1', name: 'President Halvorsen', role: 'stake_president' },
+        { id: 'demo-sp-2', name: 'Brother Delgado',     role: 'first_counselor' },
+        { id: 'demo-sp-3', name: 'Brother Ashby',       role: 'second_counselor' },
+      ]);
       setWardSustainingsList([]);
       setComments([]);
       setLoading(false);
@@ -931,6 +974,22 @@ export function CallingDetailScreen({ route, navigation }: any) {
     if (!calling || !profile) return;
     const next = getNextStage(calling.stage, calling.type, !!calling.is_release);
     if (!next) return;
+
+    // Nothing leaves the presidency queue unassigned. Cards were being advanced
+    // with empty task slots and then stalling further down the board with
+    // nothing to show who owed the next step. Checked before the demo branch so
+    // the rule is the same when training.
+    if (calling.stage === 'for_approval') {
+      const missing = unassignedTaskFields(calling);
+      if (missing.length > 0) {
+        const list = missing.map(f => `• ${t(f.labelKey)}`).join('\n');
+        const body = `${t('detail.assignmentsRequiredBody')}\n\n${list}`;
+        if (Platform.OS === 'web') window.alert(`${t('detail.assignmentsRequiredTitle')}\n\n${body}`);
+        else Alert.alert(t('detail.assignmentsRequiredTitle'), body);
+        return;
+      }
+    }
+
     if (isDemo) {
       // Demo: update local state only — never call supabase or Slack.
       setCalling(prev => prev ? ({ ...prev, stage: next, completed_at: next === 'complete' ? new Date().toISOString() : null } as Calling) : prev);
@@ -1156,16 +1215,14 @@ export function CallingDetailScreen({ route, navigation }: any) {
         if (editType !== 'ward_calling') update.bishop_approved = false;
       }
 
-      // Re-align stage if the current stage doesn't exist in the new type's flow.
-      // Non-MP stages skipped by MP: ideas, for_approval, stake_approved, issue_calling, ordained.
-      if (editType === 'mp_ordination') {
-        if (['ideas', 'for_approval', 'stake_approved'].includes(calling.stage)) {
-          update.stage = 'hc_approval';
-          changes.push(`Stage: ${STAGE_LABELS[calling.stage]} → ${STAGE_LABELS['hc_approval']}`);
-        } else if (['issue_calling', 'ordained'].includes(calling.stage)) {
-          update.stage = 'sustain';
-          changes.push(`Stage: ${STAGE_LABELS[calling.stage]} → ${STAGE_LABELS['sustain']}`);
-        }
+      // Re-align stage only if the current one doesn't exist in the new type's
+      // flow. MP shares the whole presidency run-up (ideas → for_approval →
+      // stake_approved → hc_approval) since 2026-08-22, so a card converted to
+      // MP now stays where it is; the only stage MP still skips is the extend
+      // step, which lands on sustain instead.
+      if (editType === 'mp_ordination' && ['issue_calling', 'ordained'].includes(calling.stage)) {
+        update.stage = 'sustain';
+        changes.push(`Stage: ${STAGE_LABELS[calling.stage]} → ${STAGE_LABELS['sustain']}`);
       }
     }
 

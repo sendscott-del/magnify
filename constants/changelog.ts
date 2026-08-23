@@ -9,6 +9,23 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.47.0',
+    date: '2026-08-23',
+    enhancements: [
+      'A calling can no longer leave the Stake Presidency approval queue with its task assignments blank. If Extend Calling, Sustain, or Set Apart / Ordain has nobody assigned, advancing now stops with a message naming exactly which ones are still empty, instead of letting the card move on and quietly stall further down the board with no sign of who owed the next step. Releases are held to the same rule for their two tasks, and MP ordinations for theirs. Record is not part of the check — it follows whoever holds the stake clerk role and cannot be set by hand.',
+      'The demo now has a fictional stake presidency and high council to assign from, so the assignment step can actually be walked through in a demo.',
+    ],
+    bugFixes: [],
+  },
+  {
+    version: '2.46.0',
+    date: '2026-08-22',
+    enhancements: [
+      'Melchizedek Priesthood ordinations now go to the Stake Presidency approval queue when they are entered, instead of being created straight into HC Approval. They pick up the presidency approvals like any other recommendation and then move on to the High Council, still skipping the Extend Calling step (Sustain → Ordain → Record → Complete). Changing an existing card\'s type to MP Ordination no longer jumps it forward to HC Approval either — it stays in the column it is already in. MP ordinations already in flight were left where they are.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.45.0',
     date: '2026-08-18',
     enhancements: [

@@ -138,6 +138,7 @@ export const translations = {
     'new.submitIdea': 'Add to Ideas',
     'new.submitApproval': 'Submit for Approval',
     'new.submitToHCApproval': 'Submit to HC Approval',
+    'new.submitToSPApproval': 'Submit to Stake Presidency Approval',
     'new.submitForSPApproval': 'Submit for SP Approval',
     'new.success': 'Entry created!',
     'new.fillRequired': 'Please enter a member name and select a calling.',
@@ -255,6 +256,8 @@ export const translations = {
     'detail.hcAwaitingVotes': 'Awaiting votes',
     'detail.spOverride': 'SP Override',
     'detail.taskAssignments': 'Task Assignments',
+    'detail.assignmentsRequiredTitle': 'Task assignments needed',
+    'detail.assignmentsRequiredBody': 'This calling cannot move forward until someone is assigned to each task. Still unassigned:',
     'detail.extendCalling': 'Extend Calling',
     'detail.extendRelease': 'Extend Release',
     'detail.sustain': 'Sustain',
@@ -385,7 +388,7 @@ export const translations = {
     'validation.callingRequired': 'Please specify a calling or ordination.',
 
     // Activity log
-    'log.mpCreated': 'MP Ordination created — sent directly to HC Approval',
+    'log.mpCreated': 'MP Ordination created — sent to Stake Presidency Approval',
     'log.releaseCreated': 'Release submitted for Stake Presidency approval',
     'new.releaseInfo': 'A release is an announcement only — no new calling. Once the Stake President approves it, it goes straight to the Sustain column on the HC board so it can be announced in the right ward(s), then completed.',
     'new.releaseWardHintWard': '(the ward that will announce it)',
@@ -534,7 +537,7 @@ export const translations = {
     'help.stage.record': 'The calling is recorded in Church records.',
     'help.stage.complete': 'The calling is fully processed and moved to Completed.',
     'help.mpOrdination': 'MP Ordination Workflow',
-    'help.mpOrdinationBody': 'Melchizedek Priesthood ordinations skip the SP Board and go directly to HC Approval after creation. They then follow the same HC stages (Sustain \u2192 Ordain \u2192 Record \u2192 Complete).',
+    'help.mpOrdinationBody': 'Melchizedek Priesthood ordinations enter the Stake Presidency approval queue like any other recommendation, then move on to HC Approval. They skip the Extend Calling step, going straight to Sustain \u2192 Ordain \u2192 Record \u2192 Complete.',
     'help.spBoard': 'SP Board',
     'help.spBoardBody1': 'Visible to Stake Presidency members, Stake Clerk, and Stake Executive Secretary. Displays callings in Ideas, For Approval, and Stake Approved columns. Use the type filter (All / Ward / Stake / MP) to narrow the view.',
     'help.spBoardBody2': 'To advance a calling, open the card and tap the advance button. Presidency approval checkboxes must be completed before advancing from For Approval.',
@@ -623,6 +626,7 @@ export const translations = {
     'new.submittedDesc': 'Your calling recommendation has been submitted to the Stake Presidency for review.',
     'new.submitAnother': 'Submit Another',
     'new.goHCBoard': 'HC Board',
+    'new.goSPBoard': 'SP Board',
 
     // Suggestion FAB
     'suggestion.toastSent': 'Suggestion submitted!',
@@ -793,6 +797,7 @@ export const translations = {
     'new.submitIdea': 'Agregar a Ideas',
     'new.submitApproval': 'Enviar para Aprobaci\u00f3n',
     'new.submitToHCApproval': 'Enviar a Aprobaci\u00f3n del CH',
+    'new.submitToSPApproval': 'Enviar a Aprobaci\u00f3n de la Presidencia de Estaca',
     'new.submitForSPApproval': 'Enviar para Aprobaci\u00f3n de PE',
     'new.success': '\u00a1Entrada creada!',
     'new.fillRequired': 'Por favor ingrese el nombre del miembro y seleccione un llamamiento.',
@@ -910,6 +915,8 @@ export const translations = {
     'detail.hcAwaitingVotes': 'En espera de votos',
     'detail.spOverride': 'Anulaci\u00f3n PE',
     'detail.taskAssignments': 'Asignaciones de Tareas',
+    'detail.assignmentsRequiredTitle': 'Faltan asignaciones de tareas',
+    'detail.assignmentsRequiredBody': 'Este llamamiento no puede avanzar hasta que se asigne a alguien a cada tarea. A\u00fan sin asignar:',
     'detail.extendCalling': 'Extender Llamamiento',
     'detail.extendRelease': 'Extender Relevo',
     'detail.sustain': 'Sostener',
@@ -1040,7 +1047,7 @@ export const translations = {
     'validation.callingRequired': 'Por favor especifique un llamamiento u ordenaci\u00f3n.',
 
     // Activity log
-    'log.mpCreated': 'Ordenaci\u00f3n MP creada \u2014 enviada directamente a Aprobaci\u00f3n del AC',
+    'log.mpCreated': 'Ordenaci\u00f3n MP creada \u2014 enviada a Aprobaci\u00f3n de la Presidencia de Estaca',
     'log.releaseCreated': 'Relevo enviado para aprobación de la Presidencia de Estaca',
     'new.releaseInfo': 'Un relevo es solo un anuncio — sin nuevo llamamiento. Cuando el Presidente de Estaca lo aprueba, pasa directamente a la columna Sostener del tablero del CA para anunciarse en el barrio o barrios correspondientes, y luego se completa.',
     'new.releaseWardHintWard': '(el barrio que lo anunciará)',
@@ -1189,7 +1196,7 @@ export const translations = {
     'help.stage.record': 'El llamamiento se registra en los registros de la Iglesia.',
     'help.stage.complete': 'El llamamiento se ha procesado completamente y se ha movido a Completados.',
     'help.mpOrdination': 'Flujo de Trabajo de Ordenaci\u00f3n de SM',
-    'help.mpOrdinationBody': 'Las ordenaciones del Sacerdocio de Melquisedec omiten el Tablero PE y van directamente a la Aprobaci\u00f3n del CH despu\u00e9s de ser creadas. Luego siguen las mismas etapas del CH (Sostener \u2192 Ordenar \u2192 Registrar \u2192 Completar).',
+    'help.mpOrdinationBody': 'Las ordenaciones del Sacerdocio de Melquisedec entran en la cola de aprobaci\u00f3n de la Presidencia de Estaca como cualquier otra recomendaci\u00f3n, y luego pasan a la Aprobaci\u00f3n del CH. Omiten el paso de Extender el Llamamiento y van directamente a Sostener \u2192 Ordenar \u2192 Registrar \u2192 Completar.',
     'help.spBoardBody3': 'Una insignia roja aparece en la pestaña Tablero PE mostrando el número de tarjetas en Para Aprobación que necesitan su revisión.',
     'help.hcBoardBody4': 'Una insignia roja aparece en la pestaña Tablero CH mostrando el número de tarjetas que esperan su acción — el mismo conteo que vería al filtrar el tablero por su propio nombre.',
     'help.spBoard': 'Tablero PE',
@@ -1277,6 +1284,7 @@ export const translations = {
     'new.submittedDesc': 'Su recomendaci\u00f3n de llamamiento ha sido enviada a la Presidencia de Estaca para su revisi\u00f3n.',
     'new.submitAnother': 'Enviar Otro',
     'new.goHCBoard': 'Tablero CH',
+    'new.goSPBoard': 'Tablero PE',
 
     // Suggestion FAB
     'suggestion.toastSent': '\u00a1Sugerencia enviada!',
