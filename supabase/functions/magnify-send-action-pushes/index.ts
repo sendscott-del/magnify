@@ -122,6 +122,10 @@ function computeCountForUser(
       if (myRole === "first_counselor" && !appr.first_counselor) count++;
       else if (myRole === "second_counselor" && !appr.second_counselor) count++;
       else if (myRole === "stake_president" && appr.first_counselor && appr.second_counselor && !appr.stake_president) count++;
+    } else if (c.stage === "pending_interview") {
+      // Pending Interview → the presidency owes the candidate an interview.
+      // Badge all three; there's no per-member record of who will hold it.
+      if (myRole === "stake_president" || myRole === "first_counselor" || myRole === "second_counselor") count++;
     } else if (c.stage === "ideas") {
       // New idea → only the Stake President advances Ideas. Badge him for ideas
       // he didn't submit himself; never his own.

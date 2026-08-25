@@ -19,7 +19,10 @@ import { useIsDesktopWeb } from '../../lib/useDeviceWidth';
 import { Ionicons } from '@expo/vector-icons';
 import { notifySpApprovalReminder } from '../../lib/slack';
 
-const ACTIVE_STAGES = ['ideas', 'for_approval', 'stake_approved'];
+// pending_interview only ever holds MP ordinations, but the column is always
+// shown — a stage that appears and disappears is harder to trust than an
+// empty one.
+const ACTIVE_STAGES = ['ideas', 'for_approval', 'stake_approved', 'pending_interview'];
 
 export function PresidencyKanbanScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -33,6 +36,7 @@ export function PresidencyKanbanScreen({ navigation }: any) {
     { stage: 'ideas', label: t('stage.ideas'), color: Colors.stage.ideas },
     { stage: 'for_approval', label: t('stage.for_approval'), color: Colors.stage.for_approval },
     { stage: 'stake_approved', label: t('stage.stake_approved'), color: Colors.stage.stake_approved },
+    { stage: 'pending_interview', label: t('stage.pending_interview'), color: Colors.stage.pending_interview },
   ];
 
   const TYPE_FILTERS: { label: string; value: CallingType | 'all' }[] = [

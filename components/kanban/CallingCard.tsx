@@ -38,6 +38,7 @@ export function CallingCard({ calling, onPress, isNew, meta }: Props) {
     ideas: t('stage.ideas'),
     for_approval: t('stage.for_approval'),
     stake_approved: t('stage.stake_approved'),
+    pending_interview: t('stage.pending_interview'),
     hc_approval: t('stage.hc_approval'),
     issue_calling: t('stage.issue_calling'),
     ordained: t('stage.issue_calling'),

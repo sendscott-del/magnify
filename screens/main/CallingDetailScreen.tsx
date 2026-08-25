@@ -1239,12 +1239,16 @@ export function CallingDetailScreen({ route, navigation }: any) {
 
       // Re-align stage only if the current one doesn't exist in the new type's
       // flow. MP shares the whole presidency run-up (ideas → for_approval →
-      // stake_approved → hc_approval) since 2026-08-22, so a card converted to
-      // MP now stays where it is; the only stage MP still skips is the extend
-      // step, which lands on sustain instead.
+      // stake_approved) since 2026-08-22, so a card converted to MP mostly
+      // stays where it is. Two stages are type-specific: the extend step, which
+      // MP skips (lands on sustain), and Pending Interview, which only MP has
+      // (a card converted away from MP falls back to the stage before it).
       if (editType === 'mp_ordination' && ['issue_calling', 'ordained'].includes(calling.stage)) {
         update.stage = 'sustain';
         changes.push(`Stage: ${STAGE_LABELS[calling.stage]} → ${STAGE_LABELS['sustain']}`);
+      } else if (editType !== 'mp_ordination' && calling.stage === 'pending_interview') {
+        update.stage = 'stake_approved';
+        changes.push(`Stage: ${STAGE_LABELS[calling.stage]} → ${STAGE_LABELS['stake_approved']}`);
       }
     }
 
@@ -1341,7 +1345,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
   const isComplete = calling.stage === 'complete';
 
   const showSustaining = calling.type === 'stake_calling' && ['sustain','set_apart','record','complete'].includes(calling.stage);
-  const showSPApprovals = ['for_approval','stake_approved','hc_approval'].includes(calling.stage);
+  const showSPApprovals = ['for_approval','stake_approved','pending_interview','hc_approval'].includes(calling.stage);
   const showHCApprovals = ['hc_approval','issue_calling','ordained','sustain','set_apart','record','complete'].includes(calling.stage);
   const spPresidentApproved = spApprovals.find(a => a.role === 'stake_president')?.approved ?? false;
 

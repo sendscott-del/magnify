@@ -30,6 +30,9 @@ export const Colors = {
     ideas: '#6B7280',
     for_approval: '#F59E0B',
     stake_approved: '#3B82F6',
+    // Sits between stake_approved's blue and hc_approval's violet, matching
+    // where the MP interview queue sits in the pipeline.
+    pending_interview: '#6366F1',
     hc_approval: '#8B5CF6',
     issue_calling: '#EC4899',
     ordained: '#EC4899',

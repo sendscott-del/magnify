@@ -145,6 +145,11 @@ export function ActionCountsProvider({ children }: { children: React.ReactNode }
         else if (myRole === 'second_counselor' && !appr.second_counselor) sp++;
         else if (myRole === 'stake_president' && appr.first_counselor && appr.second_counselor && !appr.stake_president) sp++;
       }
+      // Pending Interview → the presidency owes the candidate an interview.
+      // Badge all three; there's no per-member record of who will hold it.
+      else if (c.stage === 'pending_interview') {
+        if (myRole === 'stake_president' || myRole === 'first_counselor' || myRole === 'second_counselor') sp++;
+      }
     }
 
     setHcCount(hc);

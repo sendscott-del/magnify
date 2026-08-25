@@ -1,11 +1,12 @@
 export type UserRole = 'stake_president' | 'first_counselor' | 'second_counselor' | 'high_councilor' | 'stake_clerk' | 'exec_secretary';
 export type CallingType = 'ward_calling' | 'stake_calling' | 'mp_ordination';
-export type Stage = 'ideas' | 'for_approval' | 'stake_approved' | 'hc_approval' | 'issue_calling' | 'ordained' | 'sustain' | 'set_apart' | 'record' | 'complete';
+export type Stage = 'ideas' | 'for_approval' | 'stake_approved' | 'pending_interview' | 'hc_approval' | 'issue_calling' | 'ordained' | 'sustain' | 'set_apart' | 'record' | 'complete';
 
 export const STAGE_LABELS: Record<Stage, string> = {
   ideas: 'Ideas',
   for_approval: 'For Approval',
   stake_approved: 'Stake Approved',
+  pending_interview: 'Pending Interview',
   hc_approval: 'HC Approval',
   issue_calling: 'Extend Calling',
   ordained: 'Extend Calling',
