@@ -9,6 +9,15 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.49.0',
+    date: '2026-08-25',
+    enhancements: [
+      'An approved Melchizedek Priesthood ordination now goes straight to Pending Interview instead of passing through Stake Approved. The presidency is not finished with the card until the candidate has been interviewed, so it stays in their part of the board until then. Pending Interview now sits next to For Approval on the Stake Presidency board, ahead of Stake Approved. Nothing changed for ward or stake callings.',
+      'Ordinations have a new Stake Interview task assignment naming who holds the interview. Only stake presidency members can be picked for it — the high council is not offered. Like the other assignments it has to be filled in before the calling can leave the approval queue, and the person assigned is the one badged while the card waits, rather than all three members of the presidency.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.48.1',
     date: '2026-08-25',
     enhancements: [],

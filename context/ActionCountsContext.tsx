@@ -41,7 +41,7 @@ export function ActionCountsProvider({ children }: { children: React.ReactNode }
     const [callingsRes, hcMembersRes, hcApprovalsRes, hcWardsRes, wardSustRes, spApprovalsRes] = await Promise.all([
       supabase
         .from('callings')
-        .select('id, type, ward_id, stage, extend_by, sustain_by, set_apart_by, record_by, created_by, rejected')
+        .select('id, type, ward_id, stage, interview_by, extend_by, sustain_by, set_apart_by, record_by, created_by, rejected')
         .eq('rejected', false)
         .neq('stage', 'complete'),
       supabase.from('high_council_members').select('id, name').eq('active', true),
@@ -56,6 +56,7 @@ export function ActionCountsProvider({ children }: { children: React.ReactNode }
       type: 'ward_calling' | 'stake_calling' | 'mp_ordination';
       ward_id: string | null;
       stage: string;
+      interview_by: string | null;
       extend_by: string | null;
       sustain_by: string | null;
       set_apart_by: string | null;
@@ -145,10 +146,17 @@ export function ActionCountsProvider({ children }: { children: React.ReactNode }
         else if (myRole === 'second_counselor' && !appr.second_counselor) sp++;
         else if (myRole === 'stake_president' && appr.first_counselor && appr.second_counselor && !appr.stake_president) sp++;
       }
-      // Pending Interview → the presidency owes the candidate an interview.
-      // Badge all three; there's no per-member record of who will hold it.
+      // Pending Interview → the presidency member assigned to hold the
+      // interview owes it. The advance gate makes that assignment mandatory
+      // before the card can get here, so the unassigned fallback (badge all
+      // three) should never fire — it exists so a card cannot sit unnoticed
+      // if it ever does.
       else if (c.stage === 'pending_interview') {
-        if (myRole === 'stake_president' || myRole === 'first_counselor' || myRole === 'second_counselor') sp++;
+        if (c.interview_by) {
+          if (c.interview_by === myName) sp++;
+        } else if (myRole === 'stake_president' || myRole === 'first_counselor' || myRole === 'second_counselor') {
+          sp++;
+        }
       }
     }
 

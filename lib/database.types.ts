@@ -32,6 +32,7 @@ export interface Calling {
   rejection_notes?: string;
   bishop_approved?: boolean;
   notes?: string;
+  interview_by?: string | null;
   extend_by?: string | null;
   sustain_by?: string | null;
   set_apart_by?: string | null;

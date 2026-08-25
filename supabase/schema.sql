@@ -57,6 +57,7 @@ create table callings (
     check (stage in ('ideas','for_approval','stake_approved','pending_interview','hc_approval','issue_calling','ordained','sustain','set_apart','record','complete')),
   rejected boolean not null default false,
   rejection_notes text,
+  interview_by text,
   org_recommended boolean default false,
   bishop_approved boolean default false,
   notes text,
