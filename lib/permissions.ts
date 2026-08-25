@@ -27,8 +27,8 @@ export interface AdvanceContext {
  * SP Board rules:
  *   ideas → for_approval:        Only Stake President
  *   for_approval → stake_approved: SP only before all 3 approved; ADMIN_GROUP after all 3
+ *   for_approval → pending_interview: MP ordinations — they skip stake_approved
  *   stake_approved → hc_approval: Any user
- *   stake_approved → pending_interview: MP ordinations only — any user
  *   pending_interview → hc_approval: ADMIN_GROUP (the presidency does the interview)
  *
  * HC Board rules:
@@ -124,9 +124,12 @@ export function getNextStage(stage: Stage, type: CallingType, isRelease = false)
   const isMP = type === 'mp_ordination';
   switch (stage) {
     case 'ideas': return 'for_approval';
-    case 'for_approval': return 'stake_approved';
-    // MP ordinations detour through the presidency's interview queue. Every
-    // other type goes straight to the high council, as it always has.
+    // An approved MP ordination goes to the interview queue INSTEAD of Stake
+    // Approved, not after it — the presidency still owes the candidate an
+    // interview, so the card has not finished with them yet. Every other type
+    // is unchanged. (stake_approved -> pending_interview is kept below only for
+    // a card converted to MP while already sitting in Stake Approved.)
+    case 'for_approval': return isMP ? 'pending_interview' : 'stake_approved';
     case 'stake_approved': return isMP ? 'pending_interview' : 'hc_approval';
     case 'pending_interview': return 'hc_approval';
     case 'hc_approval': return isMP ? 'sustain' : 'issue_calling';
@@ -151,7 +154,7 @@ export function getPrevStage(stage: Stage, type: CallingType, isRelease = false)
   switch (stage) {
     case 'for_approval': return 'ideas';
     case 'stake_approved': return 'for_approval';
-    case 'pending_interview': return 'stake_approved';
+    case 'pending_interview': return 'for_approval';
     case 'hc_approval': return isMP ? 'pending_interview' : 'stake_approved';
     case 'issue_calling': return 'hc_approval';
     case 'ordained': return 'hc_approval';
@@ -173,8 +176,10 @@ export function getAdvanceLabel(stage: Stage, type: CallingType, isRelease = fal
   }
   switch (stage) {
     case 'ideas': return 'Submit for Approval';
-    case 'for_approval': return 'Stake Presidency Approves';
+    case 'for_approval': return type === 'mp_ordination' ? 'Approve → Schedule Interview' : 'Stake Presidency Approves';
     case 'stake_approved': return type === 'mp_ordination' ? 'Send to Interview' : 'Send to High Council';
+    // (stake_approved is off the MP path now; the label survives for a card
+    //  converted to MP while sitting there.)
     case 'pending_interview': return 'Interview Complete → High Council';
     case 'hc_approval': return 'Mark Approved';
     case 'issue_calling': return 'Ready to Sustain';

@@ -576,7 +576,14 @@ const rmStyles = StyleSheet.create({
 // ─── Task Assignments ─────────────────────────────────────────────────────────
 interface Assignee { name: string; subtitle: string; }
 
-type TaskField = { key: 'extend_by' | 'sustain_by' | 'set_apart_by' | 'record_by'; labelKey: TranslationKey; locked?: boolean };
+type TaskField = {
+  key: 'interview_by' | 'extend_by' | 'sustain_by' | 'set_apart_by' | 'record_by';
+  labelKey: TranslationKey;
+  /** Not picked by hand — derived from a role. Rendered read-only. */
+  locked?: boolean;
+  /** Restricts who can be picked. 'sp' = stake presidency members only. */
+  scope?: 'sp';
+};
 
 /**
  * The task slots a card actually has, by kind. Single source of truth: the
@@ -601,8 +608,15 @@ function taskFieldsFor(calling: { is_release?: boolean | null; type: CallingType
     { key: 'set_apart_by', labelKey: 'detail.setApart' },
     { key: 'record_by', labelKey: 'detail.record', locked: true },
   ];
-  // MP ordinations skip Extend Calling entirely.
-  return calling.type === 'mp_ordination' ? fields.filter(f => f.key !== 'extend_by') : fields;
+  if (calling.type !== 'mp_ordination') return fields;
+  // MP ordinations skip Extend Calling entirely, and gain the Stake Interview
+  // slot that names who holds the interview the Pending Interview stage is
+  // waiting on. Only the presidency can be picked into it — the interview is
+  // theirs to conduct, so offering the high council there would be wrong.
+  return [
+    { key: 'interview_by', labelKey: 'detail.stakeInterview', scope: 'sp' },
+    ...fields.filter(f => f.key !== 'extend_by'),
+  ];
 }
 
 /**
@@ -617,14 +631,19 @@ function unassignedTaskFields(calling: Calling): TaskField[] {
   return taskFieldsFor(calling).filter(f => !f.locked && !(calling as any)[f.key]);
 }
 
-function TaskAssignmentsSection({ calling, assignees, clerkName, canEdit, onAssign }: {
-  calling: Calling; assignees: Assignee[]; clerkName: string | null; canEdit: boolean;
+function TaskAssignmentsSection({ calling, assignees, spAssignees, clerkName, canEdit, onAssign }: {
+  calling: Calling; assignees: Assignee[]; spAssignees: Assignee[];
+  clerkName: string | null; canEdit: boolean;
   onAssign: (field: string, name: string | null) => Promise<void>;
 }) {
   const { t } = useLanguage();
   const TASK_FIELDS = taskFieldsFor(calling).map(f => ({ ...f, label: t(f.labelKey) }));
   const [pickerField, setPickerField] = useState<string | null>(null);
   const visibleFields = TASK_FIELDS;
+  // Whose names the open picker offers. Scoped slots narrow the list rather
+  // than validating after the fact, so an ineligible name is never on screen.
+  const pickerAssignees =
+    TASK_FIELDS.find(f => f.key === pickerField)?.scope === 'sp' ? spAssignees : assignees;
 
   return (
     <View style={taStyles.container}>
@@ -663,7 +682,7 @@ function TaskAssignmentsSection({ calling, assignees, clerkName, canEdit, onAssi
               <Text style={[taStyles.modalItemText, { color: Colors.gray[400] }]}>{t('detail.unassign')}</Text>
             </TouchableOpacity>
             <FlatList
-              data={assignees}
+              data={pickerAssignees}
               keyExtractor={a => a.name}
               renderItem={({ item: a }) => (
                 <TouchableOpacity
@@ -1028,6 +1047,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
 
     // Determine assignee for the next stage for Slack @mention
     const stageAssigneeMap: Partial<Record<string, string | null>> = {
+      pending_interview: calling.interview_by,
       issue_calling: calling.extend_by,
       ordained: calling.extend_by,
       sustain: calling.sustain_by,
@@ -1313,6 +1333,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
 
   // Determine if current user is the assigned person for this stage's task
   const stageAssignmentField: Partial<Record<string, string | null | undefined>> = {
+    pending_interview: calling.interview_by,
     issue_calling: calling.extend_by,
     ordained: calling.extend_by,
     sustain: calling.sustain_by,
@@ -1513,6 +1534,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
           <TaskAssignmentsSection
             calling={calling}
             assignees={taskAssignees}
+            spAssignees={spAssignees}
             clerkName={clerkName}
             canEdit={canAssign}
             onAssign={handleAssign}

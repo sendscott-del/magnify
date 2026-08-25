@@ -28,6 +28,7 @@ interface Calling {
   type: "ward_calling" | "stake_calling" | "mp_ordination";
   ward_id: string | null;
   stage: string;
+  interview_by: string | null;
   extend_by: string | null;
   sustain_by: string | null;
   set_apart_by: string | null;
@@ -123,9 +124,15 @@ function computeCountForUser(
       else if (myRole === "second_counselor" && !appr.second_counselor) count++;
       else if (myRole === "stake_president" && appr.first_counselor && appr.second_counselor && !appr.stake_president) count++;
     } else if (c.stage === "pending_interview") {
-      // Pending Interview → the presidency owes the candidate an interview.
-      // Badge all three; there's no per-member record of who will hold it.
-      if (myRole === "stake_president" || myRole === "first_counselor" || myRole === "second_counselor") count++;
+      // Pending Interview → the assigned presidency member owes the interview.
+      // Unassigned should be unreachable (the advance gate requires it), so the
+      // fallback only stops a stray card sitting unnoticed. (Mirrors
+      // ActionCountsContext.)
+      if (c.interview_by) {
+        if (c.interview_by === myName) count++;
+      } else if (myRole === "stake_president" || myRole === "first_counselor" || myRole === "second_counselor") {
+        count++;
+      }
     } else if (c.stage === "ideas") {
       // New idea → only the Stake President advances Ideas. Badge him for ideas
       // he didn't submit himself; never his own.
@@ -149,7 +156,7 @@ Deno.serve(async (req: Request) => {
   // Pull everything we need in parallel.
   const [callingsRes, hcMembersRes, approvalsRes, hcWardsRes, wardSustRes, subsRes] = await Promise.all([
     supa.from("callings")
-      .select("id, type, ward_id, stage, extend_by, sustain_by, set_apart_by, record_by, created_by, stake_id")
+      .select("id, type, ward_id, stage, interview_by, extend_by, sustain_by, set_apart_by, record_by, created_by, stake_id")
       .eq("rejected", false).neq("stage", "complete"),
     supa.from("high_council_members").select("id, name, stake_id").eq("active", true),
     supa.from("hc_approvals").select("calling_id, hc_member_id, approved"),
