@@ -29,6 +29,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [isRecovery, setIsRecovery] = useState(false);
   const isRecoveryRef = useRef(false);
+  // Which user the loaded profile belongs to. Lets an auth event tell a real
+  // sign-in (new user — the UI must gate) from a token refresh for the user we
+  // already have (must not).
+  const knownUserId = useRef<string | null>(null);
 
   function clearRecovery() {
     isRecoveryRef.current = false;
@@ -39,8 +43,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user) fetchProfile(session.user.id);
-      else setLoading(false);
+      if (session?.user) {
+        knownUserId.current = session.user.id;
+        fetchProfile(session.user.id);
+      } else {
+        setLoading(false);
+      }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -51,11 +59,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        // Don't flash loading spinner during password recovery — the profile
-        // is already loaded and re-mounting the screen loses the success state
-        if (!isRecoveryRef.current) setLoading(true);
+        // `loading` unmounts the entire NavigationContainer (AppNavigator), so
+        // raising it here is not a spinner — it tears the app down and rebuilds
+        // the screen underneath from scratch.
+        //
+        // A TOKEN_REFRESHED event is not a sign-in. auth-js refreshes on a 30s
+        // ticker whenever the token is within 90s of expiring, and on iOS that
+        // ticker is suspended while the app is backgrounded — so the first tick
+        // after switching back to the app very often fires one. Gating on it
+        // rebuilt whatever board was open; on the HC board that is a teardown
+        // plus eight parallel queries, which reads as the app freezing. Worse,
+        // if the profile request never came back (RN fetch has no timeout) the
+        // spinner was permanent and the app had to be force-quit. Reported
+        // 2026-08-23, still reproducing on 2.48.0.
+        //
+        // So: only gate the UI when the signed-in user actually changed. A
+        // refresh for the user we already have re-reads the profile quietly.
+        const sameUser = knownUserId.current === session.user.id;
+        knownUserId.current = session.user.id;
+        if (!sameUser && !isRecoveryRef.current) setLoading(true);
         fetchProfile(session.user.id);
       } else {
+        knownUserId.current = null;
         setProfile(null);
         setLoading(false);
       }
@@ -73,21 +98,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user?.id, profile?.status]);
 
   async function fetchProfile(userId: string) {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .eq('app', 'magnify')
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .eq('app', 'magnify')
+        .single();
 
-    // No auto-create fallback. All apps on this Supabase project share
-    // auth.users, so an authenticated user from another app (Duty, Sparkle,
-    // etc.) who merely opens Magnify must NOT get a Magnify pending row.
-    // Real Magnify signups get their profiles row from the DB trigger
-    // (signUp passes data: { app: 'magnify' }). A null profile routes to
-    // the PendingApprovalScreen; access is granted via the Gather hub.
-    setProfile(data ?? null);
-    setLoading(false);
+      // Distinguish "this user has no Magnify profile" from "the request
+      // failed". Only the first should clear the profile: nulling it on a
+      // dropped connection routes an approved user to PendingApprovalScreen,
+      // which is exactly what a phone waking from the background hits.
+      // PGRST116 is PostgREST's no-rows-returned code for .single().
+      const noRow = !error || error.code === 'PGRST116';
+
+      // No auto-create fallback. All apps on this Supabase project share
+      // auth.users, so an authenticated user from another app (Duty, Sparkle,
+      // etc.) who merely opens Magnify must NOT get a Magnify pending row.
+      // Real Magnify signups get their profiles row from the DB trigger
+      // (signUp passes data: { app: 'magnify' }). A null profile routes to
+      // the PendingApprovalScreen; access is granted via the Gather hub.
+      if (noRow) setProfile(data ?? null);
+    } finally {
+      // Always, on every path. This clears the gate that hides the whole
+      // navigator, so a throw here used to strand the app on a spinner.
+      setLoading(false);
+    }
   }
 
   async function refreshProfile() {

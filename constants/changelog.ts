@@ -9,6 +9,15 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.48.1',
+    date: '2026-08-25',
+    enhancements: [],
+    bugFixes: [
+      'Fixed the app freezing when you switch away and come back, which happened most often on the High Council board. Behind the scenes the app renews your sign-in about once an hour. On iPhone that renewal is held until you return to the app, and when it ran the app treated it like a brand-new sign-in: it tore the whole screen down and rebuilt it. On the High Council board that meant re-running every query on the board at once, which is the pause that looked like a freeze — and if the network was still waking up, the app could sit on the spinner until it was force-quit. A renewal for the person already signed in is now handled quietly in the background, and the sign-in renewal itself is paused while the app is closed instead of firing the moment you reopen it.',
+      'A dropped connection while the app was waking up could also bounce you to the "waiting for approval" screen, because a failed profile lookup was treated the same as having no account. A failed lookup now leaves you signed in as you were.',
+    ],
+  },
+  {
     version: '2.48.0',
     date: '2026-08-25',
     enhancements: [
