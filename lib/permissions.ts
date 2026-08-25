@@ -28,6 +28,8 @@ export interface AdvanceContext {
  *   ideas → for_approval:        Only Stake President
  *   for_approval → stake_approved: SP only before all 3 approved; ADMIN_GROUP after all 3
  *   stake_approved → hc_approval: Any user
+ *   stake_approved → pending_interview: MP ordinations only — any user
+ *   pending_interview → hc_approval: ADMIN_GROUP (the presidency does the interview)
  *
  * HC Board rules:
  *   hc_approval → extend/sustain: SP only before >50% HC; ADMIN_GROUP after >50%. HC never.
@@ -56,8 +58,15 @@ export function canAdvanceStage(role: UserRole, stage: Stage, _type: CallingType
       return ctx?.spAllApproved === true && ADMIN_GROUP.includes(role);
 
     case 'stake_approved':
-      // Any user can move from Stake Approved to HC Approval
+      // Any user can move from Stake Approved onward (to HC Approval, or to
+      // Pending Interview for an MP ordination)
       return ALL_APPROVED.includes(role);
+
+    case 'pending_interview':
+      // The stake presidency conducts the interview. Clerk and exec secretary
+      // are included because they schedule them and often record the outcome;
+      // high councilors are not — the card hasn't reached them yet.
+      return ADMIN_GROUP.includes(role);
 
     case 'hc_approval':
       // High councilors NEVER see the advance button
@@ -116,7 +125,10 @@ export function getNextStage(stage: Stage, type: CallingType, isRelease = false)
   switch (stage) {
     case 'ideas': return 'for_approval';
     case 'for_approval': return 'stake_approved';
-    case 'stake_approved': return 'hc_approval';
+    // MP ordinations detour through the presidency's interview queue. Every
+    // other type goes straight to the high council, as it always has.
+    case 'stake_approved': return isMP ? 'pending_interview' : 'hc_approval';
+    case 'pending_interview': return 'hc_approval';
     case 'hc_approval': return isMP ? 'sustain' : 'issue_calling';
     case 'issue_calling': return 'sustain';
     case 'ordained': return 'sustain'; // legacy stage
@@ -139,7 +151,8 @@ export function getPrevStage(stage: Stage, type: CallingType, isRelease = false)
   switch (stage) {
     case 'for_approval': return 'ideas';
     case 'stake_approved': return 'for_approval';
-    case 'hc_approval': return 'stake_approved';
+    case 'pending_interview': return 'stake_approved';
+    case 'hc_approval': return isMP ? 'pending_interview' : 'stake_approved';
     case 'issue_calling': return 'hc_approval';
     case 'ordained': return 'hc_approval';
     case 'sustain': return isMP ? 'hc_approval' : 'issue_calling';
@@ -150,7 +163,7 @@ export function getPrevStage(stage: Stage, type: CallingType, isRelease = false)
   }
 }
 
-export function getAdvanceLabel(stage: Stage, _type: CallingType, isRelease = false): string {
+export function getAdvanceLabel(stage: Stage, type: CallingType, isRelease = false): string {
   if (isRelease) {
     switch (stage) {
       case 'for_approval': return 'Approve Release → Sustain';
@@ -161,7 +174,8 @@ export function getAdvanceLabel(stage: Stage, _type: CallingType, isRelease = fa
   switch (stage) {
     case 'ideas': return 'Submit for Approval';
     case 'for_approval': return 'Stake Presidency Approves';
-    case 'stake_approved': return 'Send to High Council';
+    case 'stake_approved': return type === 'mp_ordination' ? 'Send to Interview' : 'Send to High Council';
+    case 'pending_interview': return 'Interview Complete → High Council';
     case 'hc_approval': return 'Mark Approved';
     case 'issue_calling': return 'Ready to Sustain';
     case 'ordained': return 'Ready to Sustain';

@@ -130,7 +130,7 @@ export function AppNavigator() {
     // Pick the right tab based on the calling's stage so the back-press
     // lands on the matching kanban board. Defaults to HC if the lookup
     // fails so the user still reaches the detail screen.
-    const SP_STAGES = ['ideas', 'for_approval', 'stake_approved'];
+    const SP_STAGES = ['ideas', 'for_approval', 'stake_approved', 'pending_interview'];
     const COMPLETED_STAGES = ['complete'];
 
     (async () => {

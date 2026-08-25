@@ -9,6 +9,15 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.48.0',
+    date: '2026-08-25',
+    enhancements: [
+      'The Stake Presidency board has a new Pending Interview column for Melchizedek Priesthood ordinations. Ordinations used to be entered only after the presidency had already interviewed the candidate, which is why they went straight to the High Council. Now that an ordination is entered up front and works its way through the presidency board, the interview has a place to sit: once the presidency approves it, the card waits in Pending Interview until the interview is done, and only then does it go to the High Council. Every other calling still goes from Stake Approved straight to HC Approval — the new column only ever holds ordinations.',
+      'The presidency is badged for ordinations waiting on an interview, the same way they are badged for callings waiting on their approval, so a card cannot sit there unnoticed.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.47.1',
     date: '2026-08-23',
     enhancements: [],

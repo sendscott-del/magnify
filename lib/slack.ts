@@ -14,7 +14,7 @@ export async function postToWebhook(webhookUrl: string, text: string): Promise<v
   }
 }
 
-const SP_STAGES = ['ideas', 'for_approval', 'stake_approved'];
+const SP_STAGES = ['ideas', 'for_approval', 'stake_approved', 'pending_interview'];
 
 // Returns the webhooks for the FIRST event type in `eventTypes` that has an
 // active webhook configured — a priority list, not a union. Used to route an

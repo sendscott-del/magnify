@@ -39,6 +39,8 @@ const SEEDS: DemoCallingSeed[] = [
   // Stake approved
   { stage: 'stake_approved', type: 'ward_calling', calling_name: 'Relief Society President',  member_name: 'Sister Olsen',     ward_idx: 4, age_days: 6 },
   { stage: 'stake_approved', type: 'stake_calling', calling_name: 'High Council (Missionary)', member_name: 'Brother Ng',     ward_idx: 2, age_days: 7 },
+  // Pending interview (MP only)
+  { stage: 'pending_interview', type: 'mp_ordination', calling_name: 'Ordain to Elder',      member_name: 'Brother Duarte',   ward_idx: 3, age_days: 7 },
   // HC approval
   { stage: 'hc_approval',   type: 'mp_ordination', calling_name: 'Ordain to High Priest',     member_name: 'Brother Smith',    ward_idx: 1, age_days: 8 },
   // Issue calling / extend
@@ -70,7 +72,7 @@ function makeCalling(seed: DemoCallingSeed, idx: number): Calling {
     member_name: seed.member_name,
     rejected: seed.rejected ?? false,
     rejection_notes: seed.rejected ? 'Conflicts with another calling' : undefined,
-    bishop_approved: ['stake_approved', 'hc_approval', 'issue_calling', 'ordained', 'sustain', 'set_apart', 'record', 'complete'].includes(seed.stage),
+    bishop_approved: ['stake_approved', 'pending_interview', 'hc_approval', 'issue_calling', 'ordained', 'sustain', 'set_apart', 'record', 'complete'].includes(seed.stage),
     extend_by: null,
     sustain_by: null,
     set_apart_by: null,
@@ -88,7 +90,7 @@ const ALL = SEEDS.map((s, i) => makeCalling(s, i));
 
 export function getDemoActiveCallings(): Calling[] {
   // Active = stage in ACTIVE_STAGES, not rejected.
-  return ALL.filter(c => ['ideas', 'for_approval', 'stake_approved'].includes(c.stage) && !c.rejected);
+  return ALL.filter(c => ['ideas', 'for_approval', 'stake_approved', 'pending_interview'].includes(c.stage) && !c.rejected);
 }
 
 export function getDemoHCCallings(): Calling[] {

@@ -54,7 +54,7 @@ create table callings (
   ordination_type text check (ordination_type in ('elder','high_priest')),
   ward_id uuid references wards(id) on delete restrict not null,
   stage text not null default 'ideas'
-    check (stage in ('ideas','for_approval','stake_approved','hc_approval','issue_calling','ordained','sustain','set_apart','record','complete')),
+    check (stage in ('ideas','for_approval','stake_approved','pending_interview','hc_approval','issue_calling','ordained','sustain','set_apart','record','complete')),
   rejected boolean not null default false,
   rejection_notes text,
   org_recommended boolean default false,
