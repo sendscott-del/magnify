@@ -40,7 +40,7 @@ export function HCKanbanScreen({ navigation }: any) {
 
   const HC_COLUMNS = [
     { stages: ['hc_approval'], label: t('stage.hc_approval'), color: Colors.stage.hc_approval },
-    { stages: ['issue_calling', 'ordained'], label: t('stage.issue_calling'), color: Colors.stage.issue_calling },
+    { stages: ['issue_calling', 'ordained'], label: t('stage.issue_calling_column'), color: Colors.stage.issue_calling },
     { stages: ['sustain'], label: t('stage.sustain'), color: Colors.stage.sustain },
     { stages: ['set_apart'], label: t('stage.set_apart'), color: Colors.stage.set_apart },
     { stages: ['record'], label: t('stage.record'), color: Colors.stage.record },

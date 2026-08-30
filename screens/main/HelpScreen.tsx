@@ -218,7 +218,7 @@ export function HelpScreen({ navigation }: any) {
           <Item label={t('stage.stake_approved')} description={t('help.stage.stake_approved')} />
           <Item label={t('stage.pending_interview')} description={t('help.stage.pending_interview')} />
           <Item label={t('stage.hc_approval')} description={t('help.stage.hc_approval')} />
-          <Item label={t('stage.issue_calling')} description={t('help.stage.extend')} />
+          <Item label={t('stage.issue_calling_column')} description={t('help.stage.extend')} />
           <Item label={t('stage.sustain')} description={t('help.stage.sustain')} />
           <Item label={t('stage.set_apart')} description={t('help.stage.setApart')} />
           <Item label={t('stage.record')} description={t('help.stage.record')} />

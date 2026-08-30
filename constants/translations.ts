@@ -99,6 +99,9 @@ export const translations = {
     'stage.pending_interview': 'Pending Interview',
     'stage.hc_approval': 'HC Approval',
     'stage.issue_calling': 'Extend Calling',
+    // Board column header. Longer than the card badge on purpose - the header
+    // has the room, and both kinds of card live in this column now.
+    'stage.issue_calling_column': 'Extend Calling / Release',
     'stage.ordained': 'Extend Calling',
     'stage.sustain': 'Sustain',
     'stage.set_apart': 'Set Apart',
@@ -511,7 +514,7 @@ export const translations = {
     // Help Screen
     'help.accessPermissions': 'Access Permissions',
     'help.releases': 'Releases',
-    'help.releasesBody': 'A Release (New tab, stake presidency only) announces that someone is being released without creating a new calling. It waits in the Stake Presidency approval queue until the Stake President approves it, then jumps straight to the Sustain column on the HC board, badged RELEASE. Pick a ward to send it to that ward\'s covering high councilor, or leave the ward empty for a stake-level release that every ward announces. Once announced, tap once more to complete it — no set-apart or record steps.',
+    'help.releasesBody': 'A Release (New tab, stake presidency only) announces that someone is being released without creating a new calling. It waits in the Stake Presidency approval queue until the Stake President approves it, then moves to the Extend Calling / Release column on the HC board, badged RELEASE, where the assigned person has the release conversation with the member. From there it goes to Sustain to be announced. Pick a ward to send it to that ward\'s covering high councilor, or leave the ward empty for a stake-level release that every ward announces. Once announced, tap once more to complete it — no set-apart or record steps.',
     'help.multiStake': 'Multiple Stakes & Invites',
     'help.multiStakeBody': 'Magnify keeps each stake completely separate — your callings, rosters, and approvals are visible only to your own stake\'s leaders. Admins can invite new members with a code (Settings → Pending Access → Invite members): anyone who enters it at sign-up lands in your stake, and your admins approve them on the Pending Access screen. A leader from another stake can request their own stake from the "Awaiting Approval" screen after creating an account.',
     'help.title': 'User Guide',
@@ -537,7 +540,7 @@ export const translations = {
     'help.stage.stake_approved': 'Approved by the Stake Presidency. Ready for High Council action.',
     'help.stage.pending_interview': 'Melchizedek Priesthood ordinations only. Once the Stake Presidency approves, the card comes here instead of Stake Approved and waits for the assigned presidency member to interview the candidate. After the interview it moves on to HC Approval.',
     'help.stage.hc_approval': 'High Councilors vote to approve. At least 50% must approve (or Stake President overrides).',
-    'help.stage.extend': 'An HC member or stake presidency member extends the calling to the member.',
+    'help.stage.extend': 'An HC member or stake presidency member extends the calling to the member. Releases pass through here too — this is where the release is communicated to the member, before it is announced.',
     'help.stage.sustain': 'The member is presented and sustained in their ward. For stake callings the member is sustained in all wards.',
     'help.stage.setApart': 'A blessing is performed to set the member apart in their calling.',
     'help.stage.record': 'The calling is recorded in Church records.',
@@ -764,6 +767,7 @@ export const translations = {
     'stage.pending_interview': 'Entrevista Pendiente',
     'stage.hc_approval': 'Aprobaci\u00f3n del CH',
     'stage.issue_calling': 'Extender Llamamiento',
+    'stage.issue_calling_column': 'Extender Llamamiento / Relevo',
     'stage.ordained': 'Extender Llamamiento',
     'stage.sustain': 'Sostener',
     'stage.set_apart': 'Apartar',
@@ -1176,7 +1180,7 @@ export const translations = {
     // Help Screen
     'help.accessPermissions': 'Permisos de Acceso',
     'help.releases': 'Relevos',
-    'help.releasesBody': 'Un Relevo (pestaña Nuevo, solo presidencia de estaca) anuncia que alguien es relevado sin crear un nuevo llamamiento. Espera en la cola de aprobación de la Presidencia de Estaca hasta que el Presidente de Estaca lo aprueba, y entonces pasa directamente a la columna Sostener del tablero del CA, marcado como RELEVO. Elija un barrio para enviarlo al sumo consejero que cubre ese barrio, o deje el barrio vacío para un relevo a nivel de estaca que todos los barrios anuncian. Una vez anunciado, un toque más lo completa — sin pasos de apartamiento ni registro.',
+    'help.releasesBody': 'Un Relevo (pestaña Nuevo, solo presidencia de estaca) anuncia que alguien es relevado sin crear un nuevo llamamiento. Espera en la cola de aprobación de la Presidencia de Estaca hasta que el Presidente de Estaca lo aprueba, y entonces pasa a la columna Extender Llamamiento / Relevo del tablero del CA, marcado como RELEVO, donde la persona asignada tiene la conversación del relevo con el miembro. De ahí pasa a Sostener para anunciarlo. Elija un barrio para enviarlo al sumo consejero que cubre ese barrio, o deje el barrio vacío para un relevo a nivel de estaca que todos los barrios anuncian. Una vez anunciado, un toque más lo completa — sin pasos de apartamiento ni registro.',
     'help.multiStake': 'Varias Estacas e Invitaciones',
     'help.multiStakeBody': 'Magnify mantiene cada estaca completamente separada — sus llamamientos, listas y aprobaciones solo son visibles para los líderes de su propia estaca. Los administradores pueden invitar a nuevos miembros con un código (Configuración → Acceso Pendiente → Invitar miembros): quien lo ingrese al registrarse queda en su estaca, y sus administradores lo aprueban en la pantalla de Acceso Pendiente. Un líder de otra estaca puede solicitar su propia estaca desde la pantalla "En Espera de Aprobación" después de crear una cuenta.',
     'help.title': 'Gu\u00eda del Usuario',
@@ -1202,7 +1206,7 @@ export const translations = {
     'help.stage.stake_approved': 'Aprobado por la Presidencia de Estaca. Listo para acci\u00f3n del Alto Consejo.',
     'help.stage.pending_interview': 'Solo para ordenaciones del Sacerdocio de Melquisedec. Una vez que la Presidencia de Estaca aprueba, la tarjeta llega aqu\u00ed en lugar de Aprobado por Estaca y espera a que el miembro asignado de la presidencia entreviste al candidato. Despu\u00e9s de la entrevista pasa a la Aprobaci\u00f3n del CH.',
     'help.stage.hc_approval': 'Los Altos Consejeros votan para aprobar. Al menos el 50% debe aprobar (o el Presidente de Estaca puede anular).',
-    'help.stage.extend': 'Un miembro del CH o de la presidencia de estaca extiende el llamamiento al miembro.',
+    'help.stage.extend': 'Un miembro del CH o de la presidencia de estaca extiende el llamamiento al miembro. Los relevos también pasan por aquí — aquí se comunica el relevo al miembro, antes de anunciarlo.',
     'help.stage.sustain': 'El miembro es presentado y sostenido en su barrio. Para llamamientos de estaca, el miembro es sostenido en todos los barrios.',
     'help.stage.setApart': 'Se realiza una bendici\u00f3n para apartar al miembro en su llamamiento.',
     'help.stage.record': 'El llamamiento se registra en los registros de la Iglesia.',
