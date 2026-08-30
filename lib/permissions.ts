@@ -38,9 +38,11 @@ export interface AdvanceContext {
  *   set_apart → record:           ADMIN_GROUP or assigned set_apart_by user
  *   record → complete:            ADMIN_GROUP only
  *
- * Releases (isRelease) short-circuit the pipeline: for_approval → sustain →
- * complete. Leaving for_approval is the Stake President's click alone — the
- * all-3-approved path never applies to a release.
+ * Releases (isRelease) run a short pipeline: for_approval → issue_calling →
+ * sustain → complete. Leaving for_approval is the Stake President's click
+ * alone — the all-3-approved path never applies to a release. From
+ * issue_calling on, the normal rules apply, so the person assigned to have the
+ * release conversation can hand it on themselves.
  */
 export function canAdvanceStage(role: UserRole, stage: Stage, _type: CallingType, ctx?: AdvanceContext, isRelease = false): boolean {
   if (isRelease && stage === 'for_approval') {
@@ -114,9 +116,13 @@ export function canDelete(role: UserRole): boolean {
 
 export function getNextStage(stage: Stage, type: CallingType, isRelease = false): Stage | null {
   if (isRelease) {
-    // Announcement-only: approve → announce (sustain) → done.
+    // Approve → have the release conversation (issue_calling) → announce
+    // (sustain) → done. The conversation stop was added 2026-08-25: a release
+    // used to jump straight to Sustain, which announced it over the pulpit
+    // before anyone had necessarily told the member.
     switch (stage) {
-      case 'for_approval': return 'sustain';
+      case 'for_approval': return 'issue_calling';
+      case 'issue_calling': return 'sustain';
       case 'sustain': return 'complete';
       default: return null;
     }
@@ -145,7 +151,8 @@ export function getNextStage(stage: Stage, type: CallingType, isRelease = false)
 export function getPrevStage(stage: Stage, type: CallingType, isRelease = false): Stage | null {
   if (isRelease) {
     switch (stage) {
-      case 'sustain': return 'for_approval';
+      case 'issue_calling': return 'for_approval';
+      case 'sustain': return 'issue_calling';
       case 'complete': return 'sustain';
       default: return null;
     }
@@ -169,7 +176,8 @@ export function getPrevStage(stage: Stage, type: CallingType, isRelease = false)
 export function getAdvanceLabel(stage: Stage, type: CallingType, isRelease = false): string {
   if (isRelease) {
     switch (stage) {
-      case 'for_approval': return 'Approve Release → Sustain';
+      case 'for_approval': return 'Approve Release → Extend';
+      case 'issue_calling': return 'Released — Ready to Announce';
       case 'sustain': return 'Announced — Complete';
       default: return 'Advance';
     }

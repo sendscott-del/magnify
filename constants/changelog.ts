@@ -9,6 +9,16 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.50.0',
+    date: '2026-08-25',
+    enhancements: [
+      'An approved release now goes to the Extend Calling column instead of jumping straight to Sustain. The release has to be communicated to the member before it is announced over the pulpit, and there was no stop on the board for that — the card went from the presidency approving it to being read out. The person assigned to Extend Release now has the conversation, marks it done, and only then does it move to Sustain to be announced. Completing it is unchanged: announce, then one more tap.',
+      'That column is now labelled "Extend Calling / Release" on the High Council board, since both kinds of card pass through it.',
+      'Releases already in flight were left where they are — a release sitting in Sustain still just needs announcing and completing.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.49.0',
     date: '2026-08-25',
     enhancements: [
