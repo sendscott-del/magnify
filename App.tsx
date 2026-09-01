@@ -6,6 +6,7 @@ import { AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { DemoModeProvider } from './context/DemoModeContext';
 import { ActionCountsProvider } from './context/ActionCountsContext';
+import { DashboardProvider } from './context/DashboardContext';
 import { AppNavigator } from './navigation/AppNavigator';
 import { configureForegroundNotifications } from './lib/nativePush';
 
@@ -21,7 +22,9 @@ export default function App() {
           <AuthProvider>
             <DemoModeProvider>
               <ActionCountsProvider>
-                <AppNavigator />
+                <DashboardProvider>
+                  <AppNavigator />
+                </DashboardProvider>
               </ActionCountsProvider>
             </DemoModeProvider>
           </AuthProvider>

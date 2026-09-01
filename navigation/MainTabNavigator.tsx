@@ -23,9 +23,26 @@ import { ReleaseNotesScreen } from '../screens/main/ReleaseNotesScreen';
 import { PendingAccessScreen } from '../screens/main/PendingAccessScreen';
 import { SlackSettingsScreen } from '../screens/main/SlackSettingsScreen';
 import { HighCouncilScreen } from '../screens/main/HighCouncilScreen';
+import { DashboardScreen } from '../screens/main/DashboardScreen';
+import { DashboardDrillScreen } from '../screens/main/DashboardDrillScreen';
+import { StandardWorkScreen } from '../screens/main/StandardWorkScreen';
+import { ReviewQueueScreen } from '../screens/main/ReviewQueueScreen';
+import { MetricsHistoryScreen } from '../screens/main/MetricsHistoryScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
+
+function DashboardStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="DashboardMain" component={DashboardScreen} />
+      <Stack.Screen name="DashboardDrill" component={DashboardDrillScreen} />
+      <Stack.Screen name="StandardWork" component={StandardWorkScreen} />
+      <Stack.Screen name="ReviewQueue" component={ReviewQueueScreen} />
+      <Stack.Screen name="MetricsHistory" component={MetricsHistoryScreen} />
+    </Stack.Navigator>
+  );
+}
 
 function PresidencyStack() {
   return (
@@ -45,15 +62,6 @@ function HCStack() {
   );
 }
 
-function CompletedStack() {
-  return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="CompletedList" component={CompletedCallingsScreen} />
-      <Stack.Screen name="CallingDetail" component={CallingDetailScreen} />
-    </Stack.Navigator>
-  );
-}
-
 function SettingsStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -63,6 +71,11 @@ function SettingsStack() {
       <Stack.Screen name="PendingAccess" component={PendingAccessScreen} />
       <Stack.Screen name="SlackSettings" component={SlackSettingsScreen} />
       <Stack.Screen name="HighCouncil" component={HighCouncilScreen} />
+      {/* Completed lost its own tab when Dashboard became tab one — six bottom
+          tabs is one too many. It lives under Settings on phone; the desktop
+          sidebar still lists it directly, where there's room. */}
+      <Stack.Screen name="CompletedList" component={CompletedCallingsScreen} />
+      <Stack.Screen name="CallingDetail" component={CallingDetailScreen} />
     </Stack.Navigator>
   );
 }
@@ -106,6 +119,7 @@ export function MainTabNavigator() {
             );
           }
           const icons: Record<string, keyof typeof Ionicons.glyphMap> = {
+            Dashboard: focused ? 'grid' : 'grid-outline',
             New: 'add-circle',
             Completed: 'checkmark-done',
             Settings: 'settings-outline',
@@ -115,6 +129,19 @@ export function MainTabNavigator() {
         },
       })}
     >
+      {/* Dashboard is tab one and the app's home — it answers "what's blocked
+          on me" before any board does. */}
+      <Tab.Screen
+        name="Dashboard"
+        component={DashboardStack}
+        options={{ tabBarLabel: t('nav.dashboard') }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+            navigation.navigate('Dashboard', { screen: 'DashboardMain' });
+          },
+        })}
+      />
       <Tab.Screen
         name="New"
         component={NewCallingScreen}
@@ -149,11 +176,6 @@ export function MainTabNavigator() {
             navigation.navigate('HC', { screen: 'HCMain' });
           },
         })}
-      />
-      <Tab.Screen
-        name="Completed"
-        component={CompletedStack}
-        options={{ tabBarLabel: t('nav.completed') }}
       />
       <Tab.Screen
         name="Settings"

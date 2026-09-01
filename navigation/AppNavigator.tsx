@@ -39,6 +39,11 @@ const linking: LinkingOptions<any> = {
       Pending: 'pending',
       Main: {
         screens: {
+          DashboardMain: 'dashboard',
+          DashboardDrill: 'dashboard/list/:drill',
+          StandardWork: 'dashboard/standard-work',
+          ReviewQueue: 'dashboard/review',
+          MetricsHistory: 'dashboard/metrics',
           New: 'new',
           PresidencyMain: 'board',
           HCMain: 'hc',

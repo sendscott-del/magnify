@@ -236,6 +236,18 @@ export function SettingsScreen({ navigation }: any) {
           />
         </Section>
 
+        {/* Callings archive — Completed gave up its bottom tab to the
+            Dashboard, so this is its only route on phone. */}
+        <Section label={t('settings.callingsSection')}>
+          <Row
+            icon="checkmark-done"
+            label={t('nav.completed')}
+            sub={t('settings.completedSub')}
+            onPress={() => navigation.navigate('CompletedList')}
+            last
+          />
+        </Section>
+
         {/* Help */}
         <Section label={t('settings.helpSection')}>
           <Row

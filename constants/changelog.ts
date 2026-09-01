@@ -9,6 +9,24 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.51.0',
+    date: '2026-08-31',
+    enhancements: [
+      'New Dashboard — and it is now the app\'s home screen. One place that answers what is blocked on you, what the state of the stake is, and what long efforts are in flight. Three sections, always in the same order: "Needs you", "The stake right now", and "Workstreams".',
+      '"Needs you" lists only what is actually waiting on you — overdue first, then due within a week, never more than seven rows. Each row has a tap target on the right edge that marks it done immediately, with five seconds to undo. When nothing is waiting, it says so and tells you the next date something is due.',
+      '"The stake right now" is a set of number tiles: temple recommend interviews outstanding, ward audits outstanding, callings in flight, quarterly interviews, assignments to the high council, and directives from area leadership. Every tile says how many, by when, and whose, and taps through to the list behind it.',
+      'Workstreams group a long effort — a stake conference, an audit cycle — so its items travel together, with one tick per piece of work so progress is countable rather than estimated.',
+      'The dashboard is role-aware. A high councilor sees his own assignments, the callings awaiting his vote, his quarterly interview, and his standard work — and does not see the stake\'s audit, recommend, or metrics tiles. A "Mine / Everyone" switch re-scopes the whole screen.',
+      'Quarterly metrics appear as a compact strip with a trend against last quarter; the full history per metric is one tap away.',
+      'Items are fully editable behind a visible Edit button — title, owner, due date, status, and workstream — and can be assigned to leaders who do not have a Magnify account.',
+      'Quarterly interviews and your weekly standard work are read live from Steward rather than copied, so the numbers here and the numbers there are the same numbers. Marking standard work done on the dashboard writes back to your Steward grid.',
+      'Standard work has its own screen, separate from interviews, that explains the difference: standard work is a recurring duty of your calling; an interview is a one-off conversation with one person on one date.',
+      'A review queue holds anything extracted from a meeting until a member of the presidency approves it. Nothing extracted appears on the dashboard before that, transcript text is never stored, and items carry scheduling only.',
+      'Completed callings moved from its own tab to Settings so the Dashboard could take the first tab. Everything in it is unchanged.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.50.0',
     date: '2026-08-25',
     enhancements: [

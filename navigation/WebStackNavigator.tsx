@@ -1,6 +1,5 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useAuth } from '../context/AuthContext';
 import { PresidencyKanbanScreen } from '../screens/main/PresidencyKanbanScreen';
 import { HCKanbanScreen } from '../screens/main/HCKanbanScreen';
 import { NewCallingScreen } from '../screens/main/NewCallingScreen';
@@ -12,6 +11,11 @@ import { ReleaseNotesScreen } from '../screens/main/ReleaseNotesScreen';
 import { PendingAccessScreen } from '../screens/main/PendingAccessScreen';
 import { SlackSettingsScreen } from '../screens/main/SlackSettingsScreen';
 import { HighCouncilScreen } from '../screens/main/HighCouncilScreen';
+import { DashboardScreen } from '../screens/main/DashboardScreen';
+import { DashboardDrillScreen } from '../screens/main/DashboardDrillScreen';
+import { StandardWorkScreen } from '../screens/main/StandardWorkScreen';
+import { ReviewQueueScreen } from '../screens/main/ReviewQueueScreen';
+import { MetricsHistoryScreen } from '../screens/main/MetricsHistoryScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -27,10 +31,16 @@ const Stack = createNativeStackNavigator();
  * land on without us having to thread role checks through here.
  */
 export function WebStackNavigator() {
-  const { isPresidency, isClerk } = useAuth();
-  const initial = isPresidency || isClerk ? 'PresidencyMain' : 'HCMain';
+  // Dashboard is the app's home on every surface, so the role-dependent
+  // fallback that used to pick between the two boards is no longer needed.
   return (
-    <Stack.Navigator initialRouteName={initial} screenOptions={{ headerShown: false }}>
+    <Stack.Navigator initialRouteName="DashboardMain" screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="DashboardMain" component={DashboardScreen} />
+      <Stack.Screen name="Dashboard" component={DashboardScreen} />
+      <Stack.Screen name="DashboardDrill" component={DashboardDrillScreen} />
+      <Stack.Screen name="StandardWork" component={StandardWorkScreen} />
+      <Stack.Screen name="ReviewQueue" component={ReviewQueueScreen} />
+      <Stack.Screen name="MetricsHistory" component={MetricsHistoryScreen} />
       <Stack.Screen name="New" component={NewCallingScreen} />
       <Stack.Screen name="PresidencyMain" component={PresidencyKanbanScreen} />
       <Stack.Screen name="PresidencyBoard" component={PresidencyKanbanScreen} />

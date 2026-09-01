@@ -11,6 +11,10 @@ export interface Profile {
   status: ProfileStatus;
   created_at: string;
   language?: 'en' | 'es';
+  /** Mirrors the DB flag that `is_demo_user()` reads. A demo account must see
+   *  fixtures whether or not the in-app demo toggle happens to be on — the
+   *  toggle is a preference, this is an identity. */
+  is_demo?: boolean;
 }
 
 export interface Ward {

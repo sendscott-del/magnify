@@ -30,8 +30,12 @@ export function WebShell({ children }: { children: React.ReactNode }) {
   // child stack ("PresidencyMain", "CallingDetail") map back to their parent
   // section here. Callers from /calling/:id stay highlighted on the board
   // that owns that detail screen.
-  function activeFor(section: 'New' | 'PresidencyBoard' | 'HC' | 'Completed' | 'Settings'): boolean {
+  function activeFor(section: 'Dashboard' | 'New' | 'PresidencyBoard' | 'HC' | 'Completed' | 'Settings'): boolean {
     if (!routeName) return false;
+    if (section === 'Dashboard') {
+      return ['DashboardMain', 'DashboardDrill', 'StandardWork', 'ReviewQueue', 'MetricsHistory']
+        .includes(routeName);
+    }
     if (section === 'PresidencyBoard') return routeName === 'PresidencyMain';
     if (section === 'HC') return routeName === 'HCMain' || routeName === 'CallingDetail';
     if (section === 'Completed') return routeName === 'CompletedList';
@@ -68,6 +72,12 @@ export function WebShell({ children }: { children: React.ReactNode }) {
           </View>
 
           <ScrollView style={styles.nav}>
+            <SideLink
+              label={t('nav.dashboard')}
+              ionicon="grid-outline"
+              active={activeFor('Dashboard')}
+              onPress={() => goto('DashboardMain')}
+            />
             <SideLink
               label={t('nav.new')}
               ionicon="add-circle"
