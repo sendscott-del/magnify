@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.52.0',
+    date: '2026-09-04',
+    enhancements: [
+      'The dashboard now shows your standard work. "My standard work this week" was only on a high councilor\'s dashboard, so the screen behind it — your recurring duties from Steward, with the explanation of how standard work differs from an interview — had no way in from the stake presidency view. It is now the last tile in "The stake right now" for everyone, and marking a duty done there still writes back to your Steward grid.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.51.0',
     date: '2026-08-31',
     enhancements: [

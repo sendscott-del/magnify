@@ -83,8 +83,9 @@ interface TileInput {
 }
 
 /**
- * Zone 2 for the presidency. Six tiles, each answering how many, by when,
- * whose. The callings tile is derived from the `callings` table rather than
+ * Zone 2 for the presidency. Seven tiles, each answering how many, by when,
+ * whose. Six report on the stake; the last is the viewer's own standard work.
+ * The callings tile is derived from the `callings` table rather than
  * magnify_items — the dashboard reports on the kanban, it doesn't duplicate it.
  */
 export function presidencyTiles(input: TileInput): TileSpec[] {
@@ -210,7 +211,37 @@ export function presidencyTiles(input: TileInput): TileSpec[] {
         : t('dash.sub.noneOutstanding'),
       drill: 'directive',
     },
+    // The presidency's own recurring Steward duties. The first cut of this
+    // screen gave the standard-work tile to high councilors only, which left
+    // StandardWorkScreen with no route at all for a presidency member — the
+    // data loaded and nothing on the dashboard opened it. Last in the grid
+    // because it is the one personal tile in a zone about the stake.
+    standardWorkTile(input),
   ];
+}
+
+/**
+ * "My standard work this week" — identical for both roles, so it is built once
+ * rather than duplicated. Recurring duties live in Steward; this tile only
+ * reports them, and it must drill to the standard-work screen and never to an
+ * interview list.
+ */
+function standardWorkTile(input: TileInput): TileSpec {
+  const { standardWork, t, language } = input;
+  const done = standardWork.filter(r => r.value === 'y').length;
+  const weekOf = standardWork[0]?.period_start;
+  return {
+    key: 'standard',
+    kind: 'standard',
+    value: `${done} ${t('dash.unit.of')} ${standardWork.length}`,
+    unit: t('dash.unit.done'),
+    label: t('dash.tile.myStandardWork'),
+    sub: joinParts([
+      t('dash.sub.recurringFromSteward'),
+      weekOf ? `${t('dash.sub.weekOf')} ${formatMonthDay(weekOf, language)}` : null,
+    ]),
+    drill: 'standard',
+  };
 }
 
 /**
@@ -219,7 +250,7 @@ export function presidencyTiles(input: TileInput): TileSpec[] {
  * nothing about, and the RLS in migration 019 doesn't serve him those rows anyway.
  */
 export function highCouncilTiles(input: TileInput): TileSpec[] {
-  const { openItems, interviews, standardWork, myId, myName, hcVoteCount, t, language } = input;
+  const { openItems, interviews, myId, myName, hcVoteCount, t, language } = input;
 
   const mine = openItems.filter(i => isMine(i, myId, myName));
   const myAssignments = mine.filter(i => i.kind === 'assignment');
@@ -228,9 +259,6 @@ export function highCouncilTiles(input: TileInput): TileSpec[] {
   );
   const myInterviewsDone = myInterviews.filter(i => !!i.completed_at).length;
   const nextInterview = myInterviews.find(i => !i.completed_at && i.scheduled_for);
-
-  const swDone = standardWork.filter(r => r.value === 'y').length;
-  const weekOf = standardWork[0]?.period_start;
 
   return [
     {
@@ -262,18 +290,7 @@ export function highCouncilTiles(input: TileInput): TileSpec[] {
         : t('dash.sub.nothingScheduled'),
       drill: 'myInterview',
     },
-    {
-      key: 'standard',
-      kind: 'standard',
-      value: `${swDone} ${t('dash.unit.of')} ${standardWork.length}`,
-      unit: t('dash.unit.done'),
-      label: t('dash.tile.myStandardWork'),
-      sub: joinParts([
-        t('dash.sub.recurringFromSteward'),
-        weekOf ? `${t('dash.sub.weekOf')} ${formatMonthDay(weekOf, language)}` : null,
-      ]),
-      drill: 'standard',
-    },
+    standardWorkTile(input),
   ];
 }
 
