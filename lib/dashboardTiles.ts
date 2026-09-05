@@ -15,7 +15,7 @@ export type Scope = 'mine' | 'everyone';
  *  recurring duty is not an interview, and conflating them was a specific
  *  correction during design review. */
 export type DrillKey =
-  | 'recommend' | 'audit' | 'interview' | 'assignment' | 'directive'
+  | 'action' | 'recommend' | 'audit' | 'interview' | 'assignment' | 'directive'
   | 'standard' | 'myInterview'
   | `ws:${string}`;
 
@@ -216,8 +216,36 @@ export function presidencyTiles(input: TileInput): TileSpec[] {
     // StandardWorkScreen with no route at all for a presidency member — the
     // data loaded and nothing on the dashboard opened it. Last in the grid
     // because it is the one personal tile in a zone about the stake.
+    actionTile(input),
     standardWorkTile(input),
   ];
+}
+
+/**
+ * Meeting to-dos — `kind: 'action'`.
+ *
+ * This tile exists because without it an action item is invisible: "Needs you"
+ * only lists what is due within a week, and every other tile is keyed to a
+ * different kind. An approved meeting to-do with no due date had nowhere at all
+ * to appear. Both roles get it for the same reason.
+ */
+function actionTile(input: TileInput): TileSpec {
+  const { openItems, t } = input;
+  const actions = openItems.filter(i => i.kind === 'action');
+  const undated = actions.filter(i => !i.due_on).length;
+  return {
+    key: 'action',
+    kind: 'action',
+    value: String(actions.length),
+    unit: t('dash.unit.open'),
+    label: t('dash.tile.actions'),
+    sub: joinParts([
+      t('dash.sub.fromMeetings'),
+      undated ? `${undated} ${t('dash.sub.needADate')}` : null,
+    ]),
+    flag: lateFlag(actions, t),
+    drill: 'action',
+  };
 }
 
 /**
@@ -290,6 +318,7 @@ export function highCouncilTiles(input: TileInput): TileSpec[] {
         : t('dash.sub.nothingScheduled'),
       drill: 'myInterview',
     },
+    actionTile(input),
     standardWorkTile(input),
   ];
 }

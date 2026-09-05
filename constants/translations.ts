@@ -856,9 +856,12 @@ export const translations = {
     'help.dashboardBody3': 'The stake right now is a set of number tiles — temple recommend interviews, ward audits, callings in flight, quarterly interviews, assignments to the high council, and directives from area leadership. Each tile says how many, by when, and whose, and opens the list behind it. The callings tile opens the board that owns those cards rather than a separate list.',
     'help.dashboardBody4': 'Workstreams group a long effort — a stake conference, an audit cycle — so its items travel together. Each card shows one tick per piece of work. Presidency members can add one with the + beside the section title.',
     'help.dashboardBody5': 'The Mine / Everyone switch at the top re-scopes the whole screen, and a list opened from a tile keeps whichever scope the tile was counting. Use the + button in the header to add an item: give it a title, a kind, an owner, and a due date. Owners can be leaders without a Magnify account — type their name instead of picking one.',
-    'help.dashboardBody6': 'What a high councilor sees is deliberately narrower: his own assignments, callings awaiting his vote, his quarterly interview, and his standard work. Audit, recommend and metric tiles are for the presidency. Everyone gets the standard-work tile — it is the last one in the grid. Quarterly interviews and standard work are read live from Steward rather than copied, so the numbers match what Steward shows; marking standard work done here writes back to your Steward grid. Items hold names and scheduling only — never pastoral detail.',
+    'help.dashboardBody6': 'What a high councilor sees is deliberately narrower: his own assignments, callings awaiting his vote, his quarterly interview, and his standard work. Audit, recommend and metric tiles are for the presidency. Everyone gets the meeting to-dos and standard-work tiles — they are the last two in the grid. Quarterly interviews and standard work are read live from Steward rather than copied, so the numbers match what Steward shows; marking standard work done here writes back to your Steward grid. Items hold names and scheduling only — never pastoral detail.',
     'dash.review.notYoursTitle': 'Only the stake presidency reviews these',
     'dash.review.notYoursSub': 'Items extracted from a meeting are approved by the presidency before anyone is assigned to them.',
+    'dash.tile.actions': 'Meeting to-dos',
+    'dash.sub.fromMeetings': 'From presidency and council meetings',
+    'dash.sub.needADate': 'need a date',
   },
   es: {
     // App general
@@ -1714,9 +1717,12 @@ export const translations = {
     'help.dashboardBody3': 'La estaca ahora mismo es un conjunto de tarjetas con números: recomendaciones para el templo, auditorías de barrio, llamamientos en proceso, entrevistas trimestrales, asignaciones al sumo consejo y directrices del liderazgo del área. Cada tarjeta dice cuántos, para cuándo y de quién, y abre la lista correspondiente. La tarjeta de llamamientos abre el tablero que contiene esas tarjetas.',
     'help.dashboardBody4': 'Las iniciativas agrupan un esfuerzo largo — una conferencia de estaca, un ciclo de auditorías — para que sus elementos vayan juntos. Cada tarjeta muestra una marca por cada parte del trabajo. Los miembros de la presidencia pueden crear una con el + junto al título de la sección.',
     'help.dashboardBody5': 'El selector Míos / Todos cambia el alcance de toda la pantalla, y una lista abierta desde una tarjeta conserva el alcance que esa tarjeta estaba contando. Use el botón + del encabezado para agregar un elemento: título, tipo, responsable y fecha. El responsable puede ser un líder sin cuenta de Magnify: escriba su nombre en lugar de elegirlo de la lista.',
-    'help.dashboardBody6': 'Lo que ve un sumo consejero es más reducido a propósito: sus asignaciones, los llamamientos que esperan su voto, su entrevista trimestral y su trabajo estándar. Las tarjetas de auditorías, recomendaciones y métricas son para la presidencia. La tarjeta de trabajo estándar la ven todos: es la última de la cuadrícula. Las entrevistas trimestrales y el trabajo estándar se leen en vivo desde Steward en lugar de copiarse, así que los números coinciden con los de Steward; marcar el trabajo estándar aquí lo guarda en su cuadrícula de Steward. Los elementos contienen solo nombres y fechas, nunca detalles pastorales.',
+    'help.dashboardBody6': 'Lo que ve un sumo consejero es más reducido a propósito: sus asignaciones, los llamamientos que esperan su voto, su entrevista trimestral y su trabajo estándar. Las tarjetas de auditorías, recomendaciones y métricas son para la presidencia. Las tarjetas de tareas de reuniones y trabajo estándar las ven todos: son las dos últimas de la cuadrícula. Las entrevistas trimestrales y el trabajo estándar se leen en vivo desde Steward en lugar de copiarse, así que los números coinciden con los de Steward; marcar el trabajo estándar aquí lo guarda en su cuadrícula de Steward. Los elementos contienen solo nombres y fechas, nunca detalles pastorales.',
     'dash.review.notYoursTitle': 'Solo la presidencia de estaca revisa esto',
     'dash.review.notYoursSub': 'Los elementos extra\u00eddos de una reuni\u00f3n los aprueba la presidencia antes de asignarlos a alguien.',
+    'dash.tile.actions': 'Tareas de reuniones',
+    'dash.sub.fromMeetings': 'De reuniones de presidencia y consejo',
+    'dash.sub.needADate': 'sin fecha',
   },
 };
 

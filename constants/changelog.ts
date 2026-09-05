@@ -9,6 +9,15 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.54.0',
+    date: '2026-09-05',
+    enhancements: [
+      'The dashboard has a "Meeting to-dos" tile. Action items from a presidency or council meeting had no tile of their own, and "Needs you" only lists what is due within a week — so an approved to-do with no date on it appeared nowhere at all. It now has a home, shows how many still need a date, and taps through to the full list. Both the presidency and high council see it.',
+      'Six months of action items from your Zoom meeting summaries are now waiting in the review queue — 65 items across seven presidency and leadership meetings from July 19 to August 23, each already matched to the person it was given to. Nothing is visible to anyone else until you approve it.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.53.0',
     date: '2026-09-05',
     enhancements: [
