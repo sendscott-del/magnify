@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { Colors, FontSize, Radius, Spacing } from '../../constants/theme';
 import { TranslationKey } from '../../constants/translations';
+import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useDashboard } from '../../context/DashboardContext';
 import { useIsDesktopWeb } from '../../lib/useDeviceWidth';
@@ -26,11 +27,32 @@ import { CalmEmpty, Callout, cardBase } from '../../components/dashboard/primiti
 export function ReviewQueueScreen() {
   const nav = useNavigation<any>();
   const { t, language } = useLanguage();
+  const { isPresidency, isClerk } = useAuth();
   const data = useDashboard();
   const isDesktopWeb = useIsDesktopWeb();
 
   const [editing, setEditing] = useState<DashboardItem | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+
+  // Approving is a presidency act. The route is registered in both navigators,
+  // so without this a high councilor who reached the URL directly would render
+  // the queue. RLS already refuses him the rows (migration 023) — this stops
+  // the screen claiming an empty queue is his to approve.
+  if (!isPresidency && !isClerk) {
+    return (
+      <View style={styles.root}>
+        <DrillHeader title={t('dash.review.title')} onBack={() => nav.goBack()} />
+        <ScrollView contentContainerStyle={styles.scroll}>
+          <CalmEmpty
+            title={t('dash.review.notYoursTitle')}
+            sub={t('dash.review.notYoursSub')}
+            icon="lock-closed-outline"
+            tone="neutral"
+          />
+        </ScrollView>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.root}>

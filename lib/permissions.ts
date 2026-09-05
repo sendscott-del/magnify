@@ -38,11 +38,17 @@ export interface AdvanceContext {
  *   set_apart → record:           ADMIN_GROUP or assigned set_apart_by user
  *   record → complete:            ADMIN_GROUP only
  *
- * Releases (isRelease) run a short pipeline: for_approval → issue_calling →
- * sustain → complete. Leaving for_approval is the Stake President's click
- * alone — the all-3-approved path never applies to a release. From
- * issue_calling on, the normal rules apply, so the person assigned to have the
- * release conversation can hand it on themselves.
+ * Releases (isRelease) run a short pipeline: for_approval → stake_approved →
+ * issue_calling → sustain → complete. Leaving for_approval is the Stake
+ * President's click alone — the all-3-approved path never applies to a release.
+ * From stake_approved on, the normal rules apply, so the person assigned to
+ * have the release conversation can hand it on themselves.
+ *
+ * The Stake Approved stop was added 2026-09-05: an approved release used to go
+ * straight from the presidency's queue onto the High Council board, which is
+ * one hop more than a calling makes. A release now waits in Stake Approved the
+ * same way a calling does. There is still no HC vote on a release — it goes
+ * from Stake Approved to Extend, not to HC Approval.
  */
 export function canAdvanceStage(role: UserRole, stage: Stage, _type: CallingType, ctx?: AdvanceContext, isRelease = false): boolean {
   if (isRelease && stage === 'for_approval') {
@@ -121,7 +127,8 @@ export function getNextStage(stage: Stage, type: CallingType, isRelease = false)
     // used to jump straight to Sustain, which announced it over the pulpit
     // before anyone had necessarily told the member.
     switch (stage) {
-      case 'for_approval': return 'issue_calling';
+      case 'for_approval': return 'stake_approved';
+      case 'stake_approved': return 'issue_calling';
       case 'issue_calling': return 'sustain';
       case 'sustain': return 'complete';
       default: return null;
@@ -151,7 +158,8 @@ export function getNextStage(stage: Stage, type: CallingType, isRelease = false)
 export function getPrevStage(stage: Stage, type: CallingType, isRelease = false): Stage | null {
   if (isRelease) {
     switch (stage) {
-      case 'issue_calling': return 'for_approval';
+      case 'stake_approved': return 'for_approval';
+      case 'issue_calling': return 'stake_approved';
       case 'sustain': return 'issue_calling';
       case 'complete': return 'sustain';
       default: return null;
@@ -176,7 +184,8 @@ export function getPrevStage(stage: Stage, type: CallingType, isRelease = false)
 export function getAdvanceLabel(stage: Stage, type: CallingType, isRelease = false): string {
   if (isRelease) {
     switch (stage) {
-      case 'for_approval': return 'Approve Release → Extend';
+      case 'for_approval': return 'Stake Presidency Approves';
+      case 'stake_approved': return 'Send to High Council';
       case 'issue_calling': return 'Released — Ready to Announce';
       case 'sustain': return 'Announced — Complete';
       default: return 'Advance';

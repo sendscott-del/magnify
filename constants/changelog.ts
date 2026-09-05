@@ -9,6 +9,15 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.53.0',
+    date: '2026-09-05',
+    enhancements: [
+      'An approved release now stops at Stake Approved before it reaches the High Council board, the same way a calling does. Previously an approved release went straight from the presidency\'s queue onto the High Council board — one hop further than a calling makes. There is still no High Council vote on a release: it moves from Stake Approved to Extend Release, then Sustain, then Complete. Releases already in flight were left exactly where they are.',
+      'Meeting action items now go into a review queue that only the stake presidency can open, and nothing reaches the person it is assigned to until it is approved there. This is enforced in the database, not just the app: a high councilor cannot read an item awaiting review even if it is assigned to him, and cannot approve his own.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.52.0',
     date: '2026-09-04',
     enhancements: [

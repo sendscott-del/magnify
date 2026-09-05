@@ -27,7 +27,7 @@ Magnify is the stake callings workflow app for stake/ward leadership of The Chur
 
 ## Rules for this repo
 
-- Version lives in `package.json` (currently 2.52.x line); every user-facing change bumps it and appends `constants/changelog.ts` (the build runs `scripts/generate-changelog.js`).
+- Version lives in `package.json` (currently 2.53.x line); every user-facing change bumps it and appends `constants/changelog.ts` (the build runs `scripts/generate-changelog.js`).
 - Deploy = push to GitHub main → Vercel builds. Scott tests on Vercel, not local — push after every change. Native JS changes ship via expo-updates OTA; binary changes need EAS build + store submit.
 - Session docs: append `docs/SESSIONS.md` every session; update this file the moment an infra fact changes.
 - SQL changes go in `supabase/` as numbered migration files.
@@ -49,6 +49,9 @@ Magnify is the stake callings workflow app for stake/ward leadership of The Chur
 
 ## Gotchas
 
+- **Nothing in `magnify_items` reaches a non-admin until `review_state='approved'` — and that is enforced in RLS (migration 023), not the client.** Scott's rule, 2026-09-05. Non-admins can only SELECT approved rows, can only UPDATE rows that are already approved (so they cannot self-approve), and can only INSERT approved rows they own. The presidency/clerks see everything because they ARE the queue. `ReviewQueueScreen` carries a matching role guard because its route is registered in both navigators.
+- **Reading a Zoom meeting summary needs the Canvas doc, not the API.** `https://docs.zoom.us/doc/{docId}` (docId from `zoom.us/rest/meeting/host_summary_list`) renders the text; read `.editor-block-children-container`.innerText, slice from `/Next steps/`, parse `Owner` / `•` / task. **The Next steps section is NOT automatically safe** — it has carried private-matter flags, bishopric-intervention items and housing-assistance specifics. Sanitize it; excluding the recap is not enough.
+- **`kind='action'` has no Zone 2 tile**, and Zone 1 only shows items due within 7 days — so an approved, undated action item is invisible in the app. Give items a due date, or add a tile, before importing more meeting to-dos.
 - **A dashboard RPC must check `is_demo_user()` ITSELF.** The cross-app reads (`magnify_dash_interviews`, `magnify_dash_my_standard_work`, `magnify_dash_set_standard_work`) are SECURITY DEFINER because Steward's RLS is self-only — which also means the RESTRICTIVE `demo_block_all` policies do NOT apply inside them. On 2026-08-31 the App Review demo account read the stake's real `steward_interviews` through one of these before the guard was added. Every RPC added later needs the same guard.
 - **Steward period anchors: weekly = SUNDAY.** `magnify_week_start()` exists because Steward's date-fns uses `weekStartsOn: 0` while Postgres `date_trunc('week')` is Monday-anchored — substituting it makes the dashboard's "3 of 5 done" disagree with the Steward grid by a week.
 - **`steward_interviews.stake_id` is filled by a trigger** (`steward_interviews_fill_stake`), not by its writers. The exec-sec agent writes that table via the service role with no `auth.uid()`; the trigger is what makes NOT NULL safe. Don't remove it.
