@@ -9,6 +9,15 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.54.1',
+    date: '2026-09-06',
+    enhancements: [],
+    bugFixes: [
+      'A stake calling waiting to be set apart no longer claims it has already been set apart. A stake calling is sustained in every ward, so once it moves to Set Apart it keeps showing in the Sustain column for the wards that still have to sustain it — and the green "ALREADY SET APART" tag on it was wrong, because Set Apart is the step still to be done, not one already finished. It now reads "SET APART PENDING" in amber until the set apart is actually recorded, and only says "ALREADY SET APART" once it is. Reported by a high councilor after moving two stake Young Women callings to Set Apart.',
+      'Melchizedek Priesthood ordinations no longer linger in the Sustain column after moving on. An ordination is sustained in one ward, but the board was measuring it against every ward in the stake, so it always looked as though wards were still outstanding and the card stayed put with nothing to explain why. Only stake callings are tracked ward by ward now.',
+    ],
+  },
+  {
     version: '2.54.0',
     date: '2026-09-05',
     enhancements: [

@@ -217,8 +217,17 @@ export function HCKanbanScreen({ navigation }: any) {
     const sustained = sustainedWardMap[c.id] ?? new Set<string>();
     return wards.filter(w => !sustained.has(w.id)).length;
   }
-  // Past the sustain stage but still collecting ward sustainings.
+  // Past the sustain stage but still collecting ward sustainings, so the card
+  // is mirrored back into the Sustain column for the wards that still owe one.
+  //
+  // Stake callings ONLY. They are sustained in every ward, tracked per-ward in
+  // ward_sustainings. A ward calling or an MP ordination is sustained in one
+  // ward and has no ward_sustainings rows at all, so wardsOutstanding() counts
+  // every ward in the stake as outstanding and pins the card in Sustain
+  // forever — with no chip to explain it, because sustainMeta() guards on type
+  // and this did not. The two must agree.
   function isSustainingOnly(c: Calling): boolean {
+    if (c.type !== 'stake_calling') return false;
     const past = ['set_apart', 'record'];
     return past.includes(c.stage) && wardsOutstanding(c) > 0;
   }
