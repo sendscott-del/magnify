@@ -104,8 +104,16 @@ export function CallingCard({ calling, onPress, isNew, meta }: Props) {
               .replace('{total}', String(meta.sustainTotal))}
           </Text>
           {meta.sustainingOnly && (
-            <View style={styles.setApartChip}>
-              <Text style={styles.setApartChipText}>{t('hcBoard.alreadySetApart')}</Text>
+            // This card is mirrored into the Sustain column because wards still
+            // owe a sustaining. The chip says where the card actually is. Only
+            // `record` is past the set apart — at `set_apart` it is still the
+            // outstanding task, and saying "ALREADY SET APART" in success green
+            // there told the high council the opposite of the truth (reported
+            // 2026-09-06).
+            <View style={[styles.setApartChip, calling.stage !== 'record' && styles.setApartChipPending]}>
+              <Text style={[styles.setApartChipText, calling.stage !== 'record' && styles.setApartChipTextPending]}>
+                {calling.stage === 'record' ? t('hcBoard.alreadySetApart') : t('hcBoard.setApartPending')}
+              </Text>
             </View>
           )}
         </View>
@@ -245,6 +253,9 @@ const styles = StyleSheet.create({
     color: Colors.success,
     fontWeight: '800',
   },
+  // Still waiting on the set apart — amber, not the success green.
+  setApartChipPending: { backgroundColor: Colors.warning + '1F' },
+  setApartChipTextPending: { color: Colors.warning },
   releaseBanner: {
     marginTop: Spacing.xs,
     backgroundColor: Colors.warning + '22',
