@@ -1,8 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput,
-  Platform, Alert, ActivityIndicator, Modal,
+  Platform, Alert, ActivityIndicator,
 } from 'react-native';
+import { SafeModal } from '../../components/ui/SafeModal';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -312,7 +313,7 @@ export function HighCouncilScreen({ navigation }: any) {
       </KeyboardAwareScrollView>
 
       {/* Link-to-account picker */}
-      <Modal visible={linkModalFor !== null} transparent animationType="slide" onRequestClose={() => setLinkModalFor(null)}>
+      <SafeModal visible={linkModalFor !== null} transparent animationType="slide" onRequestClose={() => setLinkModalFor(null)}>
         <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setLinkModalFor(null)}>
           <View style={styles.modalSheet} onStartShouldSetResponder={() => true}>
             <Text style={styles.modalTitle}>{t('highCouncil.linkTitle')}</Text>
@@ -339,7 +340,7 @@ export function HighCouncilScreen({ navigation }: any) {
             </ScrollView>
           </View>
         </TouchableOpacity>
-      </Modal>
+      </SafeModal>
     </View>
   );
 }

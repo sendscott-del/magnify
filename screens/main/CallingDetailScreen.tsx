@@ -1,8 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, Pressable,
-  Modal, TextInput, Alert, Platform, ActivityIndicator, FlatList, Image,
+  TextInput, Alert, Platform, ActivityIndicator, FlatList, Image,
 } from 'react-native';
+import { SafeModal } from '../../components/ui/SafeModal';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { format } from 'date-fns';
@@ -473,7 +474,7 @@ function ReleaseMemberSection({ calling, wards, canEdit, onSave, onToggleDone }:
             </TouchableOpacity>
           </View>
 
-          <Modal visible={showWardPicker} transparent animationType="slide" onRequestClose={() => setShowWardPicker(false)}>
+          <SafeModal visible={showWardPicker} transparent animationType="slide" onRequestClose={() => setShowWardPicker(false)}>
             <Pressable style={rmStyles.modalOverlay} onPress={() => setShowWardPicker(false)}>
               <Pressable style={rmStyles.modalSheet} onPress={() => {}}>
                 <Text style={rmStyles.modalTitle}>{t('release.selectWardTitle')}</Text>
@@ -498,7 +499,7 @@ function ReleaseMemberSection({ calling, wards, canEdit, onSave, onToggleDone }:
                 />
               </Pressable>
             </Pressable>
-          </Modal>
+          </SafeModal>
         </>
       ) : hasData ? (
         <View style={rmStyles.dataView}>
@@ -671,7 +672,7 @@ function TaskAssignmentsSection({ calling, assignees, spAssignees, clerkName, ca
         );
       })}
 
-      <Modal visible={!!pickerField} transparent animationType="slide" onRequestClose={() => setPickerField(null)}>
+      <SafeModal visible={!!pickerField} transparent animationType="slide" onRequestClose={() => setPickerField(null)}>
         <Pressable style={taStyles.modalOverlay} onPress={() => setPickerField(null)}>
           <Pressable style={taStyles.modalSheet} onPress={() => {}}>
             <Text style={taStyles.modalTitle}>{t('detail.assignLabel')} {TASK_FIELDS.find(f => f.key === pickerField)?.label}</Text>
@@ -696,7 +697,7 @@ function TaskAssignmentsSection({ calling, assignees, spAssignees, clerkName, ca
             />
           </Pressable>
         </Pressable>
-      </Modal>
+      </SafeModal>
     </View>
   );
 }
@@ -1701,7 +1702,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
       )}
 
       {/* Decline Modal */}
-      <Modal visible={showRejectModal} transparent animationType="slide" onRequestClose={() => setShowRejectModal(false)}>
+      <SafeModal visible={showRejectModal} transparent animationType="slide" onRequestClose={() => setShowRejectModal(false)}>
         <Pressable
           style={[styles.modalOverlay, keyboardInset > 0 && { paddingBottom: keyboardInset }]}
           onPress={() => setShowRejectModal(false)}
@@ -1723,7 +1724,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
             </View>
           </Pressable>
         </Pressable>
-      </Modal>
+      </SafeModal>
 
       {/* Edit Calling Details Modal */}
       {/* Edit Calling Details.
@@ -1735,7 +1736,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
           (reported on the App Store build 2026-08-18). Panes keep every edit in
           state because the Modal itself never unmounts. Do not reintroduce a
           nested Modal here. */}
-      <Modal visible={showEditModal} transparent animationType="slide" onRequestClose={dismissEditLayer}>
+      <SafeModal visible={showEditModal} transparent animationType="slide" onRequestClose={dismissEditLayer}>
         <Pressable
           style={[styles.modalOverlay, keyboardInset > 0 && { paddingBottom: keyboardInset }]}
           onPress={dismissEditLayer}
@@ -1930,7 +1931,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
             </Pressable>
           )}
         </Pressable>
-      </Modal>
+      </SafeModal>
 
     </View>
   );

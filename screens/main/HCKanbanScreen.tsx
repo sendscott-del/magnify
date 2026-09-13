@@ -1,8 +1,9 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import {
   View, Text, StyleSheet, ScrollView,
-  RefreshControl, TouchableOpacity, Modal, FlatList, Platform, Share, Alert,
+  RefreshControl, TouchableOpacity, FlatList, Platform, Share, Alert,
 } from 'react-native';
+import { SafeModal } from '../../components/ui/SafeModal';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -579,7 +580,7 @@ export function HCKanbanScreen({ navigation }: any) {
       )}
 
       {/* Ward Filter Modal */}
-      <Modal visible={showWardFilter} transparent animationType="slide" onRequestClose={() => setShowWardFilter(false)}>
+      <SafeModal visible={showWardFilter} transparent animationType="slide" onRequestClose={() => setShowWardFilter(false)}>
         <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowWardFilter(false)}>
           <View style={styles.modalSheet} onStartShouldSetResponder={() => true}>
             <Text style={styles.modalTitle}>{t('hcBoard.filterByWard')}</Text>
@@ -604,10 +605,10 @@ export function HCKanbanScreen({ navigation }: any) {
             />
           </View>
         </TouchableOpacity>
-      </Modal>
+      </SafeModal>
 
       {/* Assignee Filter Modal */}
-      <Modal visible={showAssigneeFilter} transparent animationType="slide" onRequestClose={() => setShowAssigneeFilter(false)}>
+      <SafeModal visible={showAssigneeFilter} transparent animationType="slide" onRequestClose={() => setShowAssigneeFilter(false)}>
         <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowAssigneeFilter(false)}>
           <View style={styles.modalSheet} onStartShouldSetResponder={() => true}>
             <Text style={styles.modalTitle}>{t('hcBoard.filterByAssignee')}</Text>
@@ -632,9 +633,9 @@ export function HCKanbanScreen({ navigation }: any) {
             />
           </View>
         </TouchableOpacity>
-      </Modal>
+      </SafeModal>
       {/* Sustaining Script Modal */}
-      <Modal visible={showScriptModal} transparent animationType="slide" onRequestClose={() => { setShowScriptModal(false); setScriptWard(null); }}>
+      <SafeModal visible={showScriptModal} transparent animationType="slide" onRequestClose={() => { setShowScriptModal(false); setScriptWard(null); }}>
         <View style={styles.scriptModalOverlay}>
           <View style={styles.scriptModalSheet}>
             {/* Header */}
@@ -691,7 +692,7 @@ export function HCKanbanScreen({ navigation }: any) {
             )}
           </View>
         </View>
-      </Modal>
+      </SafeModal>
 
       <DisclaimerFooter />
     </View>
