@@ -30,6 +30,12 @@ interface Props {
   /** Opens straight into edit mode — used by the review queue's Edit action. */
   startInEdit?: boolean;
   /**
+   * Delete this item. Omit to hide the control. The database decides who may
+   * actually delete (presidency: anything; high council: their own approved
+   * items) — this only draws the button.
+   */
+  onDelete?: () => void;
+  /**
    * Create mode: the sheet is editing a blank draft that doesn't exist yet, so
    * it also offers a kind picker and Cancel closes instead of returning to a
    * detail view there is nothing to show.
@@ -66,7 +72,7 @@ const SOURCE_KEY: Record<string, TranslationKey> = {
  */
 export function ItemSheet({
   item, visible, owners, workstreams, ownerNames, language, t,
-  onClose, onSave, onToggleDone, startInEdit, createMode,
+  onClose, onSave, onToggleDone, startInEdit, createMode, onDelete,
 }: Props) {
   const insets = useSafeAreaInsets();
   const anim = useRef(new Animated.Value(0)).current;
@@ -80,9 +86,13 @@ export function ItemSheet({
   const [ownerPickerOpen, setOwnerPickerOpen] = useState(false);
   const [wsPickerOpen, setWsPickerOpen] = useState(false);
   const [edited, setEdited] = useState(false);
+  // Two-tap delete. RN-web's Alert can't render a confirm with two buttons,
+  // so the confirmation is the button itself changing state.
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
     if (!visible) return;
+    setConfirmDelete(false);
     setMode(startInEdit || createMode ? 'edit' : 'detail');
     setDraft({});
     setCommitted({});
@@ -242,6 +252,23 @@ export function ItemSheet({
             <Text style={styles.secondaryBtnText}>{t('dash.sheet.reassign')}</Text>
           </TouchableOpacity>
         </View>
+
+        {onDelete && (
+          <TouchableOpacity
+            style={[styles.deleteBtn, confirmDelete && styles.deleteBtnArmed]}
+            onPress={() => {
+              if (!confirmDelete) { setConfirmDelete(true); return; }
+              onDelete();
+            }}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+          >
+            <Ionicons name="trash-outline" size={16} color={Colors.error} />
+            <Text style={styles.deleteBtnText}>
+              {confirmDelete ? t('dash.sheet.deleteConfirm') : t('dash.sheet.delete')}
+            </Text>
+          </TouchableOpacity>
+        )}
 
         <Text style={styles.confidential}>{t('dash.sheet.confidential')}</Text>
       </>
@@ -571,6 +598,23 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 14,
     lineHeight: 14,
+  },
+  deleteBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    minHeight: 44,
+    marginTop: 8,
+    borderRadius: Radius.md,
+  },
+  deleteBtnArmed: {
+    backgroundColor: '#FEE2E2',
+  },
+  deleteBtnText: {
+    fontSize: FontSize.sm,
+    fontWeight: '600',
+    color: Colors.error,
   },
 
   editHeader: {

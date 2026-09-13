@@ -27,18 +27,18 @@ import { CalmEmpty, Callout, cardBase } from '../../components/dashboard/primiti
 export function ReviewQueueScreen() {
   const nav = useNavigation<any>();
   const { t, language } = useLanguage();
-  const { isPresidency, isClerk } = useAuth();
+  const { isPresidency } = useAuth();
   const data = useDashboard();
   const isDesktopWeb = useIsDesktopWeb();
 
   const [editing, setEditing] = useState<DashboardItem | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
-  // Approving is a presidency act. The route is registered in both navigators,
-  // so without this a high councilor who reached the URL directly would render
-  // the queue. RLS already refuses him the rows (migration 023) — this stops
-  // the screen claiming an empty queue is his to approve.
-  if (!isPresidency && !isClerk) {
+  // Approving is a PRESIDENCY act — not clerks (Scott, 2026-09-13: "a queue
+  // that I approve"). The route is registered in both navigators, so without
+  // this anyone who reached the URL directly would render the queue. RLS is
+  // the real gate; this stops the screen implying the queue is theirs.
+  if (!isPresidency) {
     return (
       <View style={styles.root}>
         <DrillHeader title={t('dash.review.title')} onBack={() => nav.goBack()} />
