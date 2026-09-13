@@ -401,7 +401,7 @@ function ReleaseMemberSection({ calling, wards, canEdit, onSave, onToggleDone }:
   onSave: (name: string, currentCalling: string, wardId: string) => Promise<void>;
   onToggleDone: () => Promise<void>;
 }) {
-  const { t } = useLanguage();
+  const { t, tc } = useLanguage();
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(calling.release_member_name ?? '');
   const [currentCalling, setCurrentCalling] = useState(calling.release_current_calling ?? '');
@@ -503,7 +503,7 @@ function ReleaseMemberSection({ calling, wards, canEdit, onSave, onToggleDone }:
       ) : hasData ? (
         <View style={rmStyles.dataView}>
           <Text style={rmStyles.dataName}>{calling.release_member_name}</Text>
-          {calling.release_current_calling ? <Text style={rmStyles.dataCalling}>{calling.release_current_calling}</Text> : null}
+          {calling.release_current_calling ? <Text style={rmStyles.dataCalling}>{tc(calling.release_current_calling)}</Text> : null}
           {calling.release_ward_id ? (
             <Text style={rmStyles.dataWard}>{wards.find(w => w.id === calling.release_ward_id)?.name ?? ''}</Text>
           ) : null}
@@ -726,7 +726,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
   const { callingId } = route.params;
   const insets = useSafeAreaInsets();
   const { profile } = useAuth();
-  const { t } = useLanguage();
+  const { t, tc, tOrg } = useLanguage();
   const { demoMode } = useDemoMode();
   const isDesktopWeb = useIsDesktopWeb();
   // Bottom-sheet modals sit flush against the bottom edge, so the keyboard
@@ -1432,7 +1432,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
       >
         <View style={styles.heroSection}>
           <Text style={styles.memberName}>{calling.member_name}</Text>
-          <Text style={styles.callingNameText}>{calling.calling_name}</Text>
+          <Text style={styles.callingNameText}>{tc(calling.calling_name)}</Text>
         </View>
 
         {calling.rejected && (
@@ -1780,7 +1780,7 @@ export function CallingDetailScreen({ route, navigation }: any) {
                   <Text style={styles.editFieldLabel}>{t('new.callingLabel')}</Text>
                   <TouchableOpacity style={styles.editPickerBtn} onPress={() => setEditPane('calling')}>
                     <Text style={editCallingName ? styles.editPickerText : styles.editPickerPlaceholder}>
-                      {editCallingName || t('new.selectCalling')}
+                      {editCallingName ? tc(editCallingName) : t('new.selectCalling')}
                     </Text>
                     <Text style={styles.editPickerArrow}>▼</Text>
                   </TouchableOpacity>
@@ -1901,10 +1901,10 @@ export function CallingDetailScreen({ route, navigation }: any) {
                     if (editType === 'stake_calling') return g.org === 'Stake';
                     return true;
                   }).flatMap(g => [
-                    { type: 'header' as const, label: g.org, value: `__header__${g.org}` },
-                    ...g.callings.map(c => ({ type: 'item' as const, label: c, value: c })),
+                    { type: 'header' as const, label: tOrg(g.org), value: `__header__${g.org}` },
+                    ...g.callings.map(c => ({ type: 'item' as const, label: tc(c), value: c })),
                   ]),
-                  { type: 'item' as const, label: 'Other', value: 'Other' },
+                  { type: 'item' as const, label: tc('Other'), value: 'Other' },
                 ]}
                 keyExtractor={item => item.value}
                 renderItem={({ item }) => {

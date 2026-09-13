@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.55.0',
+    date: '2026-09-13',
+    enhancements: [
+      'Calling names now follow the language setting. Switching Magnify to Spanish translated the buttons, columns and labels, but the calling on each card — "Ward Clerk", "High Councilor", "Stake Primary President" — stayed in English, because it is stored as typed. Every calling from the picker now shows in Spanish wherever it appears: board cards, the calling detail screen, the Completed list, the calling picker itself (with its Bishopric / Elders Quorum / Stake headings), and the sustaining script read over the pulpit. Melchizedek Priesthood ordinations translate too, including ones created while the app was already in Spanish. Nothing changes in the database; a calling typed in under "Other" is shown exactly as it was entered, and searching Completed matches either language.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.54.1',
     date: '2026-09-06',
     enhancements: [],

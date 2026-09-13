@@ -32,7 +32,7 @@ interface Props {
 }
 
 export function CallingCard({ calling, onPress, isNew, meta }: Props) {
-  const { t } = useLanguage();
+  const { t, tc } = useLanguage();
 
   const STAGE_LABELS: Record<string, string> = {
     ideas: t('stage.ideas'),
@@ -80,7 +80,7 @@ export function CallingCard({ calling, onPress, isNew, meta }: Props) {
               color={Colors.gray[500]}
               style={styles.callingGlyph}
             />
-            <Text style={styles.callingName} numberOfLines={1}>{calling.calling_name}</Text>
+            <Text style={styles.callingName} numberOfLines={1}>{tc(calling.calling_name)}</Text>
           </View>
         </View>
         {isNew && <View style={styles.newDot} />}

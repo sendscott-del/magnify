@@ -1,18 +1,25 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Platform } from 'react-native';
 import { translations, Language, TranslationKey } from '../constants/translations';
+import { translateCallingName, translateOrgName } from '../constants/callingNames';
 import { supabase } from '../lib/supabase';
 
 interface LanguageContextValue {
   language: Language;
   setLanguage: (lang: Language) => void;
   t: (key: TranslationKey) => string;
+  /** Calling name as stored (English free text) → display text in the current language. */
+  tc: (callingName: string | null | undefined) => string;
+  /** Calling-picker organization header (CALLING_GROUPS[].org) in the current language. */
+  tOrg: (org: string) => string;
 }
 
 const LanguageContext = createContext<LanguageContextValue>({
   language: 'en',
   setLanguage: () => {},
   t: (key) => key,
+  tc: (name) => name ?? '',
+  tOrg: (org) => org,
 });
 
 const STORAGE_KEY = 'magnify_language';
@@ -80,8 +87,11 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       ?? key;
   }, [language]);
 
+  const tc = useCallback((name: string | null | undefined): string => translateCallingName(name, language), [language]);
+  const tOrg = useCallback((org: string): string => translateOrgName(org, language), [language]);
+
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{ language, setLanguage, t, tc, tOrg }}>
       {children}
     </LanguageContext.Provider>
   );
