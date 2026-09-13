@@ -23,7 +23,7 @@ import { notifyHcApprovalReminder } from '../../lib/slack';
 export function HCKanbanScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { profile } = useAuth();
-  const { t, language } = useLanguage();
+  const { t, tc, language } = useLanguage();
   const [reminderBusy, setReminderBusy] = useState(false);
   const [reminderSent, setReminderSent] = useState(false);
 
@@ -366,9 +366,9 @@ export function HCKanbanScreen({ navigation }: any) {
       const releaseList = groupByCalling([
         ...releases.map(c => ({
           name: c.release_member_name as string,
-          calling: c.release_current_calling || t('script.unknownCalling'),
+          calling: tc(c.release_current_calling) || t('script.unknownCalling'),
         })),
-        ...standaloneReleases.map(c => ({ name: c.member_name, calling: c.calling_name })),
+        ...standaloneReleases.map(c => ({ name: c.member_name, calling: tc(c.calling_name) })),
       ]);
       lines.push(t('script.proposeRelease').replace('{list}', joinList(releaseList)));
       lines.push(t('script.releaseInFavor'));
@@ -380,7 +380,7 @@ export function HCKanbanScreen({ navigation }: any) {
     if (regularCallings.length > 0) {
       lines.push(t('script.sustainingsHeader'));
       lines.push('');
-      const sustainList = groupByCalling(regularCallings.map(c => ({ name: c.member_name, calling: c.calling_name })));
+      const sustainList = groupByCalling(regularCallings.map(c => ({ name: c.member_name, calling: tc(c.calling_name) })));
       lines.push(t('script.proposeSustain').replace('{list}', joinList(sustainList)));
       lines.push(t('script.thoseInFavor'));
       lines.push(t('script.thoseOpposed'));

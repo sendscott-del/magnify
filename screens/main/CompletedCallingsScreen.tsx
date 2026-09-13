@@ -26,7 +26,7 @@ const TYPE_COLORS: Record<string, string> = {
 
 export function CompletedCallingsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const { t } = useLanguage();
+  const { t, tc } = useLanguage();
   const { demoMode } = useDemoMode();
   const { profile } = useAuth();
 
@@ -82,7 +82,8 @@ export function CompletedCallingsScreen({ navigation }: any) {
     const matchesSearch =
       !search ||
       c.member_name.toLowerCase().includes(search.toLowerCase()) ||
-      c.calling_name.toLowerCase().includes(search.toLowerCase());
+      c.calling_name.toLowerCase().includes(search.toLowerCase()) ||
+      tc(c.calling_name).toLowerCase().includes(search.toLowerCase());
     const matchesWard = !wardFilter || c.ward_id === wardFilter;
     return matchesSearch && matchesWard;
   });
@@ -156,7 +157,7 @@ export function CompletedCallingsScreen({ navigation }: any) {
           >
             <View style={styles.rowMain}>
               <Text style={styles.rowName} numberOfLines={1}>{item.member_name}</Text>
-              <Text style={styles.rowCalling} numberOfLines={1}>{item.calling_name}</Text>
+              <Text style={styles.rowCalling} numberOfLines={1}>{tc(item.calling_name)}</Text>
               <View style={styles.rowFooter}>
                 <Text style={styles.rowWard}>{item.wards?.abbreviation}</Text>
                 <Text style={styles.rowDate}>{formatDate(item.completed_at)}</Text>

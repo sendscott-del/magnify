@@ -23,7 +23,7 @@ import { STAGE_LABELS } from '../../constants/callings';
 export function NewCallingScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { user, profile, isPresidency, isClerk } = useAuth();
-  const { t } = useLanguage();
+  const { t, tc, tOrg } = useLanguage();
   const { demoMode } = useDemoMode();
 
   const isPresidencyUser = ['stake_president', 'first_counselor', 'second_counselor'].includes(profile?.role ?? '');
@@ -372,7 +372,7 @@ export function NewCallingScreen({ navigation }: any) {
               onPress={() => setShowCallingPicker(true)}
             >
               <Text style={callingName ? styles.pickerBtnText : styles.pickerBtnPlaceholder}>
-                {callingName || t('new.selectCalling')}
+                {callingName ? tc(callingName) : t('new.selectCalling')}
               </Text>
               <Text style={styles.pickerArrow}>▼</Text>
             </TouchableOpacity>
@@ -567,10 +567,10 @@ export function NewCallingScreen({ navigation }: any) {
                   if (type === 'stake_calling') return g.org === 'Stake';
                   return true;
                 }).flatMap(g => [
-                  { type: 'header', label: g.org, value: `__header__${g.org}` },
-                  ...g.callings.map(c => ({ type: 'item', label: c, value: c, org: g.org })),
+                  { type: 'header', label: tOrg(g.org), value: `__header__${g.org}` },
+                  ...g.callings.map(c => ({ type: 'item', label: tc(c), value: c, org: g.org })),
                 ]),
-                { type: 'item', label: 'Other', value: 'Other', org: 'Other' },
+                { type: 'item', label: tc('Other'), value: 'Other', org: 'Other' },
               ]}
               keyExtractor={item => item.value}
               renderItem={({ item }) => {
