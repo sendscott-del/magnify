@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   RefreshControl, ActivityIndicator,
@@ -47,11 +47,15 @@ export function DashboardScreen() {
   const insets = useSafeAreaInsets();
   const { profile, user, isPresidency, isClerk } = useAuth();
   const { t, language } = useLanguage();
-  const { hcCount } = useActionCounts();
+  const { hcCount, spCount } = useActionCounts();
   const isDesktopWeb = useIsDesktopWeb();
   const data = useDashboard();
 
-  const [scope, setScope] = useState<Scope>('mine');
+  // Only the presidency gets Mine/Everyone. High council, clerks and the exec
+  // secretary always see Mine and never see the switch (Scott, 2026-09-13).
+  const canSeeEveryone = isPresidency;
+  const [scopeState, setScope] = useState<Scope>('mine');
+  const scope: Scope = canSeeEveryone ? scopeState : 'mine';
   const [openItem, setOpenItem] = useState<DashboardItem | null>(null);
   const [draftItem, setDraftItem] = useState<DashboardItem | null>(null);
   const [newWorkstream, setNewWorkstream] = useState(false);
@@ -59,6 +63,12 @@ export function DashboardScreen() {
   const [toast, setToast] = useState<{ message: string; undo?: () => void } | null>(null);
 
   const isAdmin = isPresidency || isClerk;
+  // A high councilor may only hand an item to another high councilor (the
+  // reassign RPC enforces it); don't offer him names the database will refuse.
+  const ownerChoices = useMemo(
+    () => (isAdmin ? data.owners : data.owners.filter(o => o.calling === 'high_council')),
+    [isAdmin, data.owners],
+  );
   const myId = user?.id ?? null;
   const myName = profile?.full_name ?? null;
 
@@ -91,11 +101,14 @@ export function DashboardScreen() {
       wardCount: data.wardCount,
       myId, myName,
       hcVoteCount: hcCount,
+      spActionCount: spCount,
+      callingTotal: Object.values(data.callingStageCounts).reduce((a, b) => a + b, 0),
+      scope,
       t, language,
     };
     return isAdmin ? presidencyTiles(input) : highCouncilTiles(input);
   }, [scoped, data.interviews, data.standardWork, data.callingStageCounts,
-      data.wards, data.wardCount, myId, myName, hcCount, isAdmin, t, language]);
+      data.wards, data.wardCount, myId, myName, hcCount, spCount, scope, isAdmin, t, language]);
 
   const workstreams = useMemo(
     () => workstreamSpecs(data.workstreams, data.items, language),
@@ -106,6 +119,14 @@ export function DashboardScreen() {
     () => buildMetricSpecs(data.metrics, data.metricDefs, language, t('dash.metrics.target')),
     [data.metrics, data.metricDefs, language, t],
   );
+
+  // A failed write is a toast, not silence. Silence is how a broken policy
+  // went unnoticed for two weeks while the UI kept saying "Saved".
+  useEffect(() => {
+    if (!data.lastError) return;
+    setToast({ message: data.lastError });
+    data.clearError();
+  }, [data.lastError, data]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -188,14 +209,16 @@ export function DashboardScreen() {
             >
               <Ionicons name="add" size={20} color={Colors.primary} />
             </TouchableOpacity>
-            <Segmented
-              value={scope}
-              onChange={setScope}
-              options={[
-                { value: 'mine', label: t('dash.scope.mine') },
-                { value: 'everyone', label: t('dash.scope.everyone') },
-              ]}
-            />
+            {canSeeEveryone && (
+              <Segmented
+                value={scope}
+                onChange={setScope}
+                options={[
+                  { value: 'mine', label: t('dash.scope.mine') },
+                  { value: 'everyone', label: t('dash.scope.everyone') },
+                ]}
+              />
+            )}
           </View>
           {!!data.lastSyncedAt && (
             <View style={styles.syncRow}>
@@ -214,7 +237,7 @@ export function DashboardScreen() {
       >
         {/* Zone 0 — nothing extracted from a meeting reaches the board until a
             human approves it here. Presidency only. */}
-        {isAdmin && data.pending.length > 0 && (
+        {isPresidency && data.pending.length > 0 && (
           <TouchableOpacity
             style={styles.reviewBanner}
             onPress={() => nav.navigate('ReviewQueue')}
@@ -237,7 +260,9 @@ export function DashboardScreen() {
         <View style={styles.zone}>
           <SectionHeader
             title={t('dash.zone1.title')}
-            note={scope === 'mine' ? t('dash.zone1.justMine') : t('dash.zone1.wholePresidency')}
+            note={canSeeEveryone
+              ? (scope === 'mine' ? t('dash.zone1.justMine') : t('dash.zone1.wholePresidency'))
+              : undefined}
           />
           {zone1.length === 0 ? (
             <CalmEmpty
@@ -355,7 +380,7 @@ export function DashboardScreen() {
       <ItemSheet
         item={openItem}
         visible={!!openItem}
-        owners={data.owners}
+        owners={ownerChoices}
         workstreams={data.workstreams}
         ownerNames={data.ownerNames}
         language={language}
@@ -375,13 +400,19 @@ export function DashboardScreen() {
               : undefined,
           });
         }}
+        onDelete={() => {
+          if (!openItem) return;
+          void data.deleteItem(openItem.id);
+          setOpenItem(null);
+          setToast({ message: t('dash.toast.deleted') });
+        }}
       />
 
       <ItemSheet
         item={draftItem}
         visible={!!draftItem}
         createMode
-        owners={data.owners}
+        owners={ownerChoices}
         workstreams={data.workstreams}
         ownerNames={data.ownerNames}
         language={language}
