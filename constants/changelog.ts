@@ -9,11 +9,27 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
-    version: '2.55.1',
+    version: '2.56.1',
     date: '2026-09-13',
     enhancements: [],
     bugFixes: [
       'Fixed the iPhone app freezing on a screen that looks perfectly normal — most often the calling detail screen, right after using a bottom sheet like the task-assignment picker. If a sheet was told to close while it was still sliding open (a quick tap on a name is enough), iOS dropped the close, the app assumed it had happened, and an invisible empty layer was left over the whole screen swallowing every tap. Only force-quitting recovered it. Every sheet in the app now waits for its open animation to finish before it will close, and for its close to finish before it will reopen. Reported on the App Store build running 2.54.1.',
+    ],
+  },
+  {
+    version: '2.56.0',
+    date: '2026-09-13',
+    enhancements: [
+      'Mine / Everyone is now a stake presidency control. High councilors, clerks and the executive secretary always see their own view and no longer see the switch. The review queue for meeting items is likewise presidency-only.',
+      'The callings tile follows the same rule. A high councilor sees the callings that need him — votes owed, tasks assigned to him, sustainings due in his wards — the same number that badges his HC Board tab. A presidency member on "Mine" sees the callings waiting on his own action; "Everyone" is the whole board.',
+      'There is no "Meeting to-dos" tile any more. An item owned by a high councilor is a high council assignment; one owned by the presidency is a stake presidency assignment, which has its own tile. The database keeps that true on its own, so a to-do captured from a meeting lands in the right place without anyone re-filing it.',
+      'Quarterly interviews can be created, rescheduled, reassigned, completed and deleted from the dashboard. They still live in Steward — every change made here is written there, so the Steward grid and the interview schedule stay the same list. Open the interviews tile, tap a row, or use the + to add one.',
+      'Standard work no longer counts your quarterly interviews. Steward\'s "Interviews" category was being added to the weekly standard-work total; those are interviews, and they have their own tile.',
+      'Items can be deleted from the detail sheet. The presidency can delete anything; a high councilor can delete his own. Delete asks for a second tap rather than a pop-up.',
+      'High councilors can hand an assignment to another high councilor from the item sheet, and can add their own to-dos.',
+    ],
+    bugFixes: [
+      'Dashboard items and workstreams were invisible to every real user since the dashboard shipped on August 31. Three database rules referenced each other in a circle, and Postgres refused every read with an error the app then swallowed — so the screen simply showed nothing, including the review queue and the "create workstream" button, which appeared to do nothing. This is the fix for "nothing happens when I create a workstream." Both now work, and the app shows a message when a save fails instead of pretending it succeeded.',
     ],
   },
   {

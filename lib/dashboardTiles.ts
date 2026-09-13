@@ -77,19 +77,24 @@ interface TileInput {
   wardCount: number;
   myId: string | null;
   myName: string | null;
+  /** Callings currently needing this high councilor (from ActionCountsContext). */
   hcVoteCount: number;
+  /** Callings currently needing this presidency member (from ActionCountsContext). */
+  spActionCount: number;
+  callingTotal: number;
+  scope: Scope;
   t: T;
   language: Lang;
 }
 
 /**
- * Zone 2 for the presidency. Seven tiles, each answering how many, by when,
- * whose. Six report on the stake; the last is the viewer's own standard work.
+ * Zone 2 for the presidency. Eight tiles, each answering how many, by when,
+ * whose. Seven report on the stake; the last is the viewer's own standard work.
  * The callings tile is derived from the `callings` table rather than
  * magnify_items — the dashboard reports on the kanban, it doesn't duplicate it.
  */
 export function presidencyTiles(input: TileInput): TileSpec[] {
-  const { openItems, interviews, callingStageCounts, wards, wardCount, myId, myName, t, language } = input;
+  const { openItems, interviews, callingStageCounts, wards, wardCount, myId, myName, scope, spActionCount, t, language } = input;
 
   const recommends = openItems.filter(i => i.kind === 'recommend');
   const audits = openItems.filter(i => i.kind === 'audit');
@@ -116,6 +121,9 @@ export function presidencyTiles(input: TileInput): TileSpec[] {
   // stages before (there are rows in `pending_interview` today), and a
   // hardcoded list silently hides whichever column is actually busiest.
   const callingTotal = Object.values(callingStageCounts).reduce((a, b) => a + b, 0);
+  // "Mine" for a presidency member is the callings waiting on HIS action —
+  // the same number that badges the SP Board tab. "Everyone" is the whole board.
+  const callingValue = scope === 'mine' ? spActionCount : callingTotal;
   const stageSub = Object.entries(callingStageCounts)
     .filter(([, n]) => n > 0)
     .sort((a, b) => b[1] - a[1])
@@ -170,10 +178,12 @@ export function presidencyTiles(input: TileInput): TileSpec[] {
     {
       key: 'calling',
       kind: 'calling',
-      value: String(callingTotal),
-      unit: t('dash.unit.inFlight'),
-      label: t('dash.tile.callings'),
-      sub: stageSub || t('dash.sub.boardClear'),
+      value: String(callingValue),
+      unit: scope === 'mine' ? t('dash.unit.awaitingMe') : t('dash.unit.inFlight'),
+      label: scope === 'mine' ? t('dash.tile.myCallings') : t('dash.tile.callings'),
+      sub: scope === 'mine'
+        ? `${callingTotal} ${t('dash.sub.inFlightOnBoard')}`
+        : (stageSub || t('dash.sub.boardClear')),
       // No drill key: this tile opens the kanban board that owns the data.
     },
     {
@@ -211,25 +221,26 @@ export function presidencyTiles(input: TileInput): TileSpec[] {
         : t('dash.sub.noneOutstanding'),
       drill: 'directive',
     },
+    presidencyAssignmentTile(input),
     // The presidency's own recurring Steward duties. The first cut of this
     // screen gave the standard-work tile to high councilors only, which left
     // StandardWorkScreen with no route at all for a presidency member — the
     // data loaded and nothing on the dashboard opened it. Last in the grid
     // because it is the one personal tile in a zone about the stake.
-    actionTile(input),
     standardWorkTile(input),
   ];
 }
 
 /**
- * Meeting to-dos — `kind: 'action'`.
+ * Stake presidency assignments — `kind: 'action'`.
  *
- * This tile exists because without it an action item is invisible: "Needs you"
- * only lists what is due within a week, and every other tile is keyed to a
- * different kind. An approved meeting to-do with no due date had nowhere at all
- * to appear. Both roles get it for the same reason.
+ * Scott's rule (2026-09-13): a meeting to-do owned by a high councilor IS an
+ * HC assignment and a to-do owned by the presidency IS a presidency
+ * assignment. A database trigger (migration 025) re-kinds every row by its
+ * owner, so by the time rows reach this tile `action` means "the presidency's"
+ * and `assignment` means "the high council's". There is no generic to-do tile.
  */
-function actionTile(input: TileInput): TileSpec {
+function presidencyAssignmentTile(input: TileInput): TileSpec {
   const { openItems, t } = input;
   const actions = openItems.filter(i => i.kind === 'action');
   const undated = actions.filter(i => !i.due_on).length;
@@ -238,7 +249,7 @@ function actionTile(input: TileInput): TileSpec {
     kind: 'action',
     value: String(actions.length),
     unit: t('dash.unit.open'),
-    label: t('dash.tile.actions'),
+    label: t('dash.tile.presidencyAssignments'),
     sub: joinParts([
       t('dash.sub.fromMeetings'),
       undated ? `${undated} ${t('dash.sub.needADate')}` : null,
@@ -304,8 +315,11 @@ export function highCouncilTiles(input: TileInput): TileSpec[] {
       kind: 'calling',
       value: String(hcVoteCount),
       unit: hcVoteCount === 1 ? t('dash.unit.card') : t('dash.unit.cards'),
-      label: t('dash.tile.myVotes'),
-      sub: t('dash.sub.onTheHcBoard'),
+      label: t('dash.tile.myCallings'),
+      // Votes owed, tasks assigned to me (extend/sustain/set apart), and
+      // sustainings still due in my wards — the same count that badges the
+      // HC Board tab.
+      sub: t('dash.sub.assignedToMeOnBoard'),
     },
     {
       key: 'myInterview',
@@ -318,7 +332,6 @@ export function highCouncilTiles(input: TileInput): TileSpec[] {
         : t('dash.sub.nothingScheduled'),
       drill: 'myInterview',
     },
-    actionTile(input),
     standardWorkTile(input),
   ];
 }

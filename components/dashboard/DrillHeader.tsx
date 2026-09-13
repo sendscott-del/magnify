@@ -11,23 +11,28 @@ import { useIsDesktopWeb } from '../../lib/useDeviceWidth';
  * and these screens get used one-handed between meetings.
  */
 export function DrillHeader({
-  title, subtitle, onBack,
+  title, subtitle, onBack, rightElement,
 }: {
   title: string;
   subtitle?: string;
   onBack: () => void;
+  /** Optional control on the right — e.g. a "+" to add to the list. */
+  rightElement?: React.ReactNode;
 }) {
   const insets = useSafeAreaInsets();
   const isDesktopWeb = useIsDesktopWeb();
   return (
     <View style={[styles.header, !isDesktopWeb && { paddingTop: insets.top + 12 }]}>
-      <TouchableOpacity style={styles.cluster} onPress={onBack} activeOpacity={0.8} accessibilityRole="button">
-        <Ionicons name="chevron-back" size={22} color={Colors.gray[800]} />
-        <View style={styles.titleCol}>
-          <Text style={styles.title} numberOfLines={1}>{title}</Text>
-          {!!subtitle && <Text style={styles.sub} numberOfLines={1}>{subtitle}</Text>}
-        </View>
-      </TouchableOpacity>
+      <View style={styles.row}>
+        <TouchableOpacity style={styles.cluster} onPress={onBack} activeOpacity={0.8} accessibilityRole="button">
+          <Ionicons name="chevron-back" size={22} color={Colors.gray[800]} />
+          <View style={styles.titleCol}>
+            <Text style={styles.title} numberOfLines={1}>{title}</Text>
+            {!!subtitle && <Text style={styles.sub} numberOfLines={1}>{subtitle}</Text>}
+          </View>
+        </TouchableOpacity>
+        {rightElement}
+      </View>
     </View>
   );
 }
@@ -41,7 +46,14 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 12,
   },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   cluster: {
+    flex: 1,
+    minWidth: 0,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,

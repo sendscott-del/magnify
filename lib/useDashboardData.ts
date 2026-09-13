@@ -59,6 +59,19 @@ export interface DashboardData {
   ownerNames: Record<string, string>;
   stakeName: string | null;
   lastSyncedAt: string | null;
+  /**
+   * Presidency + clerk accounts, for the interview assignee picker. Interviews
+   * are assigned to the presidency; clerks are included because the exec
+   * secretary schedules them.
+   */
+  presidencyMembers: Array<{ id: string; name: string }>;
+  /**
+   * The most recent failed write, as a human-readable message. Screens toast
+   * it. Every mutation used to swallow its error — that is how a broken RLS
+   * policy hid for two weeks while the UI said "Saved".
+   */
+  lastError: string | null;
+  clearError: () => void;
   refresh: () => Promise<void>;
   createItem: (patch: Partial<DashboardItem>) => Promise<void>;
   createWorkstream: (name: string, targetDate: string | null) => Promise<void>;
@@ -67,6 +80,16 @@ export interface DashboardData {
   approvePending: (id: string) => Promise<void>;
   discardPending: (id: string) => Promise<void>;
   setStandardWorkDone: (behaviorId: string, done: boolean) => Promise<void>;
+  deleteItem: (id: string) => Promise<void>;
+  saveInterview: (draft: {
+    id?: string | null;
+    interviewee_name: string;
+    interviewee_calling?: string | null;
+    assigned_to_user_id?: string | null;
+    scheduled_for?: string | null;
+  }) => Promise<void>;
+  completeInterview: (id: string, done: boolean) => Promise<void>;
+  deleteInterview: (id: string) => Promise<void>;
 }
 
 
@@ -106,6 +129,16 @@ export function useDashboardData(): DashboardData {
   const [ownerNames, setOwnerNames] = useState<Record<string, string>>({});
   const [stakeName, setStakeName] = useState<string | null>(null);
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
+  const [presidencyMembers, setPresidencyMembers] = useState<Array<{ id: string; name: string }>>([]);
+  const [lastError, setLastError] = useState<string | null>(null);
+  const clearError = useCallback(() => setLastError(null), []);
+
+  /** Report a failed write. Kept tiny so every mutation can afford to call it. */
+  const fail = useCallback((what: string, error: { message?: string } | null | undefined) => {
+    if (!error) return false;
+    setLastError(`${what}: ${error.message ?? 'unknown error'}`);
+    return true;
+  }, []);
 
   const loadDemo = useCallback(() => {
     // The fixtures mark the stake president's own items with a sentinel owner
@@ -134,6 +167,7 @@ export function useDashboardData(): DashboardData {
       { userId: null, name: 'Br. Lindquist', calling: 'High Council' },
     ]);
     setOwnerNames({ [me]: 'Pres. Shurtliff' });
+    setPresidencyMembers([{ id: me, name: 'Pres. Shurtliff' }]);
     setStakeName('Sample Stake');
     setLastSyncedAt(new Date().toISOString());
     setLoading(false);
@@ -169,7 +203,7 @@ export function useDashboardData(): DashboardData {
       supabase.from('magnify_metric_defs').select('*').order('sort_order'),
       supabase.from('callings').select('stage').eq('rejected', false).neq('stage', 'complete'),
       supabase.from('wards').select('id, name, abbreviation').order('sort_order'),
-      supabase.from('profiles').select('id, full_name').eq('app', 'magnify').eq('status', 'approved'),
+      supabase.from('profiles').select('id, full_name, role').eq('app', 'magnify').eq('status', 'approved'),
       supabase.from('sp_members').select('name, role').eq('active', true).order('sort_order'),
       supabase.from('high_council_members').select('name, user_id').eq('active', true).order('sort_order'),
       // RLS on `stakes` already narrows this to the caller's own stake.
@@ -199,10 +233,14 @@ export function useDashboardData(): DashboardData {
     setStakeName(((stakeRes as { data?: { name?: string } | null }).data?.name) ?? null);
 
     const names: Record<string, string> = {};
-    for (const p of (profilesRes.data ?? []) as Array<{ id: string; full_name: string }>) {
-      names[p.id] = p.full_name;
-    }
+    const profileRows = (profilesRes.data ?? []) as Array<{ id: string; full_name: string; role: string }>;
+    for (const p of profileRows) names[p.id] = p.full_name;
     setOwnerNames(names);
+    setPresidencyMembers(
+      profileRows
+        .filter(p => ['stake_president', 'first_counselor', 'second_counselor', 'stake_clerk', 'exec_secretary'].includes(p.role))
+        .map(p => ({ id: p.id, name: p.full_name.trim() })),
+    );
 
     // Owner picker: presidency members and high councilors, with an account
     // link where one exists. Leaders without a Magnify account are still
@@ -234,7 +272,7 @@ export function useDashboardData(): DashboardData {
     // stake_id, created_by and the defaults come from the table definition —
     // don't send them from the client, or a service-role convention and a
     // client convention start to disagree about which stake owns a row.
-    const { data: rows } = await supabase
+    const { data: rows, error } = await supabase
       .from('magnify_items')
       .insert({
         kind: patch.kind ?? 'action',
@@ -246,19 +284,21 @@ export function useDashboardData(): DashboardData {
         workstream_id: patch.workstream_id ?? null,
       })
       .select();
+    if (fail('Could not add the item', error)) return;
     const created = (rows ?? [])[0] as DashboardItem | undefined;
     if (created) setItems(prev => [...prev, created]);
-  }, [isDemo, user?.id]);
+  }, [isDemo, user?.id, fail]);
 
   const createWorkstream = useCallback(async (name: string, targetDate: string | null) => {
     if (isDemo) return;
-    const { data: rows } = await supabase
+    const { data: rows, error } = await supabase
       .from('magnify_workstreams')
       .insert({ name, target_date: targetDate })
       .select();
+    if (fail('Could not create the workstream', error)) return;
     const created = (rows ?? [])[0] as Workstream | undefined;
     if (created) setWorkstreams(prev => [...prev, created]);
-  }, [isDemo]);
+  }, [isDemo, fail]);
 
   const setItemStatus = useCallback(async (id: string, done: boolean) => {
     // Optimistic: flip the status in place rather than removing the row, so
@@ -267,28 +307,48 @@ export function useDashboardData(): DashboardData {
     const status: DashboardItem['status'] = done ? 'done' : 'open';
     setItems(prev => prev.map(i => (i.id === id ? { ...i, status, completed_at } : i)));
     if (isDemo) return;
-    await supabase.from('magnify_items').update({ status, completed_at }).eq('id', id);
-  }, [isDemo]);
+    const { error } = await supabase.from('magnify_items').update({ status, completed_at }).eq('id', id);
+    fail('Could not update the item', error);
+  }, [isDemo, fail]);
 
   const updateItem = useCallback(async (id: string, patch: Partial<DashboardItem>) => {
     setItems(prev => prev.map(i => (i.id === id ? { ...i, ...patch } : i)));
+    setPending(prev => prev.map(i => (i.id === id ? { ...i, ...patch } : i)));
     if (isDemo) return;
-    await supabase.from('magnify_items').update(patch).eq('id', id);
-  }, [isDemo]);
+
+    // Owner changes go through an RPC. Postgres re-checks the SELECT policy
+    // against the updated row, so a high councilor handing an item to someone
+    // else would be refused by a plain UPDATE the moment it stopped being his.
+    const { owner_user_id, owner_label, ...rest } = patch;
+    if (owner_user_id !== undefined || owner_label !== undefined) {
+      const { error } = await supabase.rpc('magnify_item_reassign', {
+        p_id: id,
+        p_owner_user_id: owner_user_id ?? null,
+        p_owner_label: owner_label ?? null,
+      });
+      if (fail('Could not reassign the item', error)) return;
+    }
+    if (Object.keys(rest).length) {
+      const { error } = await supabase.from('magnify_items').update(rest).eq('id', id);
+      fail('Could not save the item', error);
+    }
+  }, [isDemo, fail]);
 
   const approvePending = useCallback(async (id: string) => {
     const row = pending.find(p => p.id === id);
     setPending(prev => prev.filter(p => p.id !== id));
     if (row) setItems(prev => [...prev, { ...row, review_state: 'approved' }]);
     if (isDemo) return;
-    await supabase.from('magnify_items').update({ review_state: 'approved' }).eq('id', id);
-  }, [isDemo, pending]);
+    const { error } = await supabase.from('magnify_items').update({ review_state: 'approved' }).eq('id', id);
+    fail('Could not approve the item', error);
+  }, [isDemo, pending, fail]);
 
   const discardPending = useCallback(async (id: string) => {
     setPending(prev => prev.filter(p => p.id !== id));
     if (isDemo) return;
-    await supabase.from('magnify_items').delete().eq('id', id);
-  }, [isDemo]);
+    const { error } = await supabase.from('magnify_items').delete().eq('id', id);
+    fail('Could not discard the item', error);
+  }, [isDemo, fail]);
 
   const setStandardWorkDone = useCallback(async (behaviorId: string, done: boolean) => {
     setStandardWork(prev =>
@@ -296,11 +356,67 @@ export function useDashboardData(): DashboardData {
     if (isDemo) return;
     // Goes through the RPC so a shared behavior fans out to every participant's
     // Steward row. Never write steward_entries from here directly.
-    await supabase.rpc('magnify_dash_set_standard_work', {
+    const { error } = await supabase.rpc('magnify_dash_set_standard_work', {
       p_behavior_id: behaviorId,
       p_done: done,
     });
-  }, [isDemo]);
+    fail('Could not update standard work', error);
+  }, [isDemo, fail]);
+
+  const deleteItem = useCallback(async (id: string) => {
+    setItems(prev => prev.filter(i => i.id !== id));
+    setPending(prev => prev.filter(i => i.id !== id));
+    if (isDemo) return;
+    const { error } = await supabase.from('magnify_items').delete().eq('id', id);
+    fail('Could not delete the item', error);
+  }, [isDemo, fail]);
+
+  // Interviews are write-through to steward_interviews via SECURITY DEFINER
+  // RPCs (migration 025). Steward's own sync triggers fire on these writes,
+  // so its grid follows without any extra work here.
+  const saveInterview = useCallback<DashboardData['saveInterview']>(async (draft) => {
+    if (isDemo) return;
+    const { year, quarter } = currentQuarter();
+    const { data: newId, error } = await supabase.rpc('magnify_dash_interview_save', {
+      p_id: draft.id ?? null,
+      p_name: draft.interviewee_name,
+      p_calling: draft.interviewee_calling ?? null,
+      p_assigned_to: draft.assigned_to_user_id ?? null,
+      p_scheduled_for: draft.scheduled_for ?? null,
+      p_year: year,
+      p_quarter: quarter,
+    });
+    if (fail('Could not save the interview', error)) return;
+    const id = (newId as string) ?? draft.id!;
+    const assigneeName = draft.assigned_to_user_id ? ownerNames[draft.assigned_to_user_id] ?? null : null;
+    setInterviews(prev => {
+      const next: DashInterview = {
+        id,
+        interviewee_name: draft.interviewee_name,
+        interviewee_calling: draft.interviewee_calling ?? null,
+        assigned_to_user_id: draft.assigned_to_user_id ?? null,
+        assignee_name: assigneeName,
+        scheduled_for: draft.scheduled_for ?? null,
+        completed_at: prev.find(i => i.id === id)?.completed_at ?? null,
+      };
+      return prev.some(i => i.id === id) ? prev.map(i => (i.id === id ? next : i)) : [...prev, next];
+    });
+  }, [isDemo, fail, ownerNames]);
+
+  const completeInterview = useCallback(async (id: string, done: boolean) => {
+    const today = new Date().toISOString().slice(0, 10);
+    setInterviews(prev => prev.map(i => (i.id === id ? { ...i, completed_at: done ? today : null } : i)));
+    if (isDemo) return;
+    const { error } = await supabase.rpc('magnify_dash_interview_complete', { p_id: id, p_done: done });
+    fail('Could not update the interview', error);
+  }, [isDemo, fail]);
+
+  const deleteInterview = useCallback(async (id: string) => {
+    setInterviews(prev => prev.filter(i => i.id !== id));
+    if (isDemo) return;
+    const { error } = await supabase.rpc('magnify_dash_interview_delete', { p_id: id });
+    fail('Could not delete the interview', error);
+  }, [isDemo, fail]);
 
   const wardCount = useMemo(
     () => (isDemo ? DEMO_WARD_COUNT : wards.length),
@@ -310,8 +426,10 @@ export function useDashboardData(): DashboardData {
   return {
     loading, items, pending, workstreams, interviews, standardWork,
     metrics, metricDefs, callingStageCounts, wards, wardCount,
-    owners, ownerNames, stakeName, lastSyncedAt,
+    owners, ownerNames, stakeName, lastSyncedAt, presidencyMembers,
+    lastError, clearError,
     refresh, createItem, createWorkstream, setItemStatus, updateItem,
     approvePending, discardPending, setStandardWorkDone,
+    deleteItem, saveInterview, completeInterview, deleteInterview,
   };
 }
