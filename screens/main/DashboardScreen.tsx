@@ -13,15 +13,12 @@ import { useLanguage } from '../../context/LanguageContext';
 import { useActionCounts } from '../../context/ActionCountsContext';
 import { useIsDesktopWeb } from '../../lib/useDeviceWidth';
 import { useDashboard } from '../../context/DashboardContext';
-import {
-  DashboardItem, ZONE1_MAX_ROWS, byDueDate, duePill, formatMonthDay, isUrgent,
-} from '../../lib/dashboard';
+import { DashboardItem, formatMonthDay } from '../../lib/dashboard';
 import {
   Scope, highCouncilTiles, isOpen, presidencyTiles, scopeItems, workstreamSpecs,
 } from '../../lib/dashboardTiles';
 import { MetricCard, StatTile, WorkstreamCard } from '../../components/dashboard/cards';
 import { Grid } from '../../components/dashboard/Grid';
-import { NeedsYouRow } from '../../components/dashboard/NeedsYouRow';
 import { ItemSheet } from '../../components/dashboard/ItemSheet';
 import { Toast } from '../../components/dashboard/Toast';
 import { NewWorkstreamSheet } from '../../components/dashboard/NewWorkstreamSheet';
@@ -32,10 +29,11 @@ import { buildMetricSpecs } from '../../lib/dashboardMetrics';
 /**
  * The Dashboard — Magnify's home screen.
  *
- * Three zones, stacked, always in this order: Needs you → The stake right now
- * → Workstreams. Not tabs and not a merged feed, because the question a
- * presidency member opens this with ("what is blocked on me?") has to be
- * answerable without a single tap.
+ * Two zones, stacked, always in this order: The stake right now → Workstreams.
+ * Not tabs and not a merged feed. The tiles carry the counts; the list behind
+ * each count is one tap away in the drill screen. There used to be a "Needs
+ * you" list of urgent rows above the tiles; Scott removed it on 2026-09-13
+ * because the tiles already answer the question and the list duplicated them.
  *
  * The same component renders phone and full-width desktop web. The only
  * difference is chrome supplied by the shell around it — WebShell provides the
@@ -56,7 +54,6 @@ export function DashboardScreen() {
   const canSeeEveryone = isPresidency;
   const [scopeState, setScope] = useState<Scope>('mine');
   const scope: Scope = canSeeEveryone ? scopeState : 'mine';
-  const [openItem, setOpenItem] = useState<DashboardItem | null>(null);
   const [draftItem, setDraftItem] = useState<DashboardItem | null>(null);
   const [newWorkstream, setNewWorkstream] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -78,18 +75,6 @@ export function DashboardScreen() {
     [openItems, scope, myId, myName],
   );
 
-  // Zone 1: overdue first, then due within a week, hard-capped. Anything
-  // further out belongs in a tile, not in the urgent list.
-  const urgent = useMemo(
-    () => scoped.filter(isUrgent).sort(byDueDate),
-    [scoped],
-  );
-  const zone1 = urgent.slice(0, ZONE1_MAX_ROWS);
-  const overflowCount = scoped.length - zone1.length;
-  const nextDue = useMemo(
-    () => scoped.filter(i => i.due_on).sort(byDueDate)[0]?.due_on ?? null,
-    [scoped],
-  );
 
   const tiles = useMemo(() => {
     const input = {
@@ -133,14 +118,6 @@ export function DashboardScreen() {
     await data.refresh();
     setRefreshing(false);
   }, [data]);
-
-  function markDone(item: DashboardItem) {
-    void data.setItemStatus(item.id, true);
-    setToast({
-      message: t('dash.toast.markedDone'),
-      undo: () => { void data.setItemStatus(item.id, false); setToast(null); },
-    });
-  }
 
   /** A blank in-memory item the sheet edits; the row is only written on Save. */
   function startNewItem() {
@@ -256,47 +233,6 @@ export function DashboardScreen() {
           </TouchableOpacity>
         )}
 
-        {/* Zone 1 */}
-        <View style={styles.zone}>
-          <SectionHeader
-            title={t('dash.zone1.title')}
-            note={canSeeEveryone
-              ? (scope === 'mine' ? t('dash.zone1.justMine') : t('dash.zone1.wholePresidency'))
-              : undefined}
-          />
-          {zone1.length === 0 ? (
-            <CalmEmpty
-              title={t('dash.zone1.emptyTitle')}
-              sub={nextDue
-                ? `${t('dash.zone1.emptySub')} ${formatMonthDay(nextDue, language)}.`
-                : undefined}
-            />
-          ) : (
-            <View style={{ gap: 8 }}>
-              {zone1.map(item => (
-                <NeedsYouRow
-                  key={item.id}
-                  item={item}
-                  eyebrow={t(`dash.kind.${item.kind}` as TranslationKey)}
-                  pill={duePill(item.due_on, t, language)}
-                  ownerLabel={scope === 'everyone'
-                    ? (item.owner_label
-                       ?? (item.owner_user_id ? data.ownerNames[item.owner_user_id] : null))
-                    : null}
-                  onPress={() => setOpenItem(item)}
-                  onDone={() => markDone(item)}
-                  doneAccessibilityLabel={t('dash.a11y.markDone')}
-                />
-              ))}
-            </View>
-          )}
-          {overflowCount > 0 && (
-            <Text style={styles.overflow}>
-              + {overflowCount} {t('dash.zone1.moreNoneUrgent')}
-            </Text>
-          )}
-        </View>
-
         {/* Zone 2 */}
         <View style={styles.zone}>
           <SectionHeader title={isAdmin ? t('dash.zone2.title') : t('dash.zone2.titleHc')} />
@@ -376,37 +312,6 @@ export function DashboardScreen() {
         <DisclaimerFooter />
         <Text style={styles.confidential}>{t('dash.footer.confidential')}</Text>
       </ScrollView>
-
-      <ItemSheet
-        item={openItem}
-        visible={!!openItem}
-        owners={ownerChoices}
-        workstreams={data.workstreams}
-        ownerNames={data.ownerNames}
-        language={language}
-        t={t}
-        onClose={() => setOpenItem(null)}
-        onSave={patch => {
-          if (openItem) void data.updateItem(openItem.id, patch);
-          setToast({ message: t('dash.toast.saved') });
-        }}
-        onToggleDone={done => {
-          if (!openItem) return;
-          void data.setItemStatus(openItem.id, done);
-          setToast({
-            message: done ? t('dash.toast.markedDone') : t('dash.toast.reopened'),
-            undo: done
-              ? () => { void data.setItemStatus(openItem.id, false); setToast(null); }
-              : undefined,
-          });
-        }}
-        onDelete={() => {
-          if (!openItem) return;
-          void data.deleteItem(openItem.id);
-          setOpenItem(null);
-          setToast({ message: t('dash.toast.deleted') });
-        }}
-      />
 
       <ItemSheet
         item={draftItem}
@@ -535,13 +440,6 @@ const styles = StyleSheet.create({
   },
   reviewTitle: { fontSize: FontSize.sm, fontWeight: '700', color: Colors.primary },
   reviewSub: { fontSize: FontSize.xs, color: Colors.gray[600], marginTop: 1 },
-  overflow: {
-    fontSize: FontSize.sm,
-    fontWeight: '600',
-    color: Colors.primary,
-    textAlign: 'center',
-    marginTop: 8,
-  },
   metricHeader: {
     flexDirection: 'row',
     alignItems: 'baseline',

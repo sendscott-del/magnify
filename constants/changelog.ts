@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.57.0',
+    date: '2026-09-13',
+    enhancements: [
+      'The "Needs you" list at the top of the dashboard is gone. The dashboard now opens straight onto the tiles — one box per area of work — followed by workstreams. Every item that was in the list is still counted in its tile and one tap away in the list behind it, with overdue dates shown in red there.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.56.1',
     date: '2026-09-13',
     enhancements: [],

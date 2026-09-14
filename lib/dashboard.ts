@@ -226,15 +226,8 @@ export function duePill(
   };
 }
 
-/** Zone 1 shows only what is actually blocked on you: overdue or due ≤ 7 days. */
+/** "Due soon" for tiles and pills: overdue or due ≤ 7 days. */
 export const URGENT_WINDOW_DAYS = 7;
-/** Hard cap so Zone 1 can never become a backlog. */
-export const ZONE1_MAX_ROWS = 7;
-
-export function isUrgent(item: { due_on?: string | null }): boolean {
-  const d = daysUntil(item.due_on);
-  return d !== null && d <= URGENT_WINDOW_DAYS;
-}
 
 /** Overdue first, then soonest. Undated items sort last. */
 export function byDueDate<TItem extends { due_on?: string | null }>(a: TItem, b: TItem): number {
