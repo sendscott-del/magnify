@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Animated, Easing, Modal, Platform, Pressable,
+  Animated, Easing, Platform, Pressable,
   StyleSheet, Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
+import { SafeModal } from '../ui/SafeModal';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, FontSize, Radius } from '../../constants/theme';
@@ -55,7 +56,7 @@ export function NewWorkstreamSheet({
   }
 
   return (
-    <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
+    <SafeModal visible={visible} transparent animationType="none" onRequestClose={onClose}>
       <Pressable style={styles.scrim} onPress={onClose}>
         <Pressable onPress={() => {}} style={styles.wrap}>
           <Animated.View
@@ -112,7 +113,7 @@ export function NewWorkstreamSheet({
           </Animated.View>
         </Pressable>
       </Pressable>
-    </Modal>
+    </SafeModal>
   );
 }
 

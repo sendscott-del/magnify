@@ -1,8 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
-  TextInput, Modal, Alert, Platform,
+  TextInput, Alert, Platform,
 } from 'react-native';
+import { SafeModal } from '../../components/ui/SafeModal';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { format } from 'date-fns';
@@ -171,7 +172,7 @@ export function CompletedCallingsScreen({ navigation }: any) {
       />
 
       {/* Ward Filter Modal */}
-      <Modal
+      <SafeModal
         visible={showWardPicker}
         transparent
         animationType="slide"
@@ -217,7 +218,7 @@ export function CompletedCallingsScreen({ navigation }: any) {
             ))}
           </View>
         </TouchableOpacity>
-      </Modal>
+      </SafeModal>
     </View>
   );
 }

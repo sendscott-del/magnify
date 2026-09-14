@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import {
   View, Text, TouchableOpacity, TextInput, StyleSheet,
-  Modal, KeyboardAvoidingView, Platform,
+  KeyboardAvoidingView, Platform,
 } from 'react-native';
+import { SafeModal } from './SafeModal';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -113,7 +114,7 @@ export function SuggestionFAB({ controlledOpen, onControlledClose }: Props = {})
       )}
 
       {/* Modal */}
-      <Modal visible={open} transparent animationType="fade">
+      <SafeModal visible={open} transparent animationType="fade">
         <KeyboardAvoidingView
           style={[styles.overlay, keyboardInset > 0 && { paddingBottom: keyboardInset }]}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -160,7 +161,7 @@ export function SuggestionFAB({ controlledOpen, onControlledClose }: Props = {})
             </View>
           </View>
         </KeyboardAvoidingView>
-      </Modal>
+      </SafeModal>
     </>
   );
 }

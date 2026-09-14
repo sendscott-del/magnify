@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, Platform, AppState } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform, AppState } from 'react-native';
+import { SafeModal } from './ui/SafeModal';
 import { supabase } from '../lib/supabase';
 import { Colors, Spacing, FontSize, Radius } from '../constants/theme';
 import { useLanguage } from '../context/LanguageContext';
@@ -96,7 +97,7 @@ export function IdleTimeoutGuard({ children }: Props) {
       onTouchStart={Platform.OS !== 'web' ? resetTimer : undefined}
     >
       {children}
-      <Modal visible={showWarning} transparent animationType="fade">
+      <SafeModal visible={showWarning} transparent animationType="fade">
         <View style={styles.overlay}>
           <View style={styles.dialog}>
             <Text style={styles.title}>{t('idle.title')}</Text>
@@ -116,7 +117,7 @@ export function IdleTimeoutGuard({ children }: Props) {
             </TouchableOpacity>
           </View>
         </View>
-      </Modal>
+      </SafeModal>
     </View>
   );
 }

@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.56.1',
+    date: '2026-09-13',
+    enhancements: [],
+    bugFixes: [
+      'Fixed the iPhone app freezing on a screen that looks perfectly normal — most often the calling detail screen, right after using a bottom sheet like the task-assignment picker. If a sheet was told to close while it was still sliding open (a quick tap on a name is enough), iOS dropped the close, the app assumed it had happened, and an invisible empty layer was left over the whole screen swallowing every tap. Only force-quitting recovered it. Every sheet in the app now waits for its open animation to finish before it will close, and for its close to finish before it will reopen. Reported on the App Store build running 2.54.1.',
+    ],
+  },
+  {
     version: '2.56.0',
     date: '2026-09-13',
     enhancements: [

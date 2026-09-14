@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  Modal, FlatList, Platform, Alert,
+  FlatList, Platform, Alert,
 } from 'react-native';
+import { SafeModal } from '../../components/ui/SafeModal';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
@@ -456,7 +457,7 @@ export function NewCallingScreen({ navigation }: any) {
       </KeyboardAwareScrollView>
 
       {/* Ward Picker Modal */}
-      <Modal
+      <SafeModal
         visible={showWardPicker}
         transparent
         animationType="slide"
@@ -498,10 +499,10 @@ export function NewCallingScreen({ navigation }: any) {
             />
           </View>
         </TouchableOpacity>
-      </Modal>
+      </SafeModal>
 
       {/* Release Ward Picker Modal */}
-      <Modal
+      <SafeModal
         visible={showReleaseWardPicker}
         transparent
         animationType="slide"
@@ -543,10 +544,10 @@ export function NewCallingScreen({ navigation }: any) {
             />
           </View>
         </TouchableOpacity>
-      </Modal>
+      </SafeModal>
 
       {/* Calling Picker Modal */}
-      <Modal
+      <SafeModal
         visible={showCallingPicker}
         transparent
         animationType="slide"
@@ -599,7 +600,7 @@ export function NewCallingScreen({ navigation }: any) {
             />
           </View>
         </TouchableOpacity>
-      </Modal>
+      </SafeModal>
     </View>
   );
 }

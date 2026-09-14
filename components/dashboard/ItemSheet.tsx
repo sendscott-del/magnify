@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Animated, Easing, Modal, Platform, Pressable, ScrollView,
+  Animated, Easing, Platform, Pressable, ScrollView,
   StyleSheet, Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
+import { SafeModal } from '../ui/SafeModal';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, FontSize, Radius } from '../../constants/theme';
@@ -167,7 +168,7 @@ export function ItemSheet({
   const translate = anim.interpolate({ inputRange: [0, 1], outputRange: [40, 0] });
 
   return (
-    <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
+    <SafeModal visible={visible} transparent animationType="none" onRequestClose={onClose}>
       <Pressable style={styles.scrim} onPress={onClose}>
         {/* Stop the press from reaching the scrim when it lands on the sheet. */}
         <Pressable onPress={() => {}} style={styles.sheetWrap}>
@@ -186,7 +187,7 @@ export function ItemSheet({
           </Animated.View>
         </Pressable>
       </Pressable>
-    </Modal>
+    </SafeModal>
   );
 
   function renderDetail() {
