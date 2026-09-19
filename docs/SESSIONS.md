@@ -2,6 +2,13 @@
 
 Append-only, newest first. Every working session adds one entry at the TOP: date, what changed, any infra facts touched (database, domain, auth, secrets). Infra changes also go into `CLAUDE.md` immediately, not just here.
 
+## 2026-09-19 (evening) — v2.58.2: presidency calendar events; conference workstream filled; EQ email staged
+
+- `magnify_calendar_events` (031) + sync edge function + pg_cron (032). Events show on the Calendar (grouped Mon–Sun under each Sunday) and on the This Sunday timeline for presidency/clerks, with drives when the location matches a building. 27 timed events imported by hand from today's Google Calendar read; the 30-minute sync is a no-op until Scott sets `MAGNIFY_GCAL_ICS_URL` (the classifier blocked reading the secret address from the Google Calendar settings page).
+- Stake Conference 2026-10 workstream: 21 action items added from the Aug 16 SP+RS planning summary and the speaker tracker, owners set (presidency by account, others by label), target date moved to Oct 11.
+- Remember Him email to the nine EQ presidents staged in LCR (12 recipients incl. presidency + clerk); Scott sends. Gmail draft of the same text remains.
+- State: web live with 2.58.2; OTA `01a0bbc5-012d-…` published.
+
 ## 2026-09-19 (later) — v2.58.1: conference sessions, Calendar opens on this week, text-count fix
 
 - Bug found by Scott on first use: Send Text Reminder showed 0 recipients with "Could not find a relationship between list_members and contacts". Tidings has no FK between those tables, so PostgREST embedding fails; the edge function now runs two plain queries. Redeployed.
