@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -10,7 +10,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { useIsDesktopWeb } from '../../lib/useDeviceWidth';
 import { cardBase, CalmEmpty } from '../../components/dashboard/primitives';
 import { formatMonthDay, todayISO } from '../../lib/dashboard';
-import { Seat, SEATS, bodiesForRole, comingSundayISO, fmtClock, quarterOf, toMinutes } from '../../lib/schedule';
+import { Seat, SEATS, bodiesForRole, comingSundayISO, fmtClock, meetingTitle, quarterOf, toMinutes } from '../../lib/schedule';
 import { YearRow, loadYear } from '../../lib/scheduleData';
 import { WardRef } from '../../lib/useDashboardData';
 import { supabase } from '../../lib/supabase';
@@ -43,6 +43,23 @@ export function CalendarScreen() {
   const [wards, setWards] = useState<WardRef[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  // Open on this week, not January: measure the coming Sunday's row and
+  // scroll to it once the list has laid out. Three offsets add up because the
+  // row sits inside a card inside a quarter block.
+  const scrollRef = useRef<ScrollView>(null);
+  // Children lay out before parents, so the row reports first; wait until all
+  // three offsets are known before scrolling (a legitimate 0 must not count as
+  // "not yet measured", hence nulls).
+  const offsets = useRef<{ quarter: number | null; card: number | null; row: number | null }>({ quarter: null, card: null, row: null });
+  const scrolled = useRef(false);
+  function maybeScroll() {
+    if (scrolled.current) return;
+    const { quarter, card, row } = offsets.current;
+    if (quarter === null || card === null || row === null) return;
+    scrolled.current = true;
+    requestAnimationFrame(() => scrollRef.current?.scrollTo({ y: Math.max(0, quarter + card + row - 12), animated: false }));
+  }
+  useEffect(() => { scrolled.current = false; offsets.current = { quarter: null, card: null, row: null }; }, [year, rows]);
 
   const load = useCallback(async () => {
     if (isDemo) {
@@ -98,18 +115,25 @@ export function CalendarScreen() {
       {loading ? (
         <View style={styles.loading}><ActivityIndicator color={Colors.primary} /></View>
       ) : (
-        <ScrollView contentContainerStyle={styles.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+        <ScrollView ref={scrollRef} contentContainerStyle={styles.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
           {rows.length === 0 && (
             <CalmEmpty title={t('schedule.emptyTitle')} sub={canEdit ? t('schedule.emptySubAdmin') : t('schedule.emptySub')} icon="calendar-outline" tone="neutral" />
           )}
           {[1, 2, 3, 4].map(q => quarters[q].length > 0 && (
-            <View key={q} style={styles.quarter}>
+            <View
+              key={q}
+              style={styles.quarter}
+              onLayout={e => { if (quarters[q].some(r => r.week.sunday_on === coming)) { offsets.current.quarter = e.nativeEvent.layout.y; maybeScroll(); } }}
+            >
               <Text style={styles.quarterTitle}>Q{q}</Text>
-              <View style={styles.listCard}>
+              <View
+                style={styles.listCard}
+                onLayout={e => { if (quarters[q].some(r => r.week.sunday_on === coming)) { offsets.current.card = e.nativeEvent.layout.y; maybeScroll(); } }}
+              >
                 {quarters[q].map((r, i) => {
                   const past = r.week.sunday_on < today;
                   const isComing = r.week.sunday_on === coming;
-                  const meetings = r.meetings.filter(m => bodiesFor(m.body)).sort((a, b) => toMinutes(a.starts_at) - toMinutes(b.starts_at));
+                  const meetings = r.meetings.filter(m => bodiesFor(m.body)).sort((a, b) => (a.day_offset ?? 0) - (b.day_offset ?? 0) || toMinutes(a.starts_at) - toMinutes(b.starts_at));
                   const kindLabel = r.week.kind !== 'meetings'
                     ? [t(`schedule.kind.${r.week.kind}` as TranslationKey), r.week.holiday_label].filter(Boolean).join(' · ')
                     : null;
@@ -120,6 +144,7 @@ export function CalendarScreen() {
                       onPress={() => openSunday(r.week.sunday_on)}
                       activeOpacity={canEdit ? 0.8 : 1}
                       disabled={!canEdit}
+                      onLayout={isComing ? e => { offsets.current.row = e.nativeEvent.layout.y; maybeScroll(); } : undefined}
                     >
                       <View style={styles.dateCol}>
                         <Text style={styles.dateText}>{formatMonthDay(r.week.sunday_on, language)}</Text>
@@ -129,7 +154,7 @@ export function CalendarScreen() {
                         {!!kindLabel && <Text style={styles.kind}>{kindLabel}</Text>}
                         {meetings.map(m => (
                           <Text key={m.id} style={styles.meeting} numberOfLines={1}>
-                            {t(`schedule.body.${m.body}` as TranslationKey)} · {fmtClock(toMinutes(m.starts_at))}–{fmtClock(toMinutes(m.ends_at))}{m.format === 'zoom' ? ` · ${t('schedule.format.zoom')}` : ''}
+                            {(m.day_offset ?? 0) === -1 ? `${t('schedule.sat')} · ` : ''}{meetingTitle(m, t)} · {fmtClock(toMinutes(m.starts_at))}–{fmtClock(toMinutes(m.ends_at))}{m.format === 'zoom' ? ` · ${t('schedule.format.zoom')}` : ''}
                           </Text>
                         ))}
                         {!kindLabel && meetings.length === 0 && <Text style={styles.meetingMuted}>{t('schedule.noMeetingsListed')}</Text>}

@@ -22,7 +22,7 @@ import { DEMO_SUNDAY } from '../../lib/demoSchedule';
 
 type T = (key: TranslationKey) => string;
 
-interface MeetingRow { key: string; body: MeetingBody; starts_at: string; ends_at: string; format: MeetingFormat; label: string }
+interface MeetingRow { key: string; body: MeetingBody; starts_at: string; ends_at: string; format: MeetingFormat; label: string; day_offset: number }
 
 /**
  * Edit Sunday — Settings → Meeting schedule → a Sunday, or "Edit Sunday" on
@@ -72,7 +72,7 @@ export function ScheduleEditScreen() {
       for (const row of b.assignments) a[row.seat].push(row.ward_id);
       setAssignments(a);
       setMeetings(b.meetings.map(m => ({
-        key: m.id, body: m.body, starts_at: m.starts_at.slice(0, 5), ends_at: m.ends_at.slice(0, 5), format: m.format, label: m.label ?? '',
+        key: m.id, body: m.body, starts_at: m.starts_at.slice(0, 5), ends_at: m.ends_at.slice(0, 5), format: m.format, label: m.label ?? '', day_offset: m.day_offset ?? 0,
       })));
       setCompanion(b.rotation?.hc_member_id ?? null);
       setReason(b.rotation?.reason ?? '');
@@ -93,7 +93,7 @@ export function ScheduleEditScreen() {
     for (const seat of SEATS) {
       const tl = buildTimeline({
         week: { id: weekId ?? 'draft', sunday_on: sundayISO, kind, holiday_label: holidayLabel || null },
-        meetings: meetings.map((m, i) => ({ id: m.key, week_id: weekId ?? 'draft', body: m.body, starts_at: m.starts_at, ends_at: m.ends_at, format: m.format, label: m.label || null, sort_order: i })),
+        meetings: meetings.map((m, i) => ({ id: m.key, week_id: weekId ?? 'draft', body: m.body, starts_at: m.starts_at, ends_at: m.ends_at, format: m.format, label: m.label || null, sort_order: i, day_offset: m.day_offset })),
         wardIds: assignments[seat],
         wardNames,
         wardTimes: ref.wardTimes,
@@ -129,7 +129,7 @@ export function ScheduleEditScreen() {
     const last = meetings[meetings.length - 1];
     const start = last ? toMinutes(last.ends_at) : 7 * 60;
     setMeetings(prev => [...prev, {
-      key: `new-${Date.now()}`, body: 'SP', starts_at: toHHMM(start), ends_at: toHHMM(start + 30), format: 'in_person', label: '',
+      key: `new-${Date.now()}`, body: 'SP', starts_at: toHHMM(start), ends_at: toHHMM(start + 30), format: 'in_person', label: '', day_offset: 0,
     }]);
   }
 
@@ -158,7 +158,7 @@ export function ScheduleEditScreen() {
       sunday_on: sundayISO,
       kind,
       holiday_label: holidayLabel.trim() || null,
-      meetings: meetings.map(m => ({ body: m.body, starts_at: m.starts_at, ends_at: m.ends_at, format: m.format, label: m.label.trim() || null })),
+      meetings: meetings.map(m => ({ body: m.body, starts_at: m.starts_at, ends_at: m.ends_at, format: m.format, label: m.label.trim() || null, day_offset: m.day_offset })),
       assignments: SEATS.flatMap(seat => assignments[seat].map(ward_id => ({ seat, ward_id }))),
       hc_member_id: companion,
       reason: reason.trim() || null,
@@ -250,6 +250,13 @@ export function ScheduleEditScreen() {
                 <TimeStepper label={fmtClock(toMinutes(m.starts_at))} onDown={() => shiftTime(m.key, 'starts_at', -15)} onUp={() => shiftTime(m.key, 'starts_at', 15)} />
                 <Text style={styles.dash}>–</Text>
                 <TimeStepper label={fmtClock(toMinutes(m.ends_at))} onDown={() => shiftTime(m.key, 'ends_at', -15)} onUp={() => shiftTime(m.key, 'ends_at', 15)} />
+                <TouchableOpacity
+                  style={[styles.formatChip, m.day_offset === -1 && styles.formatChipZoom]}
+                  onPress={() => updateMeeting(m.key, { day_offset: m.day_offset === -1 ? 0 : -1 })}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.formatText}>{t(m.day_offset === -1 ? 'schedule.sat' : 'schedule.sun')}</Text>
+                </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.formatChip, m.format === 'zoom' && styles.formatChipZoom]}
                   onPress={() => updateMeeting(m.key, { format: m.format === 'zoom' ? 'in_person' : 'zoom' })}

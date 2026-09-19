@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.58.1',
+    date: '2026-09-19',
+    enhancements: [
+      'Stake conference weekends now carry their sessions. A meeting can be on the Saturday before its Sunday, and a Stake conference session type is visible to every role. The October 10–11 sessions are on the Calendar: the leadership meeting and adult session on Saturday, the English and Spanish general sessions on Sunday.',
+      'The Calendar opens on this week instead of January.',
+    ],
+    bugFixes: [
+      'Send Text Reminder showed 0 recipients and a Tidings read error. The recipient count now reads the lists correctly.',
+    ],
+  },
+  {
     version: '2.58.0',
     date: '2026-09-19',
     enhancements: [

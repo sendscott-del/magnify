@@ -114,7 +114,7 @@ export interface WeekDraft {
   sunday_on: string;
   kind: WeekKind;
   holiday_label: string | null;
-  meetings: Array<{ body: MeetingBody; starts_at: string; ends_at: string; format: MeetingFormat; label: string | null }>;
+  meetings: Array<{ body: MeetingBody; starts_at: string; ends_at: string; format: MeetingFormat; label: string | null; day_offset?: number }>;
   assignments: Array<{ seat: Seat; ward_id: string }>;
   hc_member_id: string | null;
   reason: string | null;
@@ -147,7 +147,7 @@ export async function saveWeek(draft: WeekDraft): Promise<{ error: string | null
   if (delM.error) return { error: delM.error.message, weekId };
   if (draft.meetings.length) {
     const { error } = await supabase.from('magnify_schedule_meetings').insert(
-      draft.meetings.map((m, i) => ({ week_id: weekId, body: m.body, starts_at: m.starts_at, ends_at: m.ends_at, format: m.format, label: m.label, sort_order: i })),
+      draft.meetings.map((m, i) => ({ week_id: weekId, body: m.body, starts_at: m.starts_at, ends_at: m.ends_at, format: m.format, label: m.label, sort_order: i, day_offset: m.day_offset ?? 0 })),
     );
     if (error) return { error: error.message, weekId };
   }

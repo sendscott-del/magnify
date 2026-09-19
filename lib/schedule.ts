@@ -16,12 +16,12 @@ import { parseDate, todayISO } from './dashboard';
  */
 
 export type WeekKind = 'meetings' | 'holiday' | 'stake_conference' | 'general_conference' | 'ward_conference' | 'none';
-export type MeetingBody = 'SP' | 'SP_RS' | 'HC' | 'HC_1on1' | 'SC' | 'BC' | 'ADULT_LEADERSHIP' | 'TRAINING' | 'WARD_CONFERENCE' | 'OTHER';
+export type MeetingBody = 'SP' | 'SP_RS' | 'HC' | 'HC_1on1' | 'SC' | 'BC' | 'ADULT_LEADERSHIP' | 'TRAINING' | 'WARD_CONFERENCE' | 'CONFERENCE' | 'OTHER';
 export type MeetingFormat = 'in_person' | 'zoom';
 export type Seat = 'P' | '1C' | '2C';
 
 export const WEEK_KINDS: WeekKind[] = ['meetings', 'holiday', 'stake_conference', 'general_conference', 'ward_conference', 'none'];
-export const MEETING_BODIES: MeetingBody[] = ['SP', 'SP_RS', 'HC', 'HC_1on1', 'SC', 'BC', 'ADULT_LEADERSHIP', 'TRAINING', 'WARD_CONFERENCE', 'OTHER'];
+export const MEETING_BODIES: MeetingBody[] = ['SP', 'SP_RS', 'HC', 'HC_1on1', 'SC', 'BC', 'ADULT_LEADERSHIP', 'TRAINING', 'WARD_CONFERENCE', 'CONFERENCE', 'OTHER'];
 export const SEATS: Seat[] = ['P', '1C', '2C'];
 
 export interface ScheduleWeek {
@@ -40,6 +40,8 @@ export interface ScheduleMeeting {
   format: MeetingFormat;
   label?: string | null;
   sort_order: number;
+  /** 0 = that Sunday, -1 = the Saturday before (stake conference sessions). */
+  day_offset?: number;
 }
 
 export interface ScheduleAssignment {
@@ -192,6 +194,15 @@ function bodyLabel(body: MeetingBody, t: (k: TranslationKey) => string): string 
   return t(`schedule.body.${body}` as TranslationKey);
 }
 
+/** Conference sessions and "other" meetings are named by their label. */
+export function usesLabelAsTitle(body: MeetingBody): boolean {
+  return body === 'CONFERENCE' || body === 'OTHER';
+}
+
+export function meetingTitle(m: ScheduleMeeting, t: (k: TranslationKey) => string): string {
+  return m.label && usesLabelAsTitle(m.body) ? m.label : bodyLabel(m.body, t);
+}
+
 export function formatLabel(format: MeetingFormat, t: (k: TranslationKey) => string): string {
   return t(format === 'zoom' ? 'schedule.format.zoom' : 'schedule.format.inPerson');
 }
@@ -216,18 +227,18 @@ export function buildTimeline(input: TimelineInput): Timeline {
 
   const base: TimelineEvent[] = [];
 
-  for (const m of meetings.filter(m => bodiesFor(m.body)).sort((a, b) => toMinutes(a.starts_at) - toMinutes(b.starts_at) || a.sort_order - b.sort_order)) {
+  for (const m of meetings.filter(m => bodiesFor(m.body) && (m.day_offset ?? 0) === 0).sort((a, b) => toMinutes(a.starts_at) - toMinutes(b.starts_at) || a.sort_order - b.sort_order)) {
     const zoom = m.format === 'zoom';
     const start = toMinutes(m.starts_at);
     const end = toMinutes(m.ends_at);
     base.push({
       kind: 'meeting',
-      title: m.label && m.body === 'OTHER' ? m.label : bodyLabel(m.body, t),
+      title: meetingTitle(m, t),
       start, end,
       buildingId: zoom ? null : officesId,
       buildingName: zoom ? null : officesName,
       meta: [zoom ? t('schedule.format.zoom') : `${officesName} · ${t('schedule.format.inPerson')}`, `${end - start} ${t('schedule.min')}`,
-        m.label && m.body !== 'OTHER' ? m.label : null].filter(Boolean).join(' · '),
+        m.label && !usesLabelAsTitle(m.body) ? m.label : null].filter(Boolean).join(' · '),
     });
   }
 
@@ -310,10 +321,10 @@ export type ScheduleRole = 'stake_president' | 'first_counselor' | 'second_couns
 /** Which meeting bodies a role is part of. Clerks and the presidency see all. */
 export function bodiesForRole(role: ScheduleRole): (body: MeetingBody) => boolean {
   if (role === 'high_councilor') {
-    return b => ['HC', 'HC_1on1', 'SC', 'TRAINING', 'ADULT_LEADERSHIP'].includes(b);
+    return b => ['HC', 'HC_1on1', 'SC', 'TRAINING', 'ADULT_LEADERSHIP', 'CONFERENCE'].includes(b);
   }
   if (role === 'stake_council') {
-    return b => ['SC', 'TRAINING', 'ADULT_LEADERSHIP'].includes(b);
+    return b => ['SC', 'TRAINING', 'ADULT_LEADERSHIP', 'CONFERENCE'].includes(b);
   }
   return () => true;
 }
@@ -363,7 +374,7 @@ export function slackReminders(
 ): SlackReminder[] {
   const md = formatMD(sundayISO);
   const out: SlackReminder[] = [];
-  for (const m of [...meetings].sort((a, b) => toMinutes(a.starts_at) - toMinutes(b.starts_at))) {
+  for (const m of meetings.filter(m => (m.day_offset ?? 0) === 0).sort((a, b) => toMinutes(a.starts_at) - toMinutes(b.starts_at))) {
     const eventType = SLACK_ROUTE[m.body];
     if (!eventType) continue;
     // "High Council meeting", "High Council meeting (1:1 interviews)" — the
@@ -407,8 +418,9 @@ export function textReminder(
   meetings: ScheduleMeeting[],
   t: (k: TranslationKey) => string,
 ): TextReminder | null {
-  const hc = meetings.find(m => m.body === 'HC' || m.body === 'HC_1on1');
-  const sc = meetings.find(m => m.body === 'SC');
+  const sunday = meetings.filter(m => (m.day_offset ?? 0) === 0);
+  const hc = sunday.find(m => m.body === 'HC' || m.body === 'HC_1on1');
+  const sc = sunday.find(m => m.body === 'SC');
   if (!hc && !sc) return null;
   const md = formatMD(sundayISO);
   const lists: Array<'hc' | 'sc'> = [];

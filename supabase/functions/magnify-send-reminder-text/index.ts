@@ -88,14 +88,22 @@ Deno.serve(async (req) => {
 
   // Unique reachable recipients across the lists (the dispatcher dedupes by
   // phone and drops opt-outs the same way, so this is the number that goes out).
+  // Two queries: Tidings has no foreign key from list_members to contacts,
+  // so PostgREST cannot embed one in the other.
   const tidings = createClient(TIDINGS_URL, TIDINGS_KEY, { auth: { persistSession: false } });
   const { data: members, error: memErr } = await tidings.from("list_members")
-    .select("contact_id, contacts(phone, opted_out)").in("list_id", listIds);
+    .select("contact_id").in("list_id", listIds);
   if (memErr) return json({ error: `Tidings read failed: ${memErr.message}` }, 502);
+  const contactIds = Array.from(new Set((members ?? []).map(m => (m as { contact_id: string }).contact_id).filter(Boolean)));
   const phones = new Set<string>();
-  for (const m of members ?? []) {
-    const c = (m as { contacts?: { phone?: string | null; opted_out?: boolean | null } | null }).contacts;
-    if (c?.phone && !c.opted_out) phones.add(c.phone);
+  if (contactIds.length) {
+    const { data: contacts, error: cErr } = await tidings.from("contacts")
+      .select("id, phone, opted_out").in("id", contactIds);
+    if (cErr) return json({ error: `Tidings read failed: ${cErr.message}` }, 502);
+    for (const c of contacts ?? []) {
+      const row = c as { phone?: string | null; opted_out?: boolean | null };
+      if (row.phone && !row.opted_out) phones.add(row.phone);
+    }
   }
   const count = phones.size;
 

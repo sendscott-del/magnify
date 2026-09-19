@@ -6,7 +6,7 @@ import { TranslationKey } from '../../constants/translations';
 import { KIND, tint } from '../../lib/dashboard';
 import {
   ReminderSent, ScheduleMeeting, ScheduleWeek, Timeline, TimelineEvent,
-  fmtClock, formatLabel, formatSundayLong, toMinutes,
+  fmtClock, formatLabel, formatSundayLong, meetingTitle, toMinutes,
 } from '../../lib/schedule';
 import { Button } from '../ui/Button';
 import { FlagPill, cardBase } from './primitives';
@@ -83,11 +83,18 @@ export function ThisSundayCard({
 
       {!!kindLine && <Text style={styles.kindLine}>{kindLine}</Text>}
 
+      {meetings.some(m => (m.day_offset ?? 0) === -1) && (
+        <View style={styles.saturday}>
+          <Text style={styles.saturdayLabel}>{t('sunday.saturdayBefore').toUpperCase()}</Text>
+          <MeetingsList meetings={meetings.filter(m => (m.day_offset ?? 0) === -1)} t={t} />
+        </View>
+      )}
+
       {layout === 'clerk' ? (
-        <MeetingsList meetings={meetings} t={t} />
+        <MeetingsList meetings={meetings.filter(m => (m.day_offset ?? 0) === 0)} t={t} />
       ) : layout === 'member' ? (
         <MemberView
-          meetings={meetings}
+          meetings={meetings.filter(m => (m.day_offset ?? 0) === 0)}
           isCompanion={!!isCompanion}
           ownInterviewDate={ownInterviewDate ?? null}
           t={t}
@@ -208,9 +215,9 @@ function MeetingsList({ meetings, t }: { meetings: ScheduleMeeting[]; t: T }) {
         <View style={styles.row} key={m.id}>
           <Text style={styles.time}>{fmtClock(toMinutes(m.starts_at))}</Text>
           <View style={{ flex: 1 }}>
-            <Text style={styles.title}>{t(`schedule.body.${m.body}` as TranslationKey)}</Text>
+            <Text style={styles.title}>{meetingTitle(m, t)}</Text>
             <Text style={styles.meta}>
-              {`${fmtClock(toMinutes(m.starts_at))}–${fmtClock(toMinutes(m.ends_at))} · ${formatLabel(m.format, t)}${m.label ? ` · ${m.label}` : ''}`}
+              {`${fmtClock(toMinutes(m.starts_at))}–${fmtClock(toMinutes(m.ends_at))} · ${formatLabel(m.format, t)}${m.label && m.body !== 'CONFERENCE' && m.body !== 'OTHER' ? ` · ${m.label}` : ''}`}
             </Text>
           </View>
         </View>
@@ -225,7 +232,7 @@ function MemberView({
   const lines: string[] = [];
   if (isCompanion) lines.push(t('sunday.youAccompany'));
   for (const m of [...meetings].sort((a, b) => toMinutes(a.starts_at) - toMinutes(b.starts_at))) {
-    lines.push(`${t(`schedule.body.${m.body}` as TranslationKey)} ${fmtClock(toMinutes(m.starts_at))}–${fmtClock(toMinutes(m.ends_at))}, ${formatLabel(m.format, t)}.`);
+    lines.push(`${meetingTitle(m, t)} ${fmtClock(toMinutes(m.starts_at))}–${fmtClock(toMinutes(m.ends_at))}, ${formatLabel(m.format, t)}.`);
   }
   if (ownInterviewDate) {
     lines.push(`${t('sunday.yourInterview')}: ${formatSundayLong(ownInterviewDate, language)} — ${t('sunday.timeToBeSet')}`);
@@ -270,6 +277,8 @@ const styles = StyleSheet.create({
   },
   conflictText: { flex: 1, fontSize: 12, lineHeight: 17, color: '#7F1D1D' },
   hint: { fontSize: FontSize.xs, color: Colors.gray[500] },
+  saturday: { gap: 6, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: Colors.gray[100] },
+  saturdayLabel: { fontSize: 10, fontWeight: '800', color: Colors.gray[400], letterSpacing: 0.5 },
   empty: { fontSize: FontSize.sm, color: Colors.gray[500] },
   memberLine: { fontSize: FontSize.sm, color: Colors.gray[800], lineHeight: 19 },
   companionRow: {
