@@ -25,16 +25,19 @@ Plus a small **Requests** tile that ships with release 2.
 
 ## Access model (decided 2026-09-19, applies to both releases)
 
-The stake council will be invited to Magnify, not just the high council. A new role `stake_council` is added (organization label carried on the profile). Visibility below is enforced in RLS, not the client; the Mine / Everyone switch goes away for assignments and interviews because they become owner-only.
+The stake council will be invited to Magnify, not just the high council. A new role `stake_council` is added (organization label carried on the profile). Visibility below is enforced in RLS, not the client.
 
-Legend: SP = stake president; C = 1st/2nd counselor; Clk = stake clerk + executive secretary (Scott's call: they keep full visibility, as today); HC = high councilor; SC = stake council (new).
+Item visibility rule, in one sentence: **the stake president sees everyone's items; a counselor sees his own plus every high councilor's; a high councilor or stake council member sees only his own; the clerk and executive secretary see everything.** The Mine / Everyone switch stays for the president only (and for clerks). Counselors get Mine / High council.
+
+Legend: SP = stake president; C = 1st/2nd counselor; Clk = stake clerk + executive secretary; HC = high councilor; SC = stake council (new).
 
 | Part | SP | C | Clk | HC | SC |
 |---|---|---|---|---|---|
 | Callings board + callings tile | all | all | all | own wards | none |
-| SP assignments (`action`) | own only | own only | all | none | none |
+| SP assignments (`action`) | all | own only | all | none | none |
 | HC assignments (`assignment`) | all | all | all | own only | none |
-| Interviews | own only | own only | all | own interview, date only | own interview, date only |
+| SC assignments (`assignment`, SC owner) | all | none | all | none | own only |
+| Interviews | all | own only | all | own interview, date only | own interview, date only |
 | Directives | all | all | all | none | none |
 | Recommend activations | all | all | none (existing rule) | none | none |
 | Audits | all | all | all | none | none |
@@ -51,11 +54,11 @@ Legend: SP = stake president; C = 1st/2nd counselor; Clk = stake clerk + executi
 | Statement status | yes | none | all | none | none |
 | Training compliance | yes | yes | all | none | none |
 | CES endorsements | yes | none | all | none | none |
-| Requests | own | own | all | none | none |
+| Requests | all | own | all | none | none |
 
-An SC member's app: a Calendar tab and a dashboard showing only their workstreams and to-dos. No callings tab. Kind-by-owner trigger: an SC owner yields `assignment` (tile label "Stake council assignments" when the viewer is SC).
+An SC member's app: a Calendar tab and a dashboard showing only their workstreams and to-dos. No callings tab. Kind-by-owner trigger: an SC owner yields `assignment` (tile label "Stake council assignments" for the president and clerks; "My assignments" for the SC member).
 
-Design implication: the dashboard must have four distinct layouts (presidency, clerk, HC, SC), and the Calendar tab must filter meetings by role. Artboards should show all four.
+Design implication: the dashboard has four layouts (president, counselor, clerk, HC/SC), and the Calendar tab filters meetings by role. Artboards should show all four.
 
 ## Release 1 — Sunday schedule
 
