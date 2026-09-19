@@ -23,6 +23,40 @@ Plus a small **Requests** tile that ships with release 2.
 - Desktop web is full width. Phone-first, but the presidency uses it on laptops on Sunday morning.
 - Spanish is a first-class language (`constants/translations`). Every new string has an `es` key.
 
+## Access model (decided 2026-09-19, applies to both releases)
+
+The stake council will be invited to Magnify, not just the high council. A new role `stake_council` is added (organization label carried on the profile). Visibility below is enforced in RLS, not the client; the Mine / Everyone switch goes away for assignments and interviews because they become owner-only.
+
+Legend: SP = stake president; C = 1st/2nd counselor; Clk = stake clerk + executive secretary (Scott's call: they keep full visibility, as today); HC = high councilor; SC = stake council (new).
+
+| Part | SP | C | Clk | HC | SC |
+|---|---|---|---|---|---|
+| Callings board + callings tile | all | all | all | own wards | none |
+| SP assignments (`action`) | own only | own only | all | none | none |
+| HC assignments (`assignment`) | all | all | all | own only | none |
+| Interviews | own only | own only | all | own interview, date only | own interview, date only |
+| Directives | all | all | all | none | none |
+| Recommend activations | all | all | none (existing rule) | none | none |
+| Audits | all | all | all | none | none |
+| Standard work (Steward) | self | self | self | self | self |
+| Workstreams and their items | all | all | all | member only | member only |
+| Review queue | yes | yes | yes | none | none |
+| Metrics | yes | yes | yes | none | none |
+| Calendar tab (year of Sundays, meetings) | all | all | all | HC, SC, trainings | SC, adult leadership, trainings |
+| Building assignments (P/1C/2C) | all | all | all | none | none |
+| This Sunday card | own day | own day | SP's day | companion: his Sunday with SP | none |
+| HC companion rotation | all | all | all | own row | none |
+| Reminder buttons (Slack, Tidings) | yes | yes | yes | none | none |
+| President's Review | yes | none | all | none | none |
+| Statement status | yes | none | all | none | none |
+| Training compliance | yes | yes | all | none | none |
+| CES endorsements | yes | none | all | none | none |
+| Requests | own | own | all | none | none |
+
+An SC member's app: a Calendar tab and a dashboard showing only their workstreams and to-dos. No callings tab. Kind-by-owner trigger: an SC owner yields `assignment` (tile label "Stake council assignments" when the viewer is SC).
+
+Design implication: the dashboard must have four distinct layouts (presidency, clerk, HC, SC), and the Calendar tab must filter meetings by role. Artboards should show all four.
+
 ## Release 1 — Sunday schedule
 
 ### Data (new tables, `magnify_` prefix, stake-scoped RLS)
