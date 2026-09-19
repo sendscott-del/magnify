@@ -178,6 +178,14 @@ export function HelpScreen({ navigation }: any) {
           <Text style={[styles.body, { marginTop: Spacing.xs }]}>{t('help.dashboardBody6')}</Text>
         </Section>
 
+        <Section title={t('help.sunday')}>
+          <Text style={styles.body}>{t('help.sundayBody1')}</Text>
+          <Text style={[styles.body, { marginTop: Spacing.xs }]}>{t('help.sundayBody2')}</Text>
+          <Text style={[styles.body, { marginTop: Spacing.xs }]}>{t('help.sundayBody3')}</Text>
+          <Text style={[styles.body, { marginTop: Spacing.xs }]}>{t('help.sundayBody4')}</Text>
+          <Text style={[styles.body, { marginTop: Spacing.xs }]}>{t('help.sundayBody5')}</Text>
+        </Section>
+
         <Section title={t('help.settings')}>
           <Text style={styles.body}>{t('help.settingsBody1')}</Text>
           <Text style={[styles.body, { marginTop: Spacing.xs }]}>{t('help.settingsBody2')}</Text>

@@ -16,6 +16,8 @@ import { DashboardDrillScreen } from '../screens/main/DashboardDrillScreen';
 import { StandardWorkScreen } from '../screens/main/StandardWorkScreen';
 import { ReviewQueueScreen } from '../screens/main/ReviewQueueScreen';
 import { MetricsHistoryScreen } from '../screens/main/MetricsHistoryScreen';
+import { CalendarScreen } from '../screens/main/CalendarScreen';
+import { ScheduleEditScreen } from '../screens/main/ScheduleEditScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -41,6 +43,9 @@ export function WebStackNavigator() {
       <Stack.Screen name="StandardWork" component={StandardWorkScreen} />
       <Stack.Screen name="ReviewQueue" component={ReviewQueueScreen} />
       <Stack.Screen name="MetricsHistory" component={MetricsHistoryScreen} />
+      <Stack.Screen name="CalendarMain" component={CalendarScreen} />
+      <Stack.Screen name="Calendar" component={CalendarScreen} />
+      <Stack.Screen name="ScheduleEdit" component={ScheduleEditScreen} />
       <Stack.Screen name="New" component={NewCallingScreen} />
       <Stack.Screen name="PresidencyMain" component={PresidencyKanbanScreen} />
       <Stack.Screen name="PresidencyBoard" component={PresidencyKanbanScreen} />

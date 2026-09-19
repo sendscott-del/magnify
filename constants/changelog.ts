@@ -9,6 +9,20 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.58.0',
+    date: '2026-09-19',
+    enhancements: [
+      'The app is now the source of truth for the stake\'s leadership meeting schedule. A new Calendar tab lists every Sunday of the year with its meetings; the presidency and clerks also see building assignments and can edit any Sunday. The 2026 schedule was imported from the sheet that used to hold it.',
+      'This Sunday: from Friday to Sunday the dashboard opens with your day. The president and counselors see their morning meetings, each assigned ward\'s sacrament meeting at that ward\'s start time, and a drive block between buildings with the time to leave by. When two things overlap or the gap is shorter than the drive, the card says so and names the fix. It never moves anything itself. Clerks see the meetings only; a high councilor sees whether he accompanies the president, his meetings, and his own interview date.',
+      'Edit Sunday puts building assignments first, so the Saturday-night change to the P column is two taps. Meetings, in person or Zoom, the companion high councilor and presidency-only notes follow.',
+      'Post Slack Reminders and Send Text Reminder from the card. Both show the exact text and recipient count before sending. Slack posts go through the channel webhooks under Settings → Slack (two new ones: Stake Council and SP + Relief Society). The text goes through Tidings to the High Council and Stake Council lists as one message. Every reminder is logged and a second send for the same Sunday is refused; a sent reminder stays on the card as a disabled button.',
+      'One Assignments tile replaces the separate stake presidency and high council tiles. Items can come from any leadership meeting, so the tile is scoped by owner: the president sees everyone\'s, a counselor switches between Mine and High council, a high councilor sees his own.',
+      'A new Stake Council role. A stake council member gets the Dashboard, the Calendar and Settings: his own assignments and workstreams, the meetings he attends, and nothing about callings. Stake admins can approve members into this role under Settings → Pending access.',
+      'Who sees the quarterly interview queue is narrower: the president sees all, a counselor his own, a high councilor only the date of his own, and clerks none.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.57.0',
     date: '2026-09-13',
     enhancements: [

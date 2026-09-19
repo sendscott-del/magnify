@@ -28,6 +28,8 @@ import { DashboardDrillScreen } from '../screens/main/DashboardDrillScreen';
 import { StandardWorkScreen } from '../screens/main/StandardWorkScreen';
 import { ReviewQueueScreen } from '../screens/main/ReviewQueueScreen';
 import { MetricsHistoryScreen } from '../screens/main/MetricsHistoryScreen';
+import { CalendarScreen } from '../screens/main/CalendarScreen';
+import { ScheduleEditScreen } from '../screens/main/ScheduleEditScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -40,6 +42,16 @@ function DashboardStack() {
       <Stack.Screen name="StandardWork" component={StandardWorkScreen} />
       <Stack.Screen name="ReviewQueue" component={ReviewQueueScreen} />
       <Stack.Screen name="MetricsHistory" component={MetricsHistoryScreen} />
+      <Stack.Screen name="ScheduleEdit" component={ScheduleEditScreen} />
+    </Stack.Navigator>
+  );
+}
+
+function CalendarStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="CalendarMain" component={CalendarScreen} />
+      <Stack.Screen name="ScheduleEdit" component={ScheduleEditScreen} />
     </Stack.Navigator>
   );
 }
@@ -81,10 +93,13 @@ function SettingsStack() {
 }
 
 export function MainTabNavigator() {
-  const { isPresidency, isClerk } = useAuth();
+  const { isPresidency, isClerk, profile } = useAuth();
   const { t } = useLanguage();
   const { hcCount, spCount } = useActionCounts();
   const showPresidencyBoard = isPresidency || isClerk;
+  // A stake council member has no callings surface at all — no HC board, no
+  // New. He gets Dashboard, Calendar and Settings.
+  const isStakeCouncil = profile?.role === 'stake_council';
   // Belt-and-suspenders: AppNavigator's AuthedRoot already routes desktop web
   // through WebShell, but in the rare cross-render case (a hot resize during a
   // navigation transition), the tab bar would briefly flash. Hide it directly
@@ -120,6 +135,7 @@ export function MainTabNavigator() {
           }
           const icons: Record<string, keyof typeof Ionicons.glyphMap> = {
             Dashboard: focused ? 'grid' : 'grid-outline',
+            Calendar: focused ? 'calendar' : 'calendar-outline',
             New: 'add-circle',
             Completed: 'checkmark-done',
             Settings: 'settings-outline',
@@ -143,10 +159,23 @@ export function MainTabNavigator() {
         })}
       />
       <Tab.Screen
-        name="New"
-        component={NewCallingScreen}
-        options={{ tabBarLabel: t('nav.new') }}
+        name="Calendar"
+        component={CalendarStack}
+        options={{ tabBarLabel: t('nav.calendar') }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+            navigation.navigate('Calendar', { screen: 'CalendarMain' });
+          },
+        })}
       />
+      {!isStakeCouncil && (
+        <Tab.Screen
+          name="New"
+          component={NewCallingScreen}
+          options={{ tabBarLabel: t('nav.new') }}
+        />
+      )}
       {showPresidencyBoard && (
         <Tab.Screen
           name="PresidencyBoard"
@@ -163,20 +192,22 @@ export function MainTabNavigator() {
           })}
         />
       )}
-      <Tab.Screen
-        name="HC"
-        component={HCStack}
-        options={{
-          tabBarLabel: t('nav.hcBoard'),
-          tabBarBadge: hcCount > 0 ? hcCount : undefined,
-        }}
-        listeners={({ navigation }) => ({
-          tabPress: (e) => {
-            e.preventDefault();
-            navigation.navigate('HC', { screen: 'HCMain' });
-          },
-        })}
-      />
+      {!isStakeCouncil && (
+        <Tab.Screen
+          name="HC"
+          component={HCStack}
+          options={{
+            tabBarLabel: t('nav.hcBoard'),
+            tabBarBadge: hcCount > 0 ? hcCount : undefined,
+          }}
+          listeners={({ navigation }) => ({
+            tabPress: (e) => {
+              e.preventDefault();
+              navigation.navigate('HC', { screen: 'HCMain' });
+            },
+          })}
+        />
+      )}
       <Tab.Screen
         name="Settings"
         component={SettingsStack}

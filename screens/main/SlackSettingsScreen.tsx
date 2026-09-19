@@ -20,6 +20,8 @@ const SLACK_EVENTS: { key: string; labelKey: TranslationKey; hintKey?: Translati
   { key: 'sp_reminder', labelKey: 'settings.spReminderWebhook', hintKey: 'settings.reminderWebhookHint' },
   { key: 'hc_stage_change', labelKey: 'settings.hcBoardWebhook' },
   { key: 'hc_reminder', labelKey: 'settings.hcReminderWebhook', hintKey: 'settings.reminderWebhookHint' },
+  { key: 'sc_reminder', labelKey: 'settings.scReminderWebhook', hintKey: 'settings.sundayReminderHint' },
+  { key: 'sprs_reminder', labelKey: 'settings.sprsReminderWebhook', hintKey: 'settings.sundayReminderHint' },
   { key: 'rejection', labelKey: 'settings.rejectionWebhook' },
   { key: 'user_access_request', labelKey: 'settings.accessRequestWebhook' },
   { key: 'user_access_approved', labelKey: 'settings.accessApprovedWebhook' },

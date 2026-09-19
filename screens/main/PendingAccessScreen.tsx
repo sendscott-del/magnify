@@ -13,7 +13,7 @@ const GATHER_URL = 'https://gather.gatheredin.app/gather';
 
 const APPROVABLE_ROLES: UserRole[] = [
   'stake_president', 'first_counselor', 'second_counselor',
-  'high_councilor', 'stake_clerk', 'exec_secretary',
+  'high_councilor', 'stake_clerk', 'exec_secretary', 'stake_council',
 ];
 
 // Pending Magnify access requests for YOUR stake. Stake admins approve or

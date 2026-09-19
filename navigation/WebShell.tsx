@@ -20,9 +20,10 @@ import { SuggestionFAB } from '../components/ui/SuggestionFAB';
  */
 export function WebShell({ children }: { children: React.ReactNode }) {
   const { t } = useLanguage();
-  const { isPresidency, isClerk } = useAuth();
+  const { isPresidency, isClerk, profile } = useAuth();
   const { hcCount, spCount } = useActionCounts();
   const showSpBoard = isPresidency || isClerk;
+  const isStakeCouncil = profile?.role === 'stake_council';
   const nav = useNavigation<any>();
   const routeName = useCurrentRouteName();
 
@@ -30,12 +31,13 @@ export function WebShell({ children }: { children: React.ReactNode }) {
   // child stack ("PresidencyMain", "CallingDetail") map back to their parent
   // section here. Callers from /calling/:id stay highlighted on the board
   // that owns that detail screen.
-  function activeFor(section: 'Dashboard' | 'New' | 'PresidencyBoard' | 'HC' | 'Completed' | 'Settings'): boolean {
+  function activeFor(section: 'Dashboard' | 'Calendar' | 'New' | 'PresidencyBoard' | 'HC' | 'Completed' | 'Settings'): boolean {
     if (!routeName) return false;
     if (section === 'Dashboard') {
       return ['DashboardMain', 'DashboardDrill', 'StandardWork', 'ReviewQueue', 'MetricsHistory']
         .includes(routeName);
     }
+    if (section === 'Calendar') return ['CalendarMain', 'Calendar', 'ScheduleEdit'].includes(routeName);
     if (section === 'PresidencyBoard') return routeName === 'PresidencyMain';
     if (section === 'HC') return routeName === 'HCMain' || routeName === 'CallingDetail';
     if (section === 'Completed') return routeName === 'CompletedList';
@@ -79,11 +81,19 @@ export function WebShell({ children }: { children: React.ReactNode }) {
               onPress={() => goto('DashboardMain')}
             />
             <SideLink
-              label={t('nav.new')}
-              ionicon="add-circle"
-              active={activeFor('New')}
-              onPress={() => goto('New')}
+              label={t('nav.calendar')}
+              ionicon="calendar-outline"
+              active={activeFor('Calendar')}
+              onPress={() => goto('CalendarMain')}
             />
+            {!isStakeCouncil && (
+              <SideLink
+                label={t('nav.new')}
+                ionicon="add-circle"
+                active={activeFor('New')}
+                onPress={() => goto('New')}
+              />
+            )}
             {showSpBoard && (
               <SideLink
                 label={t('nav.spBoard')}
@@ -93,13 +103,15 @@ export function WebShell({ children }: { children: React.ReactNode }) {
                 onPress={() => goto('PresidencyBoard')}
               />
             )}
-            <SideLink
-              label={t('nav.hcBoard')}
-              productIcon="hc_board"
-              badge={hcCount > 0 ? hcCount : undefined}
-              active={activeFor('HC')}
-              onPress={() => goto('HC')}
-            />
+            {!isStakeCouncil && (
+              <SideLink
+                label={t('nav.hcBoard')}
+                productIcon="hc_board"
+                badge={hcCount > 0 ? hcCount : undefined}
+                active={activeFor('HC')}
+                onPress={() => goto('HC')}
+              />
+            )}
             <SideLink
               label={t('nav.completed')}
               ionicon="checkmark-done"

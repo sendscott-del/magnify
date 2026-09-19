@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<title>Magnify — dashboard artboards</title>
+<style>
+  body { margin: 0; background: #EEF1F5; font-family: -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: #1B3A6B; }
+  a:hover { color: #2A5298; }
+</style>
+</helmet>
+
+<section style="padding: 48px; display: flex; flex-direction: column; gap: 32px;">
+  <div style="display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap;">
+    <span style="font-size: 11px; font-weight: 800; letter-spacing: 1px; color: #FFFFFF; background: #1B3A6B; border-radius: 9999px; padding: 4px 10px;">1</span>
+    <h1 style="margin: 0; font-size: 24px; font-weight: 700; color: #111827;">Sunday schedule &amp; LCR queues — dashboard artboards</h1>
+    <span style="font-size: 13px; color: #6B7280;">Per <code>docs/DESIGN_HANDOFF.md</code>, 2026-09-19 · four role layouts, This Sunday card, schedule edit, reminder confirm · placeholder names only</span>
+  </div>
+
+  <div style="display: flex; gap: 32px; align-items: flex-start; flex-wrap: wrap;">
+
+    <!-- 1a — President -->
+    <div id="1a" style="display: flex; flex-direction: column; gap: 8px; width: 390px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.5px; color: #1B3A6B; background: #E8EEF8; border-radius: 9999px; padding: 3px 8px;">1a</span>
+        <span style="font-size: 15px; font-weight: 700; color: #1F2937;">Stake President</span>
+        <span style="font-size: 11px; color: #6B7280;">Saturday night</span>
+      </div>
+      <div style="width: 390px; background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+        <div style="background: #FFFFFF; border-bottom: 1px solid #F3F4F6; padding: 16px 16px 16px; display: flex; align-items: center; gap: 8px;">
+          <div style="width: 36px;"></div>
+          <div style="flex: 1; text-align: center;">
+            <div style="font-size: 17px; font-weight: 700; color: #111827;">Dashboard</div>
+            <div style="font-size: 11px; color: #6B7280; margin-top: 1px;">Sat, Sep 19 · Hyde Park Stake</div>
+          </div>
+          <div style="width: 36px; display: flex; justify-content: flex-end;"><svg data-icon="settings-outline" viewBox="0 0 512 512" width="22" height="22" style="display: block; flex-shrink: 0; color: #6B7280;"><path d="M262.29,192.31a64,64,0,1,0,57.4,57.4A64.13,64.13,0,0,0,262.29,192.31ZM416.39,256a154.34,154.34,0,0,1-1.53,20.79l45.21,35.46A10.81,10.81,0,0,1,462.52,326l-42.77,74a10.81,10.81,0,0,1-13.14,4.59l-44.9-18.08a16.11,16.11,0,0,0-15.17,1.75A164.48,164.48,0,0,1,325,400.8a15.94,15.94,0,0,0-8.82,12.14l-6.73,47.89A11.08,11.08,0,0,1,298.77,470H213.23a11.11,11.11,0,0,1-10.69-8.87l-6.72-47.82a16.07,16.07,0,0,0-9-12.22,155.3,155.3,0,0,1-21.46-12.57,16,16,0,0,0-15.11-1.71l-44.89,18.07a10.81,10.81,0,0,1-13.14-4.58l-42.77-74a10.8,10.8,0,0,1,2.45-13.75l38.21-30a16.05,16.05,0,0,0,6-14.08c-.36-4.17-.58-8.33-.58-12.5s.21-8.27.58-12.35a16,16,0,0,0-6.07-13.94l-38.19-30A10.81,10.81,0,0,1,49.48,186l42.77-74a10.81,10.81,0,0,1,13.14-4.59l44.9,18.08a16.11,16.11,0,0,0,15.17-1.75A164.48,164.48,0,0,1,187,111.2a15.94,15.94,0,0,0,8.82-12.14l6.73-47.89A11.08,11.08,0,0,1,213.23,42h85.54a11.11,11.11,0,0,1,10.69,8.87l6.72,47.82a16.07,16.07,0,0,0,9,12.22,155.3,155.3,0,0,1,21.46,12.57,16,16,0,0,0,15.11,1.71l44.89-18.07a10.81,10.81,0,0,1,13.14,4.58l42.77,74a10.8,10.8,0,0,1-2.45,13.75l-38.21,30a16.05,16.05,0,0,0-6.05,14.08C416.17,247.67,416.39,251.83,416.39,256Z" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path></svg></div>
+        </div>
+
+        <div style="padding: 16px; display: flex; flex-direction: column; gap: 16px;">
+          <div style="display: flex; justify-content: flex-end;">
+            <div style="display: flex; background: #F3F4F6; border-radius: 9999px; padding: 2px;">
+              <div style="padding: 5px 12px; border-radius: 9999px; background: #FFFFFF; font-size: 12px; font-weight: 700; color: #1B3A6B;">Mine</div>
+              <div style="padding: 5px 12px; border-radius: 9999px; font-size: 12px; font-weight: 700; color: #6B7280;">Everyone</div>
+            </div>
+          </div>
+
+          <!-- This Sunday card -->
+          <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-top: 3px solid #14B8A6; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 14px; display: flex; flex-direction: column; gap: 12px;">
+            <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;">
+              <div>
+                <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.6px; color: #14B8A6;">THIS SUNDAY</div>
+                <div style="font-size: 20px; font-weight: 700; color: #111827; margin-top: 2px;">Sunday, Sep 20</div>
+              </div>
+              <div style="background: #FEE2E2; border-radius: 9999px; padding: 2px 7px;"><span style="font-size: 10px; font-weight: 800; letter-spacing: 0.5px; color: #EF4444;">1 CONFLICT</span></div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <div style="display: flex; gap: 10px; align-items: flex-start;">
+                <div style="width: 48px; font-size: 13px; font-weight: 800; color: #374151; padding-top: 1px;">7:30</div>
+                <div style="flex: 1;">
+                  <div style="font-size: 15px; font-weight: 700; color: #111827;">Stake Council</div>
+                  <div style="font-size: 11px; color: #6B7280;">stake offices · in person · 60 min</div>
+                </div>
+              </div>
+              <div style="display: flex; gap: 10px; align-items: flex-start;">
+                <div style="width: 48px; font-size: 13px; font-weight: 800; color: #374151; padding-top: 1px;">8:30</div>
+                <div style="flex: 1;">
+                  <div style="font-size: 15px; font-weight: 700; color: #111827;">SP + Relief Society</div>
+                  <div style="font-size: 11px; color: #6B7280;">stake offices · in person · 30 min</div>
+                </div>
+              </div>
+              <div style="display: flex; gap: 10px; align-items: center; background: #F9FAFB; border: 1px dashed #E5E7EB; border-radius: 10px; padding: 8px 10px;">
+                <div style="width: 38px; display: flex; justify-content: center;"><svg data-icon="car-outline" viewBox="0 0 512 512" width="18" height="18" style="display: block; flex-shrink: 0; color: #9CA3AF;"><path d="M80,224l37.78-88.15C123.93,121.5,139.6,112,157.11,112H354.89c17.51,0,33.18,9.5,39.33,23.85L432,224" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path><rect x="80" y="224" width="352" height="144" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></rect><polyline points="112 368 112 400 80 400 80 368" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></polyline><polyline points="432 368 432 400 400 400 400 368" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></polyline><circle cx="144" cy="288" r="16" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></circle><circle cx="368" cy="288" r="16" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></circle></svg></div>
+                <div style="font-size: 11px; font-weight: 600; color: #6B7280;">Drive to Blue Island · 25 min · leave by 9:35</div>
+              </div>
+              <div style="display: flex; gap: 10px; align-items: flex-start;">
+                <div style="width: 48px; font-size: 13px; font-weight: 800; color: #374151; padding-top: 1px;">10:00</div>
+                <div style="flex: 1;">
+                  <div style="font-size: 15px; font-weight: 700; color: #111827;">Blue Island sacrament</div>
+                  <div style="font-size: 11px; color: #6B7280;">70 min · ward start time from LCR</div>
+                  <div style="display: flex; gap: 8px; align-items: flex-start; background: #FEE2E2; border: 1px solid #EF4444; border-radius: 10px; padding: 10px; margin-top: 8px;">
+                    <svg data-icon="alert-circle-outline" viewBox="0 0 512 512" width="18" height="18" style="display: block; flex-shrink: 0; color: #EF4444;"><path d="M448,256c0-106-86-192-192-192S64,150,64,256s86,192,192,192S448,362,448,256Z" style="fill:none;stroke:currentColor;stroke-miterlimit:10;stroke-width:32px"></path><path d="M250.26,166.05,256,288l5.73-121.95a5.74,5.74,0,0,0-5.79-6h0A5.74,5.74,0,0,0,250.26,166.05Z" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path><path d="M256,367.91a20,20,0,1,1,20-20A20,20,0,0,1,256,367.91Z"></path></svg>
+                    <div style="flex: 1; font-size: 12px; line-height: 17px; color: #7F1D1D;">Moraine Valley sacrament is also at 10:00. Pick one — the other ward has no presidency visit this week.</div>
+                  </div>
+                </div>
+              </div>
+              <div style="display: flex; gap: 10px; align-items: center; background: #F9FAFB; border: 1px dashed #E5E7EB; border-radius: 10px; padding: 8px 10px;">
+                <div style="width: 38px; display: flex; justify-content: center;"><svg data-icon="car-outline" viewBox="0 0 512 512" width="18" height="18" style="display: block; flex-shrink: 0; color: #9CA3AF;"><path d="M80,224l37.78-88.15C123.93,121.5,139.6,112,157.11,112H354.89c17.51,0,33.18,9.5,39.33,23.85L432,224" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path><rect x="80" y="224" width="352" height="144" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></rect><polyline points="112 368 112 400 80 400 80 368" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></polyline><polyline points="432 368 432 400 400 400 400 368" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></polyline><circle cx="144" cy="288" r="16" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></circle><circle cx="368" cy="288" r="16" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></circle></svg></div>
+                <div style="font-size: 11px; font-weight: 600; color: #6B7280;">Drive to Hyde Park · 28 min · leave by 10:32</div>
+              </div>
+              <div style="display: flex; gap: 10px; align-items: flex-start;">
+                <div style="width: 48px; font-size: 13px; font-weight: 800; color: #374151; padding-top: 1px;">11:00</div>
+                <div style="flex: 1;">
+                  <div style="font-size: 15px; font-weight: 700; color: #111827;">HP1 bishopric training</div>
+                  <div style="font-size: 11px; color: #6B7280;">Hyde Park · gap is shorter than the drive — move to 11:30</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="border-top: 1px solid #F3F4F6; padding-top: 10px; display: flex; align-items: center; gap: 8px;">
+              <div style="width: 26px; height: 26px; border-radius: 7px; background: #8B5CF622; display: flex; align-items: center; justify-content: center;"><svg data-icon="people-outline" viewBox="0 0 512 512" width="15" height="15" style="display: block; flex-shrink: 0; color: #8B5CF6;"><path d="M402,168c-2.93,40.67-33.1,72-66,72s-63.12-31.32-66-72c-3-42.31,26.37-72,66-72S405,126.46,402,168Z" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path><path d="M336,304c-65.17,0-127.84,32.37-143.54,95.41-2.08,8.34,3.15,16.59,11.72,16.59H467.83c8.57,0,13.77-8.25,11.72-16.59C463.85,335.36,401.18,304,336,304Z" style="fill:none;stroke:currentColor;stroke-miterlimit:10;stroke-width:32px"></path><path d="M200,185.94C197.66,218.42,173.28,244,147,244S96.3,218.43,94,185.94C91.61,152.15,115.34,128,147,128S202.39,152.77,200,185.94Z" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path><path d="M206,306c-18.05-8.27-37.93-11.45-59-11.45-52,0-102.1,25.85-114.65,76.2C30.7,377.41,34.88,384,41.72,384H154" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-miterlimit:10;stroke-width:32px"></path></svg></div>
+              <div style="flex: 1; font-size: 12px; color: #4B5563;">Companion: <strong style="color: #111827;">[HC member]</strong> · his own ward is Blue Island</div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <div style="display: flex; gap: 8px;">
+                <div style="flex: 1; min-height: 44px; border-radius: 10px; background: #1B3A6B; display: flex; align-items: center; justify-content: center; padding: 10px 16px;"><span style="font-size: 15px; font-weight: 600; color: #FFFFFF;">Post Slack Reminders</span></div>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <div style="flex: 1; min-height: 44px; border-radius: 10px; border: 1.5px solid #1B3A6B; display: flex; align-items: center; justify-content: center; padding: 10px 16px;"><span style="font-size: 15px; font-weight: 600; color: #1B3A6B;">Send Text Reminder</span></div>
+                <div style="flex: 1; min-height: 44px; border-radius: 10px; background: #E8EEF8; display: flex; align-items: center; justify-content: center; padding: 10px 16px;"><span style="font-size: 15px; font-weight: 600; color: #1B3A6B;">Edit Sunday</span></div>
+              </div>
+              <div style="font-size: 11px; color: #6B7280;">Each button shows the exact text before it sends, then a sent state. Nothing sends on its own.</div>
+            </div>
+          </div>
+
+          <!-- Tiles -->
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;">
+            <div style="font-size: 17px; font-weight: 700; color: #1F2937;">Waiting on you</div>
+            <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px; color: #9CA3AF;">MINE · 9 ITEMS</div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 12px 14px; min-height: 118px; display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="width: 26px; height: 26px; border-radius: 7px; background: #22C55E22; display: flex; align-items: center; justify-content: center;"><svg data-icon="chatbubbles-outline" viewBox="0 0 512 512" width="15" height="15" style="display: block; flex-shrink: 0; color: #22C55E;"><path d="M431,320.6c-1-3.6,1.2-8.6,3.3-12.2a33.68,33.68,0,0,1,2.1-3.1A162,162,0,0,0,464,215c.3-92.2-77.5-167-173.7-167C206.4,48,136.4,105.1,120,180.9a160.7,160.7,0,0,0-3.7,34.2c0,92.3,74.8,169.1,171,169.1,15.3,0,35.9-4.6,47.2-7.7s22.5-7.2,25.4-8.3a26.44,26.44,0,0,1,9.3-1.7,26,26,0,0,1,10.1,2L436,388.6a13.52,13.52,0,0,0,3.9,1,8,8,0,0,0,8-8,12.85,12.85,0,0,0-.5-2.7Z" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-miterlimit:10;stroke-width:32px"></path><path d="M66.46,232a146.23,146.23,0,0,0,6.39,152.67c2.31,3.49,3.61,6.19,3.21,8s-11.93,61.87-11.93,61.87a8,8,0,0,0,2.71,7.68A8.17,8.17,0,0,0,72,464a7.26,7.26,0,0,0,2.91-.6l56.21-22a15.7,15.7,0,0,1,12,.2c18.94,7.38,39.88,12,60.83,12A159.21,159.21,0,0,0,284,432.11" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-miterlimit:10;stroke-width:32px"></path></svg></div>
+                <div style="background: #FEE2E2; border-radius: 9999px; padding: 2px 7px;"><span style="font-size: 10px; font-weight: 800; letter-spacing: 0.5px; color: #EF4444;">2 LATE</span></div>
+              </div>
+              <div style="display: flex; align-items: baseline; gap: 5px; flex-wrap: wrap;"><span style="font-size: 30px; font-weight: 800; letter-spacing: -1px; line-height: 32px; color: #111827;">5</span><span style="font-size: 11px; font-weight: 600; color: #6B7280;">interviews</span></div>
+              <div style="font-size: 13px; font-weight: 600; color: #374151; line-height: 17px;">Interviews</div>
+              <div style="font-size: 11px; color: #6B7280; margin-top: auto;">2 overdue · next Sun Sep 20</div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 12px 14px; min-height: 118px; display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="width: 26px; height: 26px; border-radius: 7px; background: #1B3A6B22; display: flex; align-items: center; justify-content: center;"><svg data-icon="git-branch-outline" viewBox="0 0 512 512" width="15" height="15" style="display: block; flex-shrink: 0; color: #1B3A6B;"><circle cx="160" cy="96" r="48" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></circle><circle cx="160" cy="416" r="48" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></circle><line x1="160" y1="368" x2="160" y2="144" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line><circle cx="352" cy="160" r="48" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></circle><path d="M352,208c0,128-192,48-192,160" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path></svg></div>
+              </div>
+              <div style="display: flex; align-items: baseline; gap: 5px; flex-wrap: wrap;"><span style="font-size: 30px; font-weight: 800; letter-spacing: -1px; line-height: 32px; color: #111827;">7</span><span style="font-size: 11px; font-weight: 600; color: #6B7280;">in flight</span></div>
+              <div style="font-size: 13px; font-weight: 600; color: #374151; line-height: 17px;">Callings</div>
+              <div style="font-size: 11px; color: #6B7280; margin-top: auto;">3 need your approval vote</div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 12px 14px; min-height: 118px; display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="width: 26px; height: 26px; border-radius: 7px; background: #3B82F622; display: flex; align-items: center; justify-content: center;"><svg data-icon="ellipse-outline" viewBox="0 0 512 512" width="15" height="15" style="display: block; flex-shrink: 0; color: #3B82F6;"><circle cx="256" cy="256" r="192" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></circle></svg></div>
+              </div>
+              <div style="display: flex; align-items: baseline; gap: 5px; flex-wrap: wrap;"><span style="font-size: 30px; font-weight: 800; letter-spacing: -1px; line-height: 32px; color: #111827;">4</span><span style="font-size: 11px; font-weight: 600; color: #6B7280;">assignments</span></div>
+              <div style="font-size: 13px; font-weight: 600; color: #374151; line-height: 17px;">Assignments</div>
+              <div style="font-size: 11px; color: #6B7280; margin-top: auto;">2 due this week · from SP, council, HC meetings</div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 12px 14px; min-height: 118px; display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="width: 26px; height: 26px; border-radius: 7px; background: #EC489922; display: flex; align-items: center; justify-content: center;"><svg data-icon="megaphone-outline" viewBox="0 0 512 512" width="15" height="15" style="display: block; flex-shrink: 0; color: #EC4899;"><path d="M407.94,52.22S321.3,160,240,160H80a16,16,0,0,0-16,16v96a16,16,0,0,0,16,16H240c81.3,0,167.94,108.23,167.94,108.23,6.06,8,24.06,2.52,24.06-9.83V62C432,49.69,415,43.18,407.94,52.22Z" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path><path d="M64,256s-16-6-16-32,16-32,16-32" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path><path d="M448,246s16-4.33,16-22-16-22-16-22" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path><line x1="256" y1="160" x2="256" y2="288" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line><line x1="112" y1="160" x2="112" y2="288" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line><path d="M144,288V456a8,8,0,0,0,8,8h53a16,16,0,0,0,15.29-20.73C211.91,416.39,192,386.08,192,336h16a16,16,0,0,0,16-16V304a16,16,0,0,0-16-16H192" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path></svg></div>
+              </div>
+              <div style="display: flex; align-items: baseline; gap: 5px; flex-wrap: wrap;"><span style="font-size: 30px; font-weight: 800; letter-spacing: -1px; line-height: 32px; color: #111827;">2</span><span style="font-size: 11px; font-weight: 600; color: #6B7280;">directives</span></div>
+              <div style="font-size: 13px; font-weight: 600; color: #374151; line-height: 17px;">Directives</div>
+              <div style="font-size: 11px; color: #6B7280; margin-top: auto;">1 needs a stake action by Sep 30</div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;">
+            <div style="font-size: 17px; font-weight: 700; color: #1F2937;">From LCR</div>
+            <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px; color: #9CA3AF;">AS OF SAT 9:40 AM</div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 12px 14px; min-height: 118px; display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="width: 26px; height: 26px; border-radius: 7px; background: #F9731622; display: flex; align-items: center; justify-content: center;"><svg data-icon="receipt-outline" viewBox="0 0 512 512" width="15" height="15" style="display: block; flex-shrink: 0; color: #F97316;"><polyline points="160 336 160 48 192 64 224 48 255.94 64 288.31 48 320 64 351.79 48 383.72 64 416 48 448.01 64 480 48 480 272" style="fill:none;stroke:currentColor;stroke-linejoin:round;stroke-width:32px"></polyline><path d="M480,272V384a80,80,0,0,1-80,80h0a80,80,0,0,1-80-80V336H48a15.86,15.86,0,0,0-16,16c0,64,6.74,112,80,112H400" style="fill:none;stroke:currentColor;stroke-linejoin:round;stroke-width:32px"></path><line x1="224" y1="144" x2="416" y2="144" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line><line x1="288" y1="224" x2="416" y2="224" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line></svg></div>
+                <div style="background: #FEE2E2; border-radius: 9999px; padding: 2px 7px;"><span style="font-size: 10px; font-weight: 800; letter-spacing: 0.5px; color: #EF4444;">1 UNMATCHED</span></div>
+              </div>
+              <div style="display: flex; align-items: baseline; gap: 5px; flex-wrap: wrap;"><span style="font-size: 30px; font-weight: 800; letter-spacing: -1px; line-height: 32px; color: #111827;">3</span><span style="font-size: 11px; font-weight: 600; color: #6B7280;">expenses</span></div>
+              <div style="font-size: 13px; font-weight: 600; color: #374151; line-height: 17px;">President's Review</div>
+              <div style="font-size: 11px; color: #6B7280; margin-top: auto;">2 matched · 1 no approval found</div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 12px 14px; min-height: 118px; display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="width: 26px; height: 26px; border-radius: 7px; background: #F9731622; display: flex; align-items: center; justify-content: center;"><svg data-icon="document-text-outline" viewBox="0 0 512 512" width="15" height="15" style="display: block; flex-shrink: 0; color: #F97316;"><path d="M416,221.25V416a48,48,0,0,1-48,48H144a48,48,0,0,1-48-48V96a48,48,0,0,1,48-48h98.75a32,32,0,0,1,22.62,9.37L406.63,198.63A32,32,0,0,1,416,221.25Z" style="fill:none;stroke:currentColor;stroke-linejoin:round;stroke-width:32px"></path><path d="M256,56V176a32,32,0,0,0,32,32H408" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path><line x1="176" y1="288" x2="336" y2="288" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line><line x1="176" y1="368" x2="336" y2="368" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line></svg></div>
+                <div style="background: #F3F4F6; border-radius: 9999px; padding: 2px 7px;"><span style="font-size: 10px; font-weight: 800; letter-spacing: 0.5px; color: #4B5563;">LCR</span></div>
+              </div>
+              <div style="display: flex; align-items: baseline; gap: 5px; flex-wrap: wrap;"><span style="font-size: 24px; font-weight: 800; letter-spacing: -0.6px; line-height: 32px; color: #111827;">Aug 2026</span></div>
+              <div style="font-size: 13px; font-weight: 600; color: #374151; line-height: 17px;">Statement</div>
+              <div style="font-size: 11px; color: #6B7280; margin-top: auto;">reviewed by clerk Sep 8 · ready for you</div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 12px 14px; min-height: 118px; display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="width: 26px; height: 26px; border-radius: 7px; background: #2563EB22; display: flex; align-items: center; justify-content: center;"><svg data-icon="school-outline" viewBox="0 0 512 512" width="15" height="15" style="display: block; flex-shrink: 0; color: #2563EB;"><polygon points="32 192 256 64 480 192 256 320 32 192" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></polygon><polyline points="112 240 112 368 256 448 400 368 400 240" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></polyline><line x1="480" y1="368" x2="480" y2="192" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line><line x1="256" y1="320" x2="256" y2="448" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line></svg></div>
+                <div style="background: #FEE2E2; border-radius: 9999px; padding: 2px 7px;"><span style="font-size: 10px; font-weight: 800; letter-spacing: 0.5px; color: #EF4444;">BISHOP</span></div>
+              </div>
+              <div style="display: flex; align-items: baseline; gap: 5px; flex-wrap: wrap;"><span style="font-size: 30px; font-weight: 800; letter-spacing: -1px; line-height: 32px; color: #111827;">4</span><span style="font-size: 11px; font-weight: 600; color: #6B7280;">leaders</span></div>
+              <div style="font-size: 13px; font-weight: 600; color: #374151; line-height: 17px;">Training</div>
+              <div style="font-size: 11px; color: #6B7280; margin-top: auto;">2 clergy cert · 2 PCY past due</div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 12px 14px; min-height: 118px; display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="width: 26px; height: 26px; border-radius: 7px; background: #14B8A622; display: flex; align-items: center; justify-content: center;"><svg data-icon="ribbon-outline" viewBox="0 0 512 512" width="15" height="15" style="display: block; flex-shrink: 0; color: #14B8A6;"><circle cx="256" cy="160" r="128" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></circle><path d="M143.65,227.82,48,400l86.86-.42a16,16,0,0,1,13.82,7.8L192,480l88.33-194.32" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path><path d="M366.54,224,464,400l-86.86-.42a16,16,0,0,0-13.82,7.8L320,480,256,339.2" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path><circle cx="256" cy="160" r="64" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></circle></svg></div>
+                <div style="background: #F3F4F6; border-radius: 9999px; padding: 2px 7px;"><span style="font-size: 10px; font-weight: 800; letter-spacing: 0.5px; color: #4B5563;">LCR</span></div>
+              </div>
+              <div style="display: flex; align-items: baseline; gap: 5px; flex-wrap: wrap;"><span style="font-size: 30px; font-weight: 800; letter-spacing: -1px; line-height: 32px; color: #111827;">4</span><span style="font-size: 11px; font-weight: 600; color: #6B7280;">pending</span></div>
+              <div style="font-size: 13px; font-weight: 600; color: #374151; line-height: 17px;">Endorsements</div>
+              <div style="font-size: 11px; color: #6B7280; margin-top: auto;">4 student · 0 employee</div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 12px 14px; min-height: 118px; display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="width: 26px; height: 26px; border-radius: 7px; background: #3B82F622; display: flex; align-items: center; justify-content: center;"><svg data-icon="hand-left-outline" viewBox="0 0 512 512" width="15" height="15" style="display: block; flex-shrink: 0; color: #3B82F6;"><path d="M80,320V144a32,32,0,0,1,32-32h0a32,32,0,0,1,32,32V256" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path><path d="M144,256V80a32,32,0,0,1,32-32h0a32,32,0,0,1,32,32V240" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path><path d="M272,241V96a32,32,0,0,1,32-32h0a32,32,0,0,1,32,32V320" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path><path d="M208,240V48a32,32,0,0,1,32-32h0a32,32,0,0,1,32,32V240" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path><path d="M80,320c0,117.4,64,176,152,176s123.71-39.6,144-88l52.71-144c6.66-18.05,3.64-34.79-11.87-43.6h0c-15.52-8.82-35.91-4.28-44.31,11.68L336,320" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path></svg></div>
+              </div>
+              <div style="display: flex; align-items: baseline; gap: 5px; flex-wrap: wrap;"><span style="font-size: 30px; font-weight: 800; letter-spacing: -1px; line-height: 32px; color: #111827;">2</span><span style="font-size: 11px; font-weight: 600; color: #6B7280;">open</span></div>
+              <div style="font-size: 13px; font-weight: 600; color: #374151; line-height: 17px;">Requests</div>
+              <div style="font-size: 11px; color: #6B7280; margin-top: auto;">1 temple recommend · 1 calling interview</div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 12px 14px; min-height: 118px; display: flex; flex-direction: column; gap: 6px; justify-content: center; align-items: center; text-align: center;">
+              <svg data-icon="refresh-outline" viewBox="0 0 512 512" width="22" height="22" style="display: block; flex-shrink: 0; color: #6B7280;"><path d="M320,146s24.36-12-64-12A160,160,0,1,0,416,294" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-miterlimit:10;stroke-width:32px"></path><polyline points="256 58 336 138 256 218" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></polyline></svg>
+              <div style="font-size: 13px; font-weight: 600; color: #374151;">Refresh from LCR</div>
+              <div style="font-size: 11px; color: #6B7280;">Runs from your signed-in Chrome — it cannot run from the app.</div>
+            </div>
+          </div>
+
+          <div style="height: 8px;"></div>
+        </div>
+
+        <div style="background: #FFFFFF; border-top: 1px solid #E5E7EB; display: flex; padding: 8px 4px 12px;">
+          <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;"><svg data-icon="home" viewBox="0 0 512 512" width="20" height="20" style="display: block; flex-shrink: 0; color: #1B3A6B;"><path d="M261.56,101.28a8,8,0,0,0-11.06,0L66.4,277.15a8,8,0,0,0-2.47,5.79L63.9,448a32,32,0,0,0,32,32H192a16,16,0,0,0,16-16V328a8,8,0,0,1,8-8h80a8,8,0,0,1,8,8l0,136a16,16,0,0,0,16,16h96.06a32,32,0,0,0,32-32l0-165.06a8,8,0,0,0-2.47-5.79Z"></path><path d="M490.91,244.15l-74.8-71.56,0-108.59a16,16,0,0,0-16-16h-48a16,16,0,0,0-16,16l0,32L278.19,40.62C272.77,35.14,264.71,32,256,32h0c-8.68,0-16.72,3.14-22.14,8.63L21.16,244.13c-6.22,6-7,15.87-1.34,22.37A16,16,0,0,0,43,267.56L250.5,69.28a8,8,0,0,1,11.06,0L469.08,267.56a16,16,0,0,0,22.59-.44C497.81,260.76,497.3,250.26,490.91,244.15Z"></path></svg><span style="font-size: 10px; font-weight: 700; color: #1B3A6B;">Dashboard</span></div>
+          <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;"><svg data-icon="calendar-outline" viewBox="0 0 512 512" width="20" height="20" style="display: block; flex-shrink: 0; color: #6B7280;"><rect fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="32" x="48" y="80" width="416" height="384" rx="48"></rect><circle cx="296" cy="232" r="24"></circle><circle cx="376" cy="232" r="24"></circle><circle cx="296" cy="312" r="24"></circle><circle cx="376" cy="312" r="24"></circle><circle cx="136" cy="312" r="24"></circle><circle cx="216" cy="312" r="24"></circle><circle cx="136" cy="392" r="24"></circle><circle cx="216" cy="392" r="24"></circle><circle cx="296" cy="392" r="24"></circle><line fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="32" stroke-linecap="round" x1="128" y1="48" x2="128" y2="80"></line><line fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="32" stroke-linecap="round" x1="384" y1="48" x2="384" y2="80"></line><line fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="32" x1="464" y1="160" x2="48" y2="160"></line></svg><span style="font-size: 10px; font-weight: 600; color: #6B7280;">Calendar</span></div>
+          <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;"><svg data-icon="add-circle-outline" viewBox="0 0 512 512" width="20" height="20" style="display: block; flex-shrink: 0; color: #6B7280;"><path d="M448,256c0-106-86-192-192-192S64,150,64,256s86,192,192,192S448,362,448,256Z" style="fill:none;stroke:currentColor;stroke-miterlimit:10;stroke-width:32px"></path><line x1="256" y1="176" x2="256" y2="336" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line><line x1="336" y1="256" x2="176" y2="256" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line></svg><span style="font-size: 10px; font-weight: 600; color: #6B7280;">New</span></div>
+          <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;"><svg data-icon="albums-outline" viewBox="0 0 512 512" width="20" height="20" style="display: block; flex-shrink: 0; color: #6B7280;"><rect x="64" y="176" width="384" height="256" rx="28.87" ry="28.87" style="fill:none;stroke:currentColor;stroke-linejoin:round;stroke-width:32px"></rect><line x1="144" y1="80" x2="368" y2="80" style="stroke:currentColor;stroke-linecap:round;stroke-miterlimit:10;stroke-width:32px"></line><line x1="112" y1="128" x2="400" y2="128" style="stroke:currentColor;stroke-linecap:round;stroke-miterlimit:10;stroke-width:32px"></line></svg><span style="font-size: 10px; font-weight: 600; color: #6B7280;">SP Board</span></div>
+          <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;"><svg data-icon="settings-outline" viewBox="0 0 512 512" width="20" height="20" style="display: block; flex-shrink: 0; color: #6B7280;"><path d="M262.29,192.31a64,64,0,1,0,57.4,57.4A64.13,64.13,0,0,0,262.29,192.31ZM416.39,256a154.34,154.34,0,0,1-1.53,20.79l45.21,35.46A10.81,10.81,0,0,1,462.52,326l-42.77,74a10.81,10.81,0,0,1-13.14,4.59l-44.9-18.08a16.11,16.11,0,0,0-15.17,1.75A164.48,164.48,0,0,1,325,400.8a15.94,15.94,0,0,0-8.82,12.14l-6.73,47.89A11.08,11.08,0,0,1,298.77,470H213.23a11.11,11.11,0,0,1-10.69-8.87l-6.72-47.82a16.07,16.07,0,0,0-9-12.22,155.3,155.3,0,0,1-21.46-12.57,16,16,0,0,0-15.11-1.71l-44.89,18.07a10.81,10.81,0,0,1-13.14-4.58l-42.77-74a10.8,10.8,0,0,1,2.45-13.75l38.21-30a16.05,16.05,0,0,0,6-14.08c-.36-4.17-.58-8.33-.58-12.5s.21-8.27.58-12.35a16,16,0,0,0-6.07-13.94l-38.19-30A10.81,10.81,0,0,1,49.48,186l42.77-74a10.81,10.81,0,0,1,13.14-4.59l44.9,18.08a16.11,16.11,0,0,0,15.17-1.75A164.48,164.48,0,0,1,187,111.2a15.94,15.94,0,0,0,8.82-12.14l6.73-47.89A11.08,11.08,0,0,1,213.23,42h85.54a11.11,11.11,0,0,1,10.69,8.87l6.72,47.82a16.07,16.07,0,0,0,9,12.22,155.3,155.3,0,0,1,21.46,12.57,16,16,0,0,0,15.11,1.71l44.89-18.07a10.81,10.81,0,0,1,13.14,4.58l42.77,74a10.8,10.8,0,0,1-2.45,13.75l-38.21,30a16.05,16.05,0,0,0-6.05,14.08C416.17,247.67,416.39,251.83,416.39,256Z" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path></svg><span style="font-size: 10px; font-weight: 600; color: #6B7280;">Settings</span></div>
+        </div>
+      </div>
+      <sc-if value="{{ annotations }}" hint-placeholder-val="{{ true }}">
+        <div style="width: 390px; background: #EFF6FF; border: 1px solid #2563EB; border-radius: 10px; padding: 12px; display: flex; gap: 10px; align-items: flex-start;">
+          <svg data-icon="information-circle-outline" viewBox="0 0 512 512" width="18" height="18" style="display: block; flex-shrink: 0; color: #2563EB;"><path d="M248,64C146.39,64,64,146.39,64,248s82.39,184,184,184,184-82.39,184-184S349.61,64,248,64Z" style="fill:none;stroke:currentColor;stroke-miterlimit:10;stroke-width:32px"></path><polyline points="220 220 252 220 252 336" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></polyline><line x1="208" y1="340" x2="296" y2="340" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-miterlimit:10;stroke-width:32px"></line><path d="M248,130a26,26,0,1,0,26,26A26,26,0,0,0,248,130Z" fill="currentColor"></path></svg>
+          <div style="flex: 1; font-size: 12px; line-height: 17px; color: #1E3A8A;">This Sunday is a new zone above the tiles, visible Friday–Sunday and any day the coming Sunday has an unresolved conflict. Conflicts are stated in words with the fix; the card never reorders the day itself. Four new tile kinds need catalog entries in <code>KIND</code> — shown here as expense_review / statement (audit orange), training (standard blue), endorsement (recommend teal), request (action blue).</div>
+        </div>
+      </sc-if>
+    </div>
+
+    <!-- 1b — Counselor -->
+    <div id="1b" style="display: flex; flex-direction: column; gap: 8px; width: 390px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.5px; color: #1B3A6B; background: #E8EEF8; border-radius: 9999px; padding: 3px 8px;">1b</span>
+        <span style="font-size: 15px; font-weight: 700; color: #1F2937;">1st / 2nd Counselor</span>
+        <span style="font-size: 11px; color: #6B7280;">own day · Mine / High council</span>
+      </div>
+      <div style="width: 390px; background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+        <div style="background: #FFFFFF; border-bottom: 1px solid #F3F4F6; padding: 16px; display: flex; align-items: center; gap: 8px;">
+          <div style="width: 36px;"></div>
+          <div style="flex: 1; text-align: center;">
+            <div style="font-size: 17px; font-weight: 700; color: #111827;">Dashboard</div>
+            <div style="font-size: 11px; color: #6B7280; margin-top: 1px;">Sat, Sep 19 · 1st Counselor</div>
+          </div>
+          <div style="width: 36px; display: flex; justify-content: flex-end;"><svg data-icon="settings-outline" viewBox="0 0 512 512" width="22" height="22" style="display: block; flex-shrink: 0; color: #6B7280;"><path d="M262.29,192.31a64,64,0,1,0,57.4,57.4A64.13,64.13,0,0,0,262.29,192.31ZM416.39,256a154.34,154.34,0,0,1-1.53,20.79l45.21,35.46A10.81,10.81,0,0,1,462.52,326l-42.77,74a10.81,10.81,0,0,1-13.14,4.59l-44.9-18.08a16.11,16.11,0,0,0-15.17,1.75A164.48,164.48,0,0,1,325,400.8a15.94,15.94,0,0,0-8.82,12.14l-6.73,47.89A11.08,11.08,0,0,1,298.77,470H213.23a11.11,11.11,0,0,1-10.69-8.87l-6.72-47.82a16.07,16.07,0,0,0-9-12.22,155.3,155.3,0,0,1-21.46-12.57,16,16,0,0,0-15.11-1.71l-44.89,18.07a10.81,10.81,0,0,1-13.14-4.58l-42.77-74a10.8,10.8,0,0,1,2.45-13.75l38.21-30a16.05,16.05,0,0,0,6-14.08c-.36-4.17-.58-8.33-.58-12.5s.21-8.27.58-12.35a16,16,0,0,0-6.07-13.94l-38.19-30A10.81,10.81,0,0,1,49.48,186l42.77-74a10.81,10.81,0,0,1,13.14-4.59l44.9,18.08a16.11,16.11,0,0,0,15.17-1.75A164.48,164.48,0,0,1,187,111.2a15.94,15.94,0,0,0,8.82-12.14l6.73-47.89A11.08,11.08,0,0,1,213.23,42h85.54a11.11,11.11,0,0,1,10.69,8.87l6.72,47.82a16.07,16.07,0,0,0,9,12.22,155.3,155.3,0,0,1,21.46,12.57,16,16,0,0,0,15.11,1.71l44.89-18.07a10.81,10.81,0,0,1,13.14,4.58l42.77,74a10.8,10.8,0,0,1-2.45,13.75l-38.21,30a16.05,16.05,0,0,0-6.05,14.08C416.17,247.67,416.39,251.83,416.39,256Z" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path></svg></div>
+        </div>
+        <div style="padding: 16px; display: flex; flex-direction: column; gap: 16px;">
+          <div style="display: flex; justify-content: flex-end;">
+            <div style="display: flex; background: #F3F4F6; border-radius: 9999px; padding: 2px;">
+              <div style="padding: 5px 12px; border-radius: 9999px; background: #FFFFFF; font-size: 12px; font-weight: 700; color: #1B3A6B;">Mine</div>
+              <div style="padding: 5px 12px; border-radius: 9999px; font-size: 12px; font-weight: 700; color: #6B7280;">High council</div>
+            </div>
+          </div>
+
+          <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-top: 3px solid #14B8A6; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 14px; display: flex; flex-direction: column; gap: 12px;">
+            <div>
+              <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.6px; color: #14B8A6;">THIS SUNDAY · YOUR DAY</div>
+              <div style="font-size: 20px; font-weight: 700; color: #111827; margin-top: 2px;">Sunday, Sep 20</div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <div style="display: flex; gap: 10px; align-items: flex-start;">
+                <div style="width: 48px; font-size: 13px; font-weight: 800; color: #374151;">7:30</div>
+                <div style="flex: 1;"><div style="font-size: 15px; font-weight: 700; color: #111827;">Stake Council</div><div style="font-size: 11px; color: #6B7280;">stake offices · in person</div></div>
+              </div>
+              <div style="display: flex; gap: 10px; align-items: center; background: #F9FAFB; border: 1px dashed #E5E7EB; border-radius: 10px; padding: 8px 10px;">
+                <div style="width: 38px; display: flex; justify-content: center;"><svg data-icon="car-outline" viewBox="0 0 512 512" width="18" height="18" style="display: block; flex-shrink: 0; color: #9CA3AF;"><path d="M80,224l37.78-88.15C123.93,121.5,139.6,112,157.11,112H354.89c17.51,0,33.18,9.5,39.33,23.85L432,224" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path><rect x="80" y="224" width="352" height="144" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></rect><polyline points="112 368 112 400 80 400 80 368" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></polyline><polyline points="432 368 432 400 400 400 400 368" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></polyline><circle cx="144" cy="288" r="16" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></circle><circle cx="368" cy="288" r="16" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></circle></svg></div>
+                <div style="font-size: 11px; font-weight: 600; color: #6B7280;">Drive to Woodlawn · 18 min · leave by 8:42</div>
+              </div>
+              <div style="display: flex; gap: 10px; align-items: flex-start;">
+                <div style="width: 48px; font-size: 13px; font-weight: 800; color: #374151;">9:00</div>
+                <div style="flex: 1;"><div style="font-size: 15px; font-weight: 700; color: #111827;">WC2 sacrament</div><div style="font-size: 11px; color: #6B7280;">70 min · your assigned building</div></div>
+              </div>
+              <div style="display: flex; gap: 10px; align-items: flex-start;">
+                <div style="width: 48px; font-size: 13px; font-weight: 800; color: #374151;">11:00</div>
+                <div style="flex: 1;"><div style="font-size: 15px; font-weight: 700; color: #111827;">WC2 bishopric visit</div><div style="font-size: 11px; color: #6B7280;">same building · no drive</div></div>
+              </div>
+            </div>
+            <div style="border-top: 1px solid #F3F4F6; padding-top: 10px; display: flex; gap: 8px; align-items: center;">
+              <svg data-icon="checkmark-circle-outline" viewBox="0 0 512 512" width="18" height="18" style="display: block; flex-shrink: 0; color: #10B981;"><path d="M448,256c0-106-86-192-192-192S64,150,64,256s86,192,192,192S448,362,448,256Z" style="fill:none;stroke:currentColor;stroke-miterlimit:10;stroke-width:32px"></path><polyline points="352 176 217.6 336 160 272" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></polyline></svg>
+              <div style="font-size: 12px; color: #4B5563;">No conflicts on your day</div>
+            </div>
+            <div style="min-height: 44px; border-radius: 10px; background: #E8EEF8; display: flex; align-items: center; justify-content: center; padding: 10px 16px;"><span style="font-size: 15px; font-weight: 600; color: #1B3A6B;">Edit Sunday</span></div>
+          </div>
+
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;">
+            <div style="font-size: 17px; font-weight: 700; color: #1F2937;">Waiting on you</div>
+            <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px; color: #9CA3AF;">MINE · 6 ITEMS</div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 12px 14px; min-height: 118px; display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="width: 26px; height: 26px; border-radius: 7px; background: #22C55E22; display: flex; align-items: center; justify-content: center;"><svg data-icon="chatbubbles-outline" viewBox="0 0 512 512" width="15" height="15" style="display: block; flex-shrink: 0; color: #22C55E;"><path d="M431,320.6c-1-3.6,1.2-8.6,3.3-12.2a33.68,33.68,0,0,1,2.1-3.1A162,162,0,0,0,464,215c.3-92.2-77.5-167-173.7-167C206.4,48,136.4,105.1,120,180.9a160.7,160.7,0,0,0-3.7,34.2c0,92.3,74.8,169.1,171,169.1,15.3,0,35.9-4.6,47.2-7.7s22.5-7.2,25.4-8.3a26.44,26.44,0,0,1,9.3-1.7,26,26,0,0,1,10.1,2L436,388.6a13.52,13.52,0,0,0,3.9,1,8,8,0,0,0,8-8,12.85,12.85,0,0,0-.5-2.7Z" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-miterlimit:10;stroke-width:32px"></path><path d="M66.46,232a146.23,146.23,0,0,0,6.39,152.67c2.31,3.49,3.61,6.19,3.21,8s-11.93,61.87-11.93,61.87a8,8,0,0,0,2.71,7.68A8.17,8.17,0,0,0,72,464a7.26,7.26,0,0,0,2.91-.6l56.21-22a15.7,15.7,0,0,1,12,.2c18.94,7.38,39.88,12,60.83,12A159.21,159.21,0,0,0,284,432.11" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-miterlimit:10;stroke-width:32px"></path></svg></div>
+              </div>
+              <div style="display: flex; align-items: baseline; gap: 5px;"><span style="font-size: 30px; font-weight: 800; letter-spacing: -1px; line-height: 32px; color: #111827;">2</span><span style="font-size: 11px; font-weight: 600; color: #6B7280;">interviews</span></div>
+              <div style="font-size: 13px; font-weight: 600; color: #374151;">Interviews</div>
+              <div style="font-size: 11px; color: #6B7280; margin-top: auto;">yours only · next Sun Sep 20</div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 12px 14px; min-height: 118px; display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="width: 26px; height: 26px; border-radius: 7px; background: #8B5CF622; display: flex; align-items: center; justify-content: center;"><svg data-icon="people-outline" viewBox="0 0 512 512" width="15" height="15" style="display: block; flex-shrink: 0; color: #8B5CF6;"><path d="M402,168c-2.93,40.67-33.1,72-66,72s-63.12-31.32-66-72c-3-42.31,26.37-72,66-72S405,126.46,402,168Z" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path><path d="M336,304c-65.17,0-127.84,32.37-143.54,95.41-2.08,8.34,3.15,16.59,11.72,16.59H467.83c8.57,0,13.77-8.25,11.72-16.59C463.85,335.36,401.18,304,336,304Z" style="fill:none;stroke:currentColor;stroke-miterlimit:10;stroke-width:32px"></path><path d="M200,185.94C197.66,218.42,173.28,244,147,244S96.3,218.43,94,185.94C91.61,152.15,115.34,128,147,128S202.39,152.77,200,185.94Z" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path><path d="M206,306c-18.05-8.27-37.93-11.45-59-11.45-52,0-102.1,25.85-114.65,76.2C30.7,377.41,34.88,384,41.72,384H154" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-miterlimit:10;stroke-width:32px"></path></svg></div>
+                <div style="background: #FEE2E2; border-radius: 9999px; padding: 2px 7px;"><span style="font-size: 10px; font-weight: 800; letter-spacing: 0.5px; color: #EF4444;">3 LATE</span></div>
+              </div>
+              <div style="display: flex; align-items: baseline; gap: 5px;"><span style="font-size: 30px; font-weight: 800; letter-spacing: -1px; line-height: 32px; color: #111827;">11</span><span style="font-size: 11px; font-weight: 600; color: #6B7280;">assignments</span></div>
+              <div style="font-size: 13px; font-weight: 600; color: #374151;">Assignments</div>
+              <div style="font-size: 11px; color: #6B7280; margin-top: auto;">3 overdue · from stake and HC meetings</div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 12px 14px; min-height: 118px; display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="width: 26px; height: 26px; border-radius: 7px; background: #1B3A6B22; display: flex; align-items: center; justify-content: center;"><svg data-icon="git-branch-outline" viewBox="0 0 512 512" width="15" height="15" style="display: block; flex-shrink: 0; color: #1B3A6B;"><circle cx="160" cy="96" r="48" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></circle><circle cx="160" cy="416" r="48" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></circle><line x1="160" y1="368" x2="160" y2="144" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line><circle cx="352" cy="160" r="48" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></circle><path d="M352,208c0,128-192,48-192,160" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path></svg></div>
+              </div>
+              <div style="display: flex; align-items: baseline; gap: 5px;"><span style="font-size: 30px; font-weight: 800; letter-spacing: -1px; line-height: 32px; color: #111827;">7</span><span style="font-size: 11px; font-weight: 600; color: #6B7280;">in flight</span></div>
+              <div style="font-size: 13px; font-weight: 600; color: #374151;">Callings</div>
+              <div style="font-size: 11px; color: #6B7280; margin-top: auto;">2 await your approval</div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 12px 14px; min-height: 118px; display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="width: 26px; height: 26px; border-radius: 7px; background: #2563EB22; display: flex; align-items: center; justify-content: center;"><svg data-icon="school-outline" viewBox="0 0 512 512" width="15" height="15" style="display: block; flex-shrink: 0; color: #2563EB;"><polygon points="32 192 256 64 480 192 256 320 32 192" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></polygon><polyline points="112 240 112 368 256 448 400 368 400 240" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></polyline><line x1="480" y1="368" x2="480" y2="192" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line><line x1="256" y1="320" x2="256" y2="448" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line></svg></div>
+              </div>
+              <div style="display: flex; align-items: baseline; gap: 5px;"><span style="font-size: 30px; font-weight: 800; letter-spacing: -1px; line-height: 32px; color: #111827;">4</span><span style="font-size: 11px; font-weight: 600; color: #6B7280;">leaders</span></div>
+              <div style="font-size: 13px; font-weight: 600; color: #374151;">Training</div>
+              <div style="font-size: 11px; color: #6B7280; margin-top: auto;">2 clergy cert · 2 PCY past due</div>
+            </div>
+          </div>
+<div style="height: 8px;"></div>
+        </div>
+      </div>
+      <sc-if value="{{ annotations }}" hint-placeholder-val="{{ true }}">
+        <div style="width: 390px; background: #EFF6FF; border: 1px solid #2563EB; border-radius: 10px; padding: 12px; display: flex; gap: 10px; align-items: flex-start;">
+          <svg data-icon="information-circle-outline" viewBox="0 0 512 512" width="18" height="18" style="display: block; flex-shrink: 0; color: #2563EB;"><path d="M248,64C146.39,64,64,146.39,64,248s82.39,184,184,184,184-82.39,184-184S349.61,64,248,64Z" style="fill:none;stroke:currentColor;stroke-miterlimit:10;stroke-width:32px"></path><polyline points="220 220 252 220 252 336" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></polyline><line x1="208" y1="340" x2="296" y2="340" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-miterlimit:10;stroke-width:32px"></line><path d="M248,130a26,26,0,1,0,26,26A26,26,0,0,0,248,130Z" fill="currentColor"></path></svg>
+          <div style="flex: 1; font-size: 12px; line-height: 17px; color: #1E3A8A;">A counselor’s switch reads Mine / High council, never Everyone. His interviews are his own; assignments cover every meeting he attends. Surfaces he has no access to — the President’s Review, the statement, endorsements — are absent entirely: no locked card, no mention that they exist.</div>
+        </div>
+      </sc-if>
+    </div>
+
+    <!-- 1c — Clerk -->
+    <div id="1c" style="display: flex; flex-direction: column; gap: 8px; width: 390px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.5px; color: #1B3A6B; background: #E8EEF8; border-radius: 9999px; padding: 3px 8px;">1c</span>
+        <span style="font-size: 15px; font-weight: 700; color: #1F2937;">Stake Clerk / Executive Secretary</span>
+        <span style="font-size: 11px; color: #6B7280;">meetings + reminders · no SP itinerary</span>
+      </div>
+      <div style="width: 390px; background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+        <div style="background: #FFFFFF; border-bottom: 1px solid #F3F4F6; padding: 16px; display: flex; align-items: center; gap: 8px;">
+          <div style="width: 36px;"></div>
+          <div style="flex: 1; text-align: center;">
+            <div style="font-size: 17px; font-weight: 700; color: #111827;">Dashboard</div>
+            <div style="font-size: 11px; color: #6B7280; margin-top: 1px;">Sat, Sep 19 · Executive Secretary</div>
+          </div>
+          <div style="width: 36px; display: flex; justify-content: flex-end;"><svg data-icon="settings-outline" viewBox="0 0 512 512" width="22" height="22" style="display: block; flex-shrink: 0; color: #6B7280;"><path d="M262.29,192.31a64,64,0,1,0,57.4,57.4A64.13,64.13,0,0,0,262.29,192.31ZM416.39,256a154.34,154.34,0,0,1-1.53,20.79l45.21,35.46A10.81,10.81,0,0,1,462.52,326l-42.77,74a10.81,10.81,0,0,1-13.14,4.59l-44.9-18.08a16.11,16.11,0,0,0-15.17,1.75A164.48,164.48,0,0,1,325,400.8a15.94,15.94,0,0,0-8.82,12.14l-6.73,47.89A11.08,11.08,0,0,1,298.77,470H213.23a11.11,11.11,0,0,1-10.69-8.87l-6.72-47.82a16.07,16.07,0,0,0-9-12.22,155.3,155.3,0,0,1-21.46-12.57,16,16,0,0,0-15.11-1.71l-44.89,18.07a10.81,10.81,0,0,1-13.14-4.58l-42.77-74a10.8,10.8,0,0,1,2.45-13.75l38.21-30a16.05,16.05,0,0,0,6-14.08c-.36-4.17-.58-8.33-.58-12.5s.21-8.27.58-12.35a16,16,0,0,0-6.07-13.94l-38.19-30A10.81,10.81,0,0,1,49.48,186l42.77-74a10.81,10.81,0,0,1,13.14-4.59l44.9,18.08a16.11,16.11,0,0,0,15.17-1.75A164.48,164.48,0,0,1,187,111.2a15.94,15.94,0,0,0,8.82-12.14l6.73-47.89A11.08,11.08,0,0,1,213.23,42h85.54a11.11,11.11,0,0,1,10.69,8.87l6.72,47.82a16.07,16.07,0,0,0,9,12.22,155.3,155.3,0,0,1,21.46,12.57,16,16,0,0,0,15.11,1.71l44.89-18.07a10.81,10.81,0,0,1,13.14,4.58l42.77,74a10.8,10.8,0,0,1-2.45,13.75l-38.21,30a16.05,16.05,0,0,0-6.05,14.08C416.17,247.67,416.39,251.83,416.39,256Z" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path></svg></div>
+        </div>
+        <div style="padding: 16px; display: flex; flex-direction: column; gap: 16px;">
+          <div style="display: flex; justify-content: flex-end;">
+            <div style="display: flex; background: #F3F4F6; border-radius: 9999px; padding: 2px;">
+              <div style="padding: 5px 12px; border-radius: 9999px; font-size: 12px; font-weight: 700; color: #6B7280;">Mine</div>
+              <div style="padding: 5px 12px; border-radius: 9999px; background: #FFFFFF; font-size: 12px; font-weight: 700; color: #1B3A6B;">Everyone</div>
+            </div>
+          </div>
+
+          <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-top: 3px solid #14B8A6; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 14px; display: flex; flex-direction: column; gap: 12px;">
+            <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;">
+              <div>
+                <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.6px; color: #14B8A6;">THIS SUNDAY · MEETINGS</div>
+                <div style="font-size: 20px; font-weight: 700; color: #111827; margin-top: 2px;">Sunday, Sep 20</div>
+              </div>
+              <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px; color: #9CA3AF;">MEETINGS ONLY</div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; gap: 10px;"><div style="width: 48px; font-size: 13px; font-weight: 800; color: #374151;">7:30</div><div style="flex: 1; font-size: 13px; color: #374151;">Stake Council · stake offices</div></div>
+              <div style="display: flex; gap: 10px;"><div style="width: 48px; font-size: 13px; font-weight: 800; color: #374151;">7:30</div><div style="flex: 1; font-size: 13px; color: #374151;">High Council · stake offices</div></div>
+              <div style="display: flex; gap: 10px;"><div style="width: 48px; font-size: 13px; font-weight: 800; color: #374151;">8:30</div><div style="flex: 1; font-size: 13px; color: #374151;">SP + Relief Society · 30 min</div></div>
+              <div style="font-size: 11px; color: #6B7280;">Building assignments are on the Calendar tab. The presidency’s own Sunday itinerary is theirs.</div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <div style="flex: 1; min-height: 44px; border-radius: 10px; background: #1B3A6B; display: flex; align-items: center; justify-content: center; padding: 10px 16px;"><span style="font-size: 15px; font-weight: 600; color: #FFFFFF;">Post Slack Reminders</span></div>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center; background: #F3F4F6; border-radius: 10px; padding: 10px;">
+              <svg data-icon="checkmark-done" viewBox="0 0 512 512" width="18" height="18" style="display: block; flex-shrink: 0; color: #10B981;"><polyline points="464 128 240 384 144 288" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></polyline><line x1="144" y1="384" x2="48" y2="288" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line><line x1="368" y1="128" x2="232" y2="284" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line></svg>
+              <div style="flex: 1; font-size: 12px; color: #4B5563;">Text reminder sent Sat 9:12 AM to 21 recipients</div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;">
+            <div style="font-size: 17px; font-weight: 700; color: #1F2937;">Stake-wide</div>
+            <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px; color: #9CA3AF;">EVERYONE · 31 ITEMS</div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 12px 14px; min-height: 118px; display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="width: 26px; height: 26px; border-radius: 7px; background: #F9731622; display: flex; align-items: center; justify-content: center;"><svg data-icon="document-text-outline" viewBox="0 0 512 512" width="15" height="15" style="display: block; flex-shrink: 0; color: #F97316;"><path d="M416,221.25V416a48,48,0,0,1-48,48H144a48,48,0,0,1-48-48V96a48,48,0,0,1,48-48h98.75a32,32,0,0,1,22.62,9.37L406.63,198.63A32,32,0,0,1,416,221.25Z" style="fill:none;stroke:currentColor;stroke-linejoin:round;stroke-width:32px"></path><path d="M256,56V176a32,32,0,0,0,32,32H408" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path><line x1="176" y1="288" x2="336" y2="288" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line><line x1="176" y1="368" x2="336" y2="368" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line></svg></div>
+                <div style="background: #FEE2E2; border-radius: 9999px; padding: 2px 7px;"><span style="font-size: 10px; font-weight: 800; letter-spacing: 0.5px; color: #EF4444;">PAST 15TH</span></div>
+              </div>
+              <div style="display: flex; align-items: baseline; gap: 5px;"><span style="font-size: 24px; font-weight: 800; letter-spacing: -0.6px; line-height: 32px; color: #111827;">Aug 2026</span></div>
+              <div style="font-size: 13px; font-weight: 600; color: #374151;">Statement</div>
+              <div style="font-size: 11px; color: #6B7280; margin-top: auto;">not yet reviewed by clerk</div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 12px 14px; min-height: 118px; display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="width: 26px; height: 26px; border-radius: 7px; background: #F9731622; display: flex; align-items: center; justify-content: center;"><svg data-icon="document-text-outline" viewBox="0 0 512 512" width="15" height="15" style="display: block; flex-shrink: 0; color: #F97316;"><path d="M416,221.25V416a48,48,0,0,1-48,48H144a48,48,0,0,1-48-48V96a48,48,0,0,1,48-48h98.75a32,32,0,0,1,22.62,9.37L406.63,198.63A32,32,0,0,1,416,221.25Z" style="fill:none;stroke:currentColor;stroke-linejoin:round;stroke-width:32px"></path><path d="M256,56V176a32,32,0,0,0,32,32H408" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path><line x1="176" y1="288" x2="336" y2="288" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line><line x1="176" y1="368" x2="336" y2="368" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line></svg></div>
+                <div style="background: #F3F4F6; border-radius: 9999px; padding: 2px 7px;"><span style="font-size: 10px; font-weight: 800; letter-spacing: 0.5px; color: #4B5563;">LCR</span></div>
+              </div>
+              <div style="display: flex; align-items: baseline; gap: 5px;"><span style="font-size: 30px; font-weight: 800; letter-spacing: -1px; line-height: 32px; color: #111827;">3 of 9</span></div>
+              <div style="font-size: 13px; font-weight: 600; color: #374151;">Audits</div>
+              <div style="font-size: 11px; color: #6B7280; margin-top: auto;">6 wards not yet submitted · due Oct 15</div>
+            </div>
+<div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 12px 14px; min-height: 118px; display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="width: 26px; height: 26px; border-radius: 7px; background: #3B82F622; display: flex; align-items: center; justify-content: center;"><svg data-icon="hand-left-outline" viewBox="0 0 512 512" width="15" height="15" style="display: block; flex-shrink: 0; color: #3B82F6;"><path d="M80,320V144a32,32,0,0,1,32-32h0a32,32,0,0,1,32,32V256" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path><path d="M144,256V80a32,32,0,0,1,32-32h0a32,32,0,0,1,32,32V240" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path><path d="M272,241V96a32,32,0,0,1,32-32h0a32,32,0,0,1,32,32V320" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path><path d="M208,240V48a32,32,0,0,1,32-32h0a32,32,0,0,1,32,32V240" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path><path d="M80,320c0,117.4,64,176,152,176s123.71-39.6,144-88l52.71-144c6.66-18.05,3.64-34.79-11.87-43.6h0c-15.52-8.82-35.91-4.28-44.31,11.68L336,320" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path></svg></div>
+                <div style="background: #FEE2E2; border-radius: 9999px; padding: 2px 7px;"><span style="font-size: 10px; font-weight: 800; letter-spacing: 0.5px; color: #EF4444;">4 DAYS</span></div>
+              </div>
+              <div style="display: flex; align-items: baseline; gap: 5px;"><span style="font-size: 30px; font-weight: 800; letter-spacing: -1px; line-height: 32px; color: #111827;">2</span><span style="font-size: 11px; font-weight: 600; color: #6B7280;">open</span></div>
+              <div style="font-size: 13px; font-weight: 600; color: #374151;">Requests</div>
+              <div style="font-size: 11px; color: #6B7280; margin-top: auto;">1 temple recommend · 1 calling interview</div>
+            </div>
+          </div>
+          <div style="height: 8px;"></div>
+        </div>
+      </div>
+      <sc-if value="{{ annotations }}" hint-placeholder-val="{{ true }}">
+        <div style="width: 390px; background: #EFF6FF; border: 1px solid #2563EB; border-radius: 10px; padding: 12px; display: flex; gap: 10px; align-items: flex-start;">
+          <svg data-icon="information-circle-outline" viewBox="0 0 512 512" width="18" height="18" style="display: block; flex-shrink: 0; color: #2563EB;"><path d="M248,64C146.39,64,64,146.39,64,248s82.39,184,184,184,184-82.39,184-184S349.61,64,248,64Z" style="fill:none;stroke:currentColor;stroke-miterlimit:10;stroke-width:32px"></path><polyline points="220 220 252 220 252 336" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></polyline><line x1="208" y1="340" x2="296" y2="340" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-miterlimit:10;stroke-width:32px"></line><path d="M248,130a26,26,0,1,0,26,26A26,26,0,0,0,248,130Z" fill="currentColor"></path></svg>
+          <div style="flex: 1; font-size: 12px; line-height: 17px; color: #1E3A8A;">The clerk sends the reminders, so he gets the meeting list and the buttons — not the president’s itinerary, and not the interview queue. Recommend activations and the President’s Review stay hidden. The Statement tile flags red after the 15th when he has not reviewed; his own tile is the one that turns red, which is the point.</div>
+        </div>
+      </sc-if>
+    </div>
+
+    <!-- 1d — HC / SC -->
+    <div id="1d" style="display: flex; flex-direction: column; gap: 8px; width: 390px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.5px; color: #1B3A6B; background: #E8EEF8; border-radius: 9999px; padding: 3px 8px;">1d</span>
+        <span style="font-size: 15px; font-weight: 700; color: #1F2937;">High Councilor · Stake Council</span>
+        <span style="font-size: 11px; color: #6B7280;">own items only</span>
+      </div>
+      <div style="width: 390px; background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+        <div style="background: #FFFFFF; border-bottom: 1px solid #F3F4F6; padding: 16px; display: flex; align-items: center; gap: 8px;">
+          <div style="width: 36px;"></div>
+          <div style="flex: 1; text-align: center;">
+            <div style="font-size: 17px; font-weight: 700; color: #111827;">Dashboard</div>
+            <div style="font-size: 11px; color: #6B7280; margin-top: 1px;">Sat, Sep 19 · High Councilor</div>
+          </div>
+          <div style="width: 36px; display: flex; justify-content: flex-end;"><svg data-icon="settings-outline" viewBox="0 0 512 512" width="22" height="22" style="display: block; flex-shrink: 0; color: #6B7280;"><path d="M262.29,192.31a64,64,0,1,0,57.4,57.4A64.13,64.13,0,0,0,262.29,192.31ZM416.39,256a154.34,154.34,0,0,1-1.53,20.79l45.21,35.46A10.81,10.81,0,0,1,462.52,326l-42.77,74a10.81,10.81,0,0,1-13.14,4.59l-44.9-18.08a16.11,16.11,0,0,0-15.17,1.75A164.48,164.48,0,0,1,325,400.8a15.94,15.94,0,0,0-8.82,12.14l-6.73,47.89A11.08,11.08,0,0,1,298.77,470H213.23a11.11,11.11,0,0,1-10.69-8.87l-6.72-47.82a16.07,16.07,0,0,0-9-12.22,155.3,155.3,0,0,1-21.46-12.57,16,16,0,0,0-15.11-1.71l-44.89,18.07a10.81,10.81,0,0,1-13.14-4.58l-42.77-74a10.8,10.8,0,0,1,2.45-13.75l38.21-30a16.05,16.05,0,0,0,6-14.08c-.36-4.17-.58-8.33-.58-12.5s.21-8.27.58-12.35a16,16,0,0,0-6.07-13.94l-38.19-30A10.81,10.81,0,0,1,49.48,186l42.77-74a10.81,10.81,0,0,1,13.14-4.59l44.9,18.08a16.11,16.11,0,0,0,15.17-1.75A164.48,164.48,0,0,1,187,111.2a15.94,15.94,0,0,0,8.82-12.14l6.73-47.89A11.08,11.08,0,0,1,213.23,42h85.54a11.11,11.11,0,0,1,10.69,8.87l6.72,47.82a16.07,16.07,0,0,0,9,12.22,155.3,155.3,0,0,1,21.46,12.57,16,16,0,0,0,15.11,1.71l44.89-18.07a10.81,10.81,0,0,1,13.14,4.58l42.77,74a10.8,10.8,0,0,1-2.45,13.75l-38.21,30a16.05,16.05,0,0,0-6.05,14.08C416.17,247.67,416.39,251.83,416.39,256Z" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path></svg></div>
+        </div>
+        <div style="padding: 16px; display: flex; flex-direction: column; gap: 16px;">
+          <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-top: 3px solid #8B5CF6; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 14px; display: flex; flex-direction: column; gap: 10px;">
+            <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.6px; color: #8B5CF6;">YOUR SUNDAY</div>
+            <div style="font-size: 20px; font-weight: 700; color: #111827;">Sunday, Sep 20</div>
+            <div style="font-size: 13px; color: #374151; line-height: 19px;">You accompany the stake president. High Council meeting 7:30–8:30, stake offices, in person.</div>
+            <div style="display: flex; gap: 8px; align-items: center; background: #F3F4F6; border-radius: 10px; padding: 10px;">
+              <svg data-icon="calendar-outline" viewBox="0 0 512 512" width="18" height="18" style="display: block; flex-shrink: 0; color: #6B7280;"><rect fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="32" x="48" y="80" width="416" height="384" rx="48"></rect><circle cx="296" cy="232" r="24"></circle><circle cx="376" cy="232" r="24"></circle><circle cx="296" cy="312" r="24"></circle><circle cx="376" cy="312" r="24"></circle><circle cx="136" cy="312" r="24"></circle><circle cx="216" cy="312" r="24"></circle><circle cx="136" cy="392" r="24"></circle><circle cx="216" cy="392" r="24"></circle><circle cx="296" cy="392" r="24"></circle><line fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="32" stroke-linecap="round" x1="128" y1="48" x2="128" y2="80"></line><line fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="32" stroke-linecap="round" x1="384" y1="48" x2="384" y2="80"></line><line fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="32" x1="464" y1="160" x2="48" y2="160"></line></svg>
+              <div style="flex: 1; font-size: 12px; color: #4B5563;">Your interview: Sun Sep 20 — time to be set by the executive secretary</div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;">
+            <div style="font-size: 17px; font-weight: 700; color: #1F2937;">Waiting on you</div>
+            <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px; color: #9CA3AF;">YOURS · 3 ITEMS</div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 12px 14px; min-height: 118px; display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="width: 26px; height: 26px; border-radius: 7px; background: #8B5CF622; display: flex; align-items: center; justify-content: center;"><svg data-icon="people-outline" viewBox="0 0 512 512" width="15" height="15" style="display: block; flex-shrink: 0; color: #8B5CF6;"><path d="M402,168c-2.93,40.67-33.1,72-66,72s-63.12-31.32-66-72c-3-42.31,26.37-72,66-72S405,126.46,402,168Z" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path><path d="M336,304c-65.17,0-127.84,32.37-143.54,95.41-2.08,8.34,3.15,16.59,11.72,16.59H467.83c8.57,0,13.77-8.25,11.72-16.59C463.85,335.36,401.18,304,336,304Z" style="fill:none;stroke:currentColor;stroke-miterlimit:10;stroke-width:32px"></path><path d="M200,185.94C197.66,218.42,173.28,244,147,244S96.3,218.43,94,185.94C91.61,152.15,115.34,128,147,128S202.39,152.77,200,185.94Z" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path><path d="M206,306c-18.05-8.27-37.93-11.45-59-11.45-52,0-102.1,25.85-114.65,76.2C30.7,377.41,34.88,384,41.72,384H154" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-miterlimit:10;stroke-width:32px"></path></svg></div>
+                <div style="background: #FEE2E2; border-radius: 9999px; padding: 2px 7px;"><span style="font-size: 10px; font-weight: 800; letter-spacing: 0.5px; color: #EF4444;">1 LATE</span></div>
+              </div>
+              <div style="display: flex; align-items: baseline; gap: 5px;"><span style="font-size: 30px; font-weight: 800; letter-spacing: -1px; line-height: 32px; color: #111827;">3</span><span style="font-size: 11px; font-weight: 600; color: #6B7280;">assignments</span></div>
+              <div style="font-size: 13px; font-weight: 600; color: #374151;">My Assignments</div>
+              <div style="font-size: 11px; color: #6B7280; margin-top: auto;">1 overdue · 1 due Sep 24</div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 12px 14px; min-height: 118px; display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="width: 26px; height: 26px; border-radius: 7px; background: #1B3A6B22; display: flex; align-items: center; justify-content: center;"><svg data-icon="git-branch-outline" viewBox="0 0 512 512" width="15" height="15" style="display: block; flex-shrink: 0; color: #1B3A6B;"><circle cx="160" cy="96" r="48" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></circle><circle cx="160" cy="416" r="48" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></circle><line x1="160" y1="368" x2="160" y2="144" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line><circle cx="352" cy="160" r="48" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></circle><path d="M352,208c0,128-192,48-192,160" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path></svg></div>
+              </div>
+              <div style="display: flex; align-items: baseline; gap: 5px;"><span style="font-size: 30px; font-weight: 800; letter-spacing: -1px; line-height: 32px; color: #111827;">4</span><span style="font-size: 11px; font-weight: 600; color: #6B7280;">need me</span></div>
+              <div style="font-size: 13px; font-weight: 600; color: #374151;">HC Board</div>
+              <div style="font-size: 11px; color: #6B7280; margin-top: auto;">4 approval votes · 2 in your wards</div>
+            </div>
+          </div>
+
+          <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-top: 3px solid #2563EB; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 14px;">
+            <div style="font-size: 15px; font-weight: 700; color: #111827;">Youth Conference 2027</div>
+            <div style="display: flex; gap: 3px; margin-top: 12px;">
+              <div style="flex: 1; height: 10px; border-radius: 2px; background: #2563EB;"></div><div style="flex: 1; height: 10px; border-radius: 2px; background: #2563EB;"></div><div style="flex: 1; height: 10px; border-radius: 2px; background: #2563EB;"></div><div style="flex: 1; height: 10px; border-radius: 2px; background: #2563EB;"></div><div style="flex: 1; height: 10px; border-radius: 2px; background: #2563EB;"></div><div style="flex: 1; height: 10px; border-radius: 2px; background: #F3F4F6;"></div><div style="flex: 1; height: 10px; border-radius: 2px; background: #F3F4F6;"></div><div style="flex: 1; height: 10px; border-radius: 2px; background: #F3F4F6;"></div>
+            </div>
+            <div style="display: flex; align-items: baseline; justify-content: space-between; margin-top: 10px; gap: 8px;">
+              <div style="font-size: 11px; font-weight: 800; color: #374151;">5 of 8 done</div>
+              <div style="font-size: 11px; font-weight: 700; color: #6B7280;">by Jun 2027</div>
+            </div>
+            <div style="border-top: 1px solid #F3F4F6; margin-top: 8px; padding-top: 8px; font-size: 13px; color: #6B7280;">Next: confirm the camp contract</div>
+          </div>
+
+          <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 28px 16px; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+            <svg data-icon="checkmark-done" viewBox="0 0 512 512" width="30" height="30" style="display: block; flex-shrink: 0; color: #10B981;"><polyline points="464 128 240 384 144 288" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></polyline><line x1="144" y1="384" x2="48" y2="288" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line><line x1="368" y1="128" x2="232" y2="284" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line></svg>
+            <div style="font-size: 15px; font-weight: 700; color: #1F2937; margin-top: 4px;">Nothing else waiting on you</div>
+            <div style="font-size: 13px; color: #6B7280; text-align: center;">Your calendar shows High Council, Stake Council, and trainings.</div>
+          </div>
+          <div style="height: 8px;"></div>
+        </div>
+      </div>
+      <sc-if value="{{ annotations }}" hint-placeholder-val="{{ true }}">
+        <div style="width: 390px; background: #EFF6FF; border: 1px solid #2563EB; border-radius: 10px; padding: 12px; display: flex; gap: 10px; align-items: flex-start;">
+          <svg data-icon="information-circle-outline" viewBox="0 0 512 512" width="18" height="18" style="display: block; flex-shrink: 0; color: #2563EB;"><path d="M248,64C146.39,64,64,146.39,64,248s82.39,184,184,184,184-82.39,184-184S349.61,64,248,64Z" style="fill:none;stroke:currentColor;stroke-miterlimit:10;stroke-width:32px"></path><polyline points="220 220 252 220 252 336" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></polyline><line x1="208" y1="340" x2="296" y2="340" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-miterlimit:10;stroke-width:32px"></line><path d="M248,130a26,26,0,1,0,26,26A26,26,0,0,0,248,130Z" fill="currentColor"></path></svg>
+          <div style="flex: 1; font-size: 12px; line-height: 17px; color: #1E3A8A;">No Mine / Everyone switch, no LCR zone, no reminder buttons. A stake council member gets this same layout minus the HC Board tile, with the assignments tile carrying items from any meeting he attends — stake presidency, adult leadership, stake council, or high council. His interview appears as a date only; a stake council member sees no interview row at all.</div>
+        </div>
+      </sc-if>
+    </div>
+
+    <!-- 1e — Schedule edit -->
+    <div id="1e" style="display: flex; flex-direction: column; gap: 8px; width: 390px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.5px; color: #1B3A6B; background: #E8EEF8; border-radius: 9999px; padding: 3px 8px;">1e</span>
+        <span style="font-size: 15px; font-weight: 700; color: #1F2937;">Edit Sunday</span>
+        <span style="font-size: 11px; color: #6B7280;">the two-tap Saturday-night fix</span>
+      </div>
+      <div style="width: 390px; background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+        <div style="background: #FFFFFF; border-bottom: 1px solid #F3F4F6; padding: 16px; display: flex; align-items: center; gap: 8px;">
+          <div style="width: 36px;"><svg data-icon="chevron-back" viewBox="0 0 512 512" width="24" height="24" style="display: block; flex-shrink: 0; color: #1F2937;"><polyline points="328 112 184 256 328 400" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:48px"></polyline></svg></div>
+          <div style="flex: 1; text-align: center;">
+            <div style="font-size: 17px; font-weight: 700; color: #111827;">Sunday, Sep 20</div>
+            <div style="font-size: 11px; color: #6B7280; margin-top: 1px;">Meeting schedule · Q3</div>
+          </div>
+          <div style="width: 36px;"></div>
+        </div>
+        <div style="padding: 16px; display: flex; flex-direction: column; gap: 16px;">
+          <div>
+            <div style="font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 8px;">Kind of Sunday</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+              <div style="min-height: 44px; display: flex; align-items: center; padding: 10px 14px; border-radius: 9999px; background: #E8EEF8; border: 1.5px solid #1B3A6B;"><span style="font-size: 13px; font-weight: 600; color: #1B3A6B;">Meetings</span></div>
+              <div style="min-height: 44px; display: flex; align-items: center; padding: 10px 14px; border-radius: 9999px; background: #FFFFFF; border: 1.5px solid #E5E7EB;"><span style="font-size: 13px; font-weight: 600; color: #6B7280;">Holiday</span></div>
+              <div style="min-height: 44px; display: flex; align-items: center; padding: 10px 14px; border-radius: 9999px; background: #FFFFFF; border: 1.5px solid #E5E7EB;"><span style="font-size: 13px; font-weight: 600; color: #6B7280;">Stake conference</span></div>
+              <div style="min-height: 44px; display: flex; align-items: center; padding: 10px 14px; border-radius: 9999px; background: #FFFFFF; border: 1.5px solid #E5E7EB;"><span style="font-size: 13px; font-weight: 600; color: #6B7280;">Ward conference</span></div>
+              <div style="min-height: 44px; display: flex; align-items: center; padding: 10px 14px; border-radius: 9999px; background: #FFFFFF; border: 1.5px solid #E5E7EB;"><span style="font-size: 13px; font-weight: 600; color: #6B7280;">None</span></div>
+            </div>
+          </div>
+
+          <div>
+            <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px;">
+              <div style="font-size: 13px; font-weight: 600; color: #374151;">Building assignments</div>
+              <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px; color: #9CA3AF;">TAP TO CHANGE</div>
+            </div>
+            <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden;">
+              <div style="display: flex; align-items: center; gap: 12px; padding: 14px; border-bottom: 1px solid #F3F4F6; min-height: 48px;">
+                <div style="width: 34px; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; color: #1B3A6B;">P</div>
+                <div style="flex: 1;">
+                  <div style="font-size: 15px; font-weight: 700; color: #111827;">Blue Island</div>
+                  <div style="font-size: 11px; color: #EF4444; font-weight: 600;">clashes with Moraine Valley at 10:00</div>
+                </div>
+                <svg data-icon="chevron-forward" viewBox="0 0 512 512" width="20" height="20" style="display: block; flex-shrink: 0; color: #9CA3AF;"><polyline points="184 112 328 256 184 400" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:48px"></polyline></svg>
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px; padding: 14px; border-bottom: 1px solid #F3F4F6; min-height: 48px;">
+                <div style="width: 34px; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; color: #1B3A6B;">1C</div>
+                <div style="flex: 1;"><div style="font-size: 15px; font-weight: 700; color: #111827;">Woodlawn 2nd</div><div style="font-size: 11px; color: #6B7280;">9:00 sacrament · 18 min from stake offices</div></div>
+                <svg data-icon="chevron-forward" viewBox="0 0 512 512" width="20" height="20" style="display: block; flex-shrink: 0; color: #9CA3AF;"><polyline points="184 112 328 256 184 400" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:48px"></polyline></svg>
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px; padding: 14px; min-height: 48px;">
+                <div style="width: 34px; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; color: #1B3A6B;">2C</div>
+                <div style="flex: 1;"><div style="font-size: 15px; font-weight: 700; color: #111827;">Hyde Park 1st</div><div style="font-size: 11px; color: #6B7280;">11:00 sacrament · 28 min from Blue Island</div></div>
+                <svg data-icon="chevron-forward" viewBox="0 0 512 512" width="20" height="20" style="display: block; flex-shrink: 0; color: #9CA3AF;"><polyline points="184 112 328 256 184 400" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:48px"></polyline></svg>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div style="font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 8px;">Meetings</div>
+            <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden;">
+              <div style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid #F3F4F6; min-height: 48px;">
+                <div style="flex: 1;"><div style="font-size: 15px; font-weight: 700; color: #111827;">Stake Council</div><div style="font-size: 11px; color: #6B7280;">7:30–8:30 · in person</div></div>
+                <div style="background: #F3F4F6; border-radius: 9999px; padding: 2px 8px;"><span style="font-size: 11px; font-weight: 800; color: #4B5563;">SC</span></div>
+                <svg data-icon="close-circle-outline" viewBox="0 0 512 512" width="22" height="22" style="display: block; flex-shrink: 0; color: #9CA3AF;"><path d="M448,256c0-106-86-192-192-192S64,150,64,256s86,192,192,192S448,362,448,256Z" style="fill:none;stroke:currentColor;stroke-miterlimit:10;stroke-width:32px"></path><line x1="320" y1="320" x2="192" y2="192" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line><line x1="192" y1="320" x2="320" y2="192" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line></svg>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid #F3F4F6; min-height: 48px;">
+                <div style="flex: 1;"><div style="font-size: 15px; font-weight: 700; color: #111827;">SP + Relief Society</div><div style="font-size: 11px; color: #6B7280;">8:30–9:00 · in person</div></div>
+                <div style="background: #F3F4F6; border-radius: 9999px; padding: 2px 8px;"><span style="font-size: 11px; font-weight: 800; color: #4B5563;">SP_RS</span></div>
+                <svg data-icon="close-circle-outline" viewBox="0 0 512 512" width="22" height="22" style="display: block; flex-shrink: 0; color: #9CA3AF;"><path d="M448,256c0-106-86-192-192-192S64,150,64,256s86,192,192,192S448,362,448,256Z" style="fill:none;stroke:currentColor;stroke-miterlimit:10;stroke-width:32px"></path><line x1="320" y1="320" x2="192" y2="192" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line><line x1="192" y1="320" x2="320" y2="192" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line></svg>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px; padding: 14px; min-height: 48px;">
+                <svg data-icon="add-circle-outline" viewBox="0 0 512 512" width="22" height="22" style="display: block; flex-shrink: 0; color: #1B3A6B;"><path d="M448,256c0-106-86-192-192-192S64,150,64,256s86,192,192,192S448,362,448,256Z" style="fill:none;stroke:currentColor;stroke-miterlimit:10;stroke-width:32px"></path><line x1="256" y1="176" x2="256" y2="336" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line><line x1="336" y1="256" x2="176" y2="256" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line></svg>
+                <div style="flex: 1; font-size: 15px; font-weight: 600; color: #1B3A6B;">Add a meeting</div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div style="font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 8px;">Companion</div>
+            <div style="background: #FFFFFF; border: 1.5px solid #E5E7EB; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; min-height: 48px;">
+              <div style="flex: 1;"><div style="font-size: 15px; color: #111827;">[HC member]</div><div style="font-size: 11px; color: #6B7280;">his own ward is Blue Island</div></div>
+              <svg data-icon="chevron-forward" viewBox="0 0 512 512" width="20" height="20" style="display: block; flex-shrink: 0; color: #9CA3AF;"><polyline points="184 112 328 256 184 400" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:48px"></polyline></svg>
+            </div>
+          </div>
+
+          <div style="min-height: 48px; border-radius: 10px; background: #1B3A6B; display: flex; align-items: center; justify-content: center; padding: 14px 24px;"><span style="font-size: 17px; font-weight: 600; color: #FFFFFF;">Save Sunday</span></div>
+          <div style="height: 8px;"></div>
+        </div>
+      </div>
+      <sc-if value="{{ annotations }}" hint-placeholder-val="{{ true }}">
+        <div style="width: 390px; background: #EFF6FF; border: 1px solid #2563EB; border-radius: 10px; padding: 12px; display: flex; gap: 10px; align-items: flex-start;">
+          <svg data-icon="information-circle-outline" viewBox="0 0 512 512" width="18" height="18" style="display: block; flex-shrink: 0; color: #2563EB;"><path d="M248,64C146.39,64,64,146.39,64,248s82.39,184,184,184,184-82.39,184-184S349.61,64,248,64Z" style="fill:none;stroke:currentColor;stroke-miterlimit:10;stroke-width:32px"></path><polyline points="220 220 252 220 252 336" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></polyline><line x1="208" y1="340" x2="296" y2="340" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-miterlimit:10;stroke-width:32px"></line><path d="M248,130a26,26,0,1,0,26,26A26,26,0,0,0,248,130Z" fill="currentColor"></path></svg>
+          <div style="flex: 1; font-size: 12px; line-height: 17px; color: #1E3A8A;">The common edit — change the P column on a Saturday night — is the first row on the screen: tap the row, pick the ward, done. The same form opens from Settings → Meeting schedule and from the This Sunday card. Notes are presidency-only and sit below Save in the full screen.</div>
+        </div>
+      </sc-if>
+    </div>
+
+    <!-- 1f — Reminder confirm -->
+    <div id="1f" style="display: flex; flex-direction: column; gap: 8px; width: 390px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.5px; color: #1B3A6B; background: #E8EEF8; border-radius: 9999px; padding: 3px 8px;">1f</span>
+        <span style="font-size: 15px; font-weight: 700; color: #1F2937;">Reminder confirmations</span>
+        <span style="font-size: 11px; color: #6B7280;">exact text before anything sends</span>
+      </div>
+      <div style="width: 390px; display: flex; flex-direction: column; gap: 16px;">
+        <div style="background: rgba(17,17,17,0.35); border-radius: 16px; padding: 48px 0 0; display: flex; flex-direction: column; justify-content: flex-end;">
+          <div style="background: #FFFFFF; border-radius: 16px 16px 16px 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); padding: 16px; display: flex; flex-direction: column; gap: 16px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 26px; height: 26px; border-radius: 7px; background: #EC489922; display: flex; align-items: center; justify-content: center;"><svg data-icon="logo-slack" viewBox="0 0 512 512" width="15" height="15" style="display: block; flex-shrink: 0; color: #EC4899;"><path d="M126.12,315.1A47.06,47.06,0,1,1,79.06,268h47.06Z"></path><path d="M149.84,315.1a47.06,47.06,0,0,1,94.12,0V432.94a47.06,47.06,0,1,1-94.12,0Z"></path><path d="M196.9,126.12A47.06,47.06,0,1,1,244,79.06v47.06Z"></path><path d="M196.9,149.84a47.06,47.06,0,0,1,0,94.12H79.06a47.06,47.06,0,0,1,0-94.12Z"></path><path d="M385.88,196.9A47.06,47.06,0,1,1,432.94,244H385.88Z"></path><path d="M362.16,196.9a47.06,47.06,0,0,1-94.12,0V79.06a47.06,47.06,0,1,1,94.12,0Z"></path><path d="M315.1,385.88A47.06,47.06,0,1,1,268,432.94V385.88Z"></path><path d="M315.1,362.16a47.06,47.06,0,0,1,0-94.12H432.94a47.06,47.06,0,1,1,0,94.12Z"></path></svg></div>
+              <div style="flex: 1; font-size: 17px; font-weight: 700; color: #111827;">Post Slack Reminders</div>
+              <svg data-icon="close-outline" viewBox="0 0 512 512" width="24" height="24" style="display: block; flex-shrink: 0; color: #6B7280;"><line x1="368" y1="368" x2="144" y2="144" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line><line x1="368" y1="144" x2="144" y2="368" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line></svg>
+            </div>
+            <div style="font-size: 13px; color: #6B7280;">Two posts will go out for Sunday, Sep 20. Read them before you post.</div>
+            <div style="background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px;">
+              <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.5px; color: #4B5563;">#HIGH-COUNCIL</div>
+              <div style="font-size: 13px; line-height: 19px; color: #111827;">&lt;!channel&gt; High Council meeting will be held this Sunday (9/20) from 7:30–8:30 IN PERSON at the stake offices. Please respond here if you are unable to make it.</div>
+            </div>
+            <div style="background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px;">
+              <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.5px; color: #4B5563;">#STAKE-COUNCIL</div>
+              <div style="font-size: 13px; line-height: 19px; color: #111827;">&lt;!channel&gt; Stake Council meeting will be held this Sunday (9/20) from 7:30–8:30 IN PERSON at the stake offices. Please respond here if you are unable to make it.</div>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: flex-start; background: #FEF3C7; border: 1px solid #F59E0B; border-radius: 10px; padding: 12px;">
+              <svg data-icon="warning-outline" viewBox="0 0 512 512" width="18" height="18" style="display: block; flex-shrink: 0; color: #92600a;"><path d="M85.57,446.25H426.43a32,32,0,0,0,28.17-47.17L284.18,82.58c-12.09-22.44-44.27-22.44-56.36,0L57.4,399.08A32,32,0,0,0,85.57,446.25Z" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path><path d="M250.26,195.39l5.74,122,5.73-121.95a5.74,5.74,0,0,0-5.79-6h0A5.74,5.74,0,0,0,250.26,195.39Z" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></path><path d="M256,397.25a20,20,0,1,1,20-20A20,20,0,0,1,256,397.25Z" fill="currentColor"></path></svg>
+              <div style="flex: 1; font-size: 12px; line-height: 17px; color: #78350F;">Nothing was posted for this Sunday yet. Posting twice is refused — the app keeps a log of every reminder sent.</div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <div style="min-height: 48px; border-radius: 10px; background: #1B3A6B; display: flex; align-items: center; justify-content: center; padding: 14px 24px;"><span style="font-size: 17px; font-weight: 600; color: #FFFFFF;">Post Both Reminders</span></div>
+              <div style="min-height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; padding: 10px 16px;"><span style="font-size: 15px; font-weight: 600; color: #1B3A6B;">Cancel</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="background: rgba(17,17,17,0.35); border-radius: 16px; padding: 48px 0 0;">
+          <div style="background: #FFFFFF; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); padding: 16px; display: flex; flex-direction: column; gap: 16px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 26px; height: 26px; border-radius: 7px; background: #F59E0B22; display: flex; align-items: center; justify-content: center;"><svg data-icon="chatbox-ellipses-outline" viewBox="0 0 512 512" width="15" height="15" style="display: block; flex-shrink: 0; color: #F59E0B;"><path d="M408,64H104a56.16,56.16,0,0,0-56,56V312a56.16,56.16,0,0,0,56,56h40v80l93.72-78.14a8,8,0,0,1,5.13-1.86H408a56.16,56.16,0,0,0,56-56V120A56.16,56.16,0,0,0,408,64Z" style="fill:none;stroke:currentColor;stroke-linejoin:round;stroke-width:32px"></path><circle cx="160" cy="216" r="32"></circle><circle cx="256" cy="216" r="32"></circle><circle cx="352" cy="216" r="32"></circle></svg></div>
+              <div style="flex: 1; font-size: 17px; font-weight: 700; color: #111827;">Send Text Reminder</div>
+              <svg data-icon="close-outline" viewBox="0 0 512 512" width="24" height="24" style="display: block; flex-shrink: 0; color: #6B7280;"><line x1="368" y1="368" x2="144" y2="144" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line><line x1="368" y1="144" x2="144" y2="368" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></line></svg>
+            </div>
+            <div style="display: flex; align-items: baseline; gap: 5px;"><span style="font-size: 30px; font-weight: 800; letter-spacing: -1px; line-height: 32px; color: #111827;">21</span><span style="font-size: 11px; font-weight: 600; color: #6B7280;">unique recipients</span></div>
+            <div style="font-size: 13px; color: #6B7280;">High council (9) and stake council (12) for Sunday, Sep 20. Sent through Tidings.</div>
+            <div style="background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 10px; padding: 12px; font-size: 13px; line-height: 19px; color: #111827;">Reminder: High Council and Stake Council meet tomorrow, Sunday 9/20, 7:30 AM at the stake offices. Please reply if you cannot attend.<br><br>— Stake Presidency</div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <div style="min-height: 48px; border-radius: 10px; background: #1B3A6B; display: flex; align-items: center; justify-content: center; padding: 14px 24px;"><span style="font-size: 17px; font-weight: 600; color: #FFFFFF;">Send to 21 Recipients</span></div>
+              <div style="min-height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; padding: 10px 16px;"><span style="font-size: 15px; font-weight: 600; color: #1B3A6B;">Cancel</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 14px; display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.6px; color: #6B7280;">SENT STATE · ON THE CARD</div>
+          <div style="display: flex; gap: 8px;">
+            <div style="flex: 1; min-height: 44px; border-radius: 10px; background: #F3F4F6; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 16px; opacity: 0.5; pointer-events: none;">
+              <svg data-icon="checkmark" viewBox="0 0 512 512" width="18" height="18" style="display: block; flex-shrink: 0; color: #4B5563;"><polyline points="416 128 192 384 96 288" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></polyline></svg><span style="font-size: 15px; font-weight: 600; color: #4B5563;">Slack posted 9:08 AM</span>
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <div style="flex: 1; min-height: 44px; border-radius: 10px; background: #F3F4F6; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 16px; opacity: 0.5; pointer-events: none;">
+              <svg data-icon="checkmark" viewBox="0 0 512 512" width="18" height="18" style="display: block; flex-shrink: 0; color: #4B5563;"><polyline points="416 128 192 384 96 288" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></polyline></svg><span style="font-size: 15px; font-weight: 600; color: #4B5563;">Text sent to 21 · 9:12 AM</span>
+            </div>
+          </div>
+          <div style="font-size: 11px; color: #6B7280;">Disabled at 50% opacity, not hidden — the president needs to see that it already went out.</div>
+        </div>
+      </div>
+      <sc-if value="{{ annotations }}" hint-placeholder-val="{{ true }}">
+        <div style="width: 390px; background: #EFF6FF; border: 1px solid #2563EB; border-radius: 10px; padding: 12px; display: flex; gap: 10px; align-items: flex-start;">
+          <svg data-icon="information-circle-outline" viewBox="0 0 512 512" width="18" height="18" style="display: block; flex-shrink: 0; color: #2563EB;"><path d="M248,64C146.39,64,64,146.39,64,248s82.39,184,184,184,184-82.39,184-184S349.61,64,248,64Z" style="fill:none;stroke:currentColor;stroke-miterlimit:10;stroke-width:32px"></path><polyline points="220 220 252 220 252 336" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"></polyline><line x1="208" y1="340" x2="296" y2="340" style="fill:none;stroke:currentColor;stroke-linecap:round;stroke-miterlimit:10;stroke-width:32px"></line><path d="M248,130a26,26,0,1,0,26,26A26,26,0,0,0,248,130Z" fill="currentColor"></path></svg>
+          <div style="flex: 1; font-size: 12px; line-height: 17px; color: #1E3A8A;">Both sheets show the exact body and the recipient count before the send, and write a <code>magnify_reminders_sent</code> row after it. The Zoom link is appended by the sheet when a meeting's format is zoom, read from the stake settings row rather than the message template.</div>
+        </div>
+      </sc-if>
+    </div>
+
+    <!-- 1g — Access matrix -->
+    <sc-if value="{{ showAccessMatrix }}" hint-placeholder-val="{{ true }}">
+      <div id="1g" style="display: flex; flex-direction: column; gap: 8px; width: 520px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.5px; color: #1B3A6B; background: #E8EEF8; border-radius: 9999px; padding: 3px 8px;">1g</span>
+          <span style="font-size: 15px; font-weight: 700; color: #1F2937;">What each role sees</span>
+          <span style="font-size: 11px; color: #6B7280;">the artboards above, as a legend</span>
+        </div>
+        <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+          <div style="font-size: 12px; line-height: 17px; color: #4B5563;">SP = stake president · C = counselor · Clk = clerk + executive secretary · HC = high councilor · SC = stake council (new role)</div>
+          <div style="display: grid; grid-template-columns: 1.6fr repeat(5, 1fr); gap: 1px; background: #E5E7EB; border: 1px solid #E5E7EB; border-radius: 10px; overflow: hidden;">
+            <div style="background: #F9FAFB; padding: 8px 10px; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; color: #4B5563;">SURFACE</div>
+            <div style="background: #F9FAFB; padding: 8px; font-size: 11px; font-weight: 800; color: #4B5563; text-align: center;">SP</div>
+            <div style="background: #F9FAFB; padding: 8px; font-size: 11px; font-weight: 800; color: #4B5563; text-align: center;">C</div>
+            <div style="background: #F9FAFB; padding: 8px; font-size: 11px; font-weight: 800; color: #4B5563; text-align: center;">Clk</div>
+            <div style="background: #F9FAFB; padding: 8px; font-size: 11px; font-weight: 800; color: #4B5563; text-align: center;">HC</div>
+            <div style="background: #F9FAFB; padding: 8px; font-size: 11px; font-weight: 800; color: #4B5563; text-align: center;">SC</div>
+
+            <div style="background: #FFFFFF; padding: 10px; font-size: 13px; color: #111827;">This Sunday card</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #374151; text-align: center;">own day</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #374151; text-align: center;">own day</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #374151; text-align: center;">meetings only</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #374151; text-align: center;">companion</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #374151; text-align: center;">own day</div>
+
+            <div style="background: #FFFFFF; padding: 10px; font-size: 13px; color: #111827;">Reminder buttons</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #374151; text-align: center;">yes</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #374151; text-align: center;">yes</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #374151; text-align: center;">yes</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #9CA3AF; text-align: center;">—</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #9CA3AF; text-align: center;">—</div>
+
+            <div style="background: #FFFFFF; padding: 10px; font-size: 13px; color: #111827;">Building assignments</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #374151; text-align: center;">all</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #374151; text-align: center;">all</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #374151; text-align: center;">all</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #9CA3AF; text-align: center;">—</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #9CA3AF; text-align: center;">—</div>
+
+            <div style="background: #FFFFFF; padding: 10px; font-size: 13px; color: #111827;">President's Review</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #374151; text-align: center;">yes</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #9CA3AF; text-align: center;">—</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #9CA3AF; text-align: center;">—</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #9CA3AF; text-align: center;">—</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #9CA3AF; text-align: center;">—</div>
+
+            <div style="background: #FFFFFF; padding: 10px; font-size: 13px; color: #111827;">Statement · Endorsements</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #374151; text-align: center;">yes</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #9CA3AF; text-align: center;">—</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #374151; text-align: center;">all</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #9CA3AF; text-align: center;">—</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #9CA3AF; text-align: center;">—</div>
+
+            <div style="background: #FFFFFF; padding: 10px; font-size: 13px; color: #111827;">Training compliance</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #374151; text-align: center;">yes</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #374151; text-align: center;">yes</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #374151; text-align: center;">all</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #374151; text-align: center;">own PCY</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #374151; text-align: center;">own PCY</div>
+
+            <div style="background: #FFFFFF; padding: 10px; font-size: 13px; color: #111827;">Assignments (any meeting)</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #374151; text-align: center;">all</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #374151; text-align: center;">all</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #374151; text-align: center;">all</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #374151; text-align: center;">own</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #374151; text-align: center;">own</div>
+
+            <div style="background: #FFFFFF; padding: 10px; font-size: 13px; color: #111827;">Requests</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #374151; text-align: center;">all</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #374151; text-align: center;">own</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #374151; text-align: center;">all</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #9CA3AF; text-align: center;">—</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #9CA3AF; text-align: center;">—</div>
+
+            <div style="background: #FFFFFF; padding: 10px; font-size: 13px; color: #111827;">Interviews</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #374151; text-align: center;">all</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #374151; text-align: center;">own</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #9CA3AF; text-align: center;">—</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #374151; text-align: center;">date only</div>
+            <div style="background: #FFFFFF; padding: 10px; font-size: 12px; color: #9CA3AF; text-align: center;">—</div>
+          </div>
+          <div style="font-size: 12px; line-height: 17px; color: #6B7280;">Enforced in RLS, not the client. The dashboard has four layouts — <a href="#1a">1a</a> president, <a href="#1b">1b</a> counselor, <a href="#1c">1c</a> clerk, <a href="#1d">1d</a> HC/SC.</div>
+        </div>
+      </div>
+    </sc-if>
+
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;annotations&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Artboard notes&quot;},&quot;showAccessMatrix&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Artboard notes&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      annotations: this.props.annotations ?? true,
+      showAccessMatrix: this.props.showAccessMatrix ?? true,
+    };
+  }
+}
+</script>
+</body>
+</html>

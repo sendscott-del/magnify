@@ -23,6 +23,15 @@ import { ItemSheet } from '../../components/dashboard/ItemSheet';
 import { Toast } from '../../components/dashboard/Toast';
 import { NewWorkstreamSheet } from '../../components/dashboard/NewWorkstreamSheet';
 import { CalmEmpty, Segmented, SectionHeader } from '../../components/dashboard/primitives';
+import { ThisSundayCard, SundayLayout } from '../../components/dashboard/ThisSundayCard';
+import { SlackReminderSheet, TextReminderSheet } from '../../components/dashboard/ReminderSheets';
+import { useSunday, loadReminderWebhooks, logReminder } from '../../lib/scheduleData';
+import {
+  ReminderSent, bodiesForRole, buildTimeline, formatSundayLong, isCardWindow, seatForRole,
+  slackReminders, textReminder,
+} from '../../lib/schedule';
+import { postToWebhook } from '../../lib/slack';
+import { supabase } from '../../lib/supabase';
 import { DisclaimerFooter } from '../../components/ui/DisclaimerFooter';
 import { buildMetricSpecs } from '../../lib/dashboardMetrics';
 
@@ -49,11 +58,29 @@ export function DashboardScreen() {
   const isDesktopWeb = useIsDesktopWeb();
   const data = useDashboard();
 
-  // Only the presidency gets Mine/Everyone. High council, clerks and the exec
-  // secretary always see Mine and never see the switch (Scott, 2026-09-13).
-  const canSeeEveryone = isPresidency;
+  // Four layouts (design review 2026-09-19): the president and clerks get
+  // Mine / Everyone; a counselor gets Mine / High council (his own items plus
+  // every high councilor's, never the president's); a high councilor or stake
+  // council member sees only his own and never sees a switch.
+  const role = profile?.role ?? '';
+  const isCounselor = role === 'first_counselor' || role === 'second_counselor';
+  const isStakeCouncil = role === 'stake_council';
+  const layout: SundayLayout = role === 'stake_president' ? 'president'
+    : isCounselor ? 'counselor' : isClerk ? 'clerk' : 'member';
+  const scopeOptions: Array<{ value: Scope; label: string }> = isCounselor
+    ? [{ value: 'mine', label: t('dash.scope.mine') }, { value: 'hc', label: t('dash.scope.highCouncil') }]
+    : [{ value: 'mine', label: t('dash.scope.mine') }, { value: 'everyone', label: t('dash.scope.everyone') }];
+  const canSeeEveryone = isPresidency || isClerk;
   const [scopeState, setScope] = useState<Scope>('mine');
   const scope: Scope = canSeeEveryone ? scopeState : 'mine';
+  const sunday = useSunday();
+  const [slackOpen, setSlackOpen] = useState(false);
+  const [textOpen, setTextOpen] = useState(false);
+  const [webhooks, setWebhooks] = useState<Record<string, string>>({});
+  const [posting, setPosting] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [textCount, setTextCount] = useState<number | null>(null);
+  const [textError, setTextError] = useState<string | null>(null);
   const [draftItem, setDraftItem] = useState<DashboardItem | null>(null);
   const [newWorkstream, setNewWorkstream] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -70,10 +97,119 @@ export function DashboardScreen() {
   const myName = profile?.full_name ?? null;
 
   const openItems = useMemo(() => data.items.filter(isOpen), [data.items]);
+  const hcOwners = useMemo(() => ({
+    ids: new Set(data.owners.filter(o => o.calling === 'high_council' && o.userId).map(o => o.userId as string)),
+    names: new Set(data.owners.filter(o => o.calling === 'high_council').map(o => o.name)),
+  }), [data.owners]);
   const scoped = useMemo(
-    () => scopeItems(openItems, scope, myId, myName),
-    [openItems, scope, myId, myName],
+    () => scopeItems(openItems, scope, myId, myName, hcOwners),
+    [openItems, scope, myId, myName, hcOwners],
   );
+
+  // ---- This Sunday -------------------------------------------------------
+  const bodiesFor = useMemo(() => bodiesForRole(role), [role]);
+  const seat = seatForRole(role);
+  const myWardIds = useMemo(
+    () => (seat ? sunday.bundle.assignments.filter(a => a.seat === seat).map(a => a.ward_id) : []),
+    [seat, sunday.bundle.assignments],
+  );
+  const wardNames = useMemo(() => {
+    const out: Record<string, string> = {};
+    for (const w of sunday.reference.wards) out[w.id] = w.name;
+    return out;
+  }, [sunday.reference.wards]);
+  const visibleMeetings = useMemo(
+    () => sunday.bundle.meetings.filter(m => bodiesFor(m.body)),
+    [sunday.bundle.meetings, bodiesFor],
+  );
+  const timeline = useMemo(() => buildTimeline({
+    week: sunday.bundle.week,
+    meetings: sunday.bundle.meetings,
+    wardIds: myWardIds,
+    wardNames,
+    wardTimes: sunday.reference.wardTimes,
+    buildings: sunday.reference.buildings,
+    travel: sunday.reference.travel,
+    settings: sunday.reference.settings,
+    bodiesFor,
+    t,
+  }), [sunday.bundle.week, sunday.bundle.meetings, myWardIds, wardNames, sunday.reference, bodiesFor, t]);
+  const isCompanion = !!sunday.bundle.rotation && sunday.reference.hcMembers.some(
+    m => m.id === sunday.bundle.rotation?.hc_member_id && (m.user_id === myId || m.name === myName));
+  const ownInterviewDate = useMemo(() => {
+    if (layout !== 'member') return null;
+    const iv = data.interviews.find(i => i.scheduled_for === sunday.sundayISO && !i.completed_at);
+    return iv?.scheduled_for ?? null;
+  }, [layout, data.interviews, sunday.sundayISO]);
+  // Friday–Sunday, or any day the coming Sunday has an unresolved conflict.
+  const showSunday = !sunday.loading && (isCardWindow() || (layout !== 'member' && timeline.conflicts.length > 0));
+  const canRemind = isPresidency || isClerk;
+  const slackPosts = useMemo(
+    () => slackReminders(sunday.sundayISO, sunday.bundle.meetings, sunday.reference.settings, t),
+    [sunday.sundayISO, sunday.bundle.meetings, sunday.reference.settings, t],
+  );
+  const textPost = useMemo(() => textReminder(sunday.sundayISO, sunday.bundle.meetings, t), [sunday.sundayISO, sunday.bundle.meetings, t]);
+  const slackAlready = sunday.bundle.reminders.some(r => r.channel === 'slack');
+  const textAlready = sunday.bundle.reminders.some(r => r.channel === 'tidings');
+
+  async function openSlack() {
+    setWebhooks(await loadReminderWebhooks());
+    setSlackOpen(true);
+  }
+
+  async function postSlack() {
+    if (!sunday.bundle.week || slackAlready) return;
+    setPosting(true);
+    const sent: ReminderSent[] = [];
+    for (const r of slackPosts) {
+      const url = webhooks[r.eventType];
+      if (!url) continue;
+      await postToWebhook(url, r.body);
+      const row = await logReminder({ week_id: sunday.bundle.week.id, channel: 'slack', target: r.eventType, body: r.body });
+      if (row) sent.push(row);
+    }
+    setPosting(false);
+    setSlackOpen(false);
+    for (const row of sent) sunday.addReminder(row);
+    setToast({ message: sent.length ? t('sunday.toastSlackPosted') : t('sunday.toastNothingPosted') });
+  }
+
+  async function callTextFn(preview: boolean): Promise<{ count?: number; error?: string; reminder?: ReminderSent }> {
+    if (!sunday.bundle.week || !textPost) return { error: t('sunday.noTextMeetings') };
+    const { data: res, error } = await supabase.functions.invoke('magnify-send-reminder-text', {
+      body: { week_id: sunday.bundle.week.id, body: textPost.body, lists: textPost.lists, preview },
+    });
+    if (error) {
+      // supabase-js surfaces non-2xx as a FunctionsHttpError with the body on context.
+      let msg = error.message;
+      try {
+        const ctx = (error as { context?: Response }).context;
+        if (ctx) { const j = await ctx.json(); if (j?.error) msg = j.error === 'already_sent' ? t('sunday.textAlreadySent') : j.error; }
+      } catch { /* keep message */ }
+      return { error: msg };
+    }
+    return res as { count?: number; reminder?: ReminderSent };
+  }
+
+  async function openText() {
+    setTextCount(null);
+    setTextError(null);
+    setTextOpen(true);
+    const res = await callTextFn(true);
+    if (res.error) setTextError(res.error);
+    setTextCount(res.count ?? 0);
+  }
+
+  async function sendText() {
+    if (textAlready) return;
+    setSending(true);
+    const res = await callTextFn(false);
+    setSending(false);
+    if (res.error) { setTextError(res.error); return; }
+    setTextOpen(false);
+    if (res.reminder) sunday.addReminder(res.reminder);
+    setToast({ message: `${t('sunday.toastTextSent')} ${res.count ?? ''}`.trim() });
+  }
 
 
   const tiles = useMemo(() => {
@@ -91,9 +227,11 @@ export function DashboardScreen() {
       scope,
       t, language,
     };
-    return isAdmin ? presidencyTiles(input) : highCouncilTiles(input);
+    return isAdmin
+      ? presidencyTiles(input)
+      : highCouncilTiles(input, { showBoard: !isStakeCouncil, showInterview: !isStakeCouncil });
   }, [scoped, data.interviews, data.standardWork, data.callingStageCounts,
-      data.wards, data.wardCount, myId, myName, hcCount, spCount, scope, isAdmin, t, language]);
+      data.wards, data.wardCount, myId, myName, hcCount, spCount, scope, isAdmin, isStakeCouncil, t, language]);
 
   const workstreams = useMemo(
     () => workstreamSpecs(data.workstreams, data.items, language),
@@ -187,14 +325,7 @@ export function DashboardScreen() {
               <Ionicons name="add" size={20} color={Colors.primary} />
             </TouchableOpacity>
             {canSeeEveryone && (
-              <Segmented
-                value={scope}
-                onChange={setScope}
-                options={[
-                  { value: 'mine', label: t('dash.scope.mine') },
-                  { value: 'everyone', label: t('dash.scope.everyone') },
-                ]}
-              />
+              <Segmented value={scope} onChange={setScope} options={scopeOptions} />
             )}
           </View>
           {!!data.lastSyncedAt && (
@@ -231,6 +362,32 @@ export function DashboardScreen() {
             </View>
             <Ionicons name="chevron-forward" size={16} color={Colors.primary} />
           </TouchableOpacity>
+        )}
+
+        {/* Zone 1 — This Sunday. Friday to Sunday, or whenever the coming
+            Sunday has a conflict the presidency has not resolved. */}
+        {showSunday && (
+          <ThisSundayCard
+            layout={layout}
+            sundayISO={sunday.sundayISO}
+            week={sunday.bundle.week}
+            meetings={visibleMeetings}
+            timeline={timeline}
+            companion={layout === 'president' && sunday.bundle.rotation?.member_name
+              ? { name: sunday.bundle.rotation.member_name, reason: sunday.bundle.rotation.reason }
+              : null}
+            isCompanion={isCompanion}
+            ownInterviewDate={ownInterviewDate}
+            reminders={sunday.bundle.reminders}
+            canPostSlack={canRemind && !!sunday.bundle.week}
+            canSendText={canRemind && !!textPost}
+            canEdit={canRemind}
+            onPostSlack={() => { void openSlack(); }}
+            onSendText={() => { void openText(); }}
+            onEdit={() => nav.navigate('ScheduleEdit', { sunday: sunday.sundayISO })}
+            language={language}
+            t={t}
+          />
         )}
 
         {/* Zone 2 */}
@@ -339,6 +496,33 @@ export function DashboardScreen() {
           void data.createWorkstream(name, target);
           setToast({ message: t('dash.toast.workstreamCreated') });
         }}
+      />
+
+      <SlackReminderSheet
+        visible={slackOpen}
+        sundayLabel={formatSundayLong(sunday.sundayISO, language)}
+        reminders={slackPosts}
+        webhooks={webhooks}
+        alreadySent={slackAlready}
+        posting={posting}
+        onPost={() => { void postSlack(); }}
+        onClose={() => setSlackOpen(false)}
+        t={t}
+      />
+      <TextReminderSheet
+        visible={textOpen}
+        sundayLabel={formatSundayLong(sunday.sundayISO, language)}
+        reminder={textPost}
+        recipientCount={textCount}
+        listSummary={textPost
+          ? textPost.lists.map(l => t(l === 'hc' ? 'schedule.body.HC' : 'schedule.body.SC')).join(` ${t('sunday.and')} `) + ` ${t('sunday.for')}`
+          : ''}
+        alreadySent={textAlready}
+        sending={sending}
+        error={textError}
+        onSend={() => { void sendText(); }}
+        onClose={() => setTextOpen(false)}
+        t={t}
       />
 
       {toast && (

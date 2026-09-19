@@ -1,4 +1,4 @@
-export type UserRole = 'stake_president' | 'first_counselor' | 'second_counselor' | 'high_councilor' | 'stake_clerk' | 'exec_secretary';
+export type UserRole = 'stake_president' | 'first_counselor' | 'second_counselor' | 'high_councilor' | 'stake_clerk' | 'exec_secretary' | 'stake_council';
 export type CallingType = 'ward_calling' | 'stake_calling' | 'mp_ordination';
 export type Stage = 'ideas' | 'for_approval' | 'stake_approved' | 'pending_interview' | 'hc_approval' | 'issue_calling' | 'ordained' | 'sustain' | 'set_apart' | 'record' | 'complete';
 
@@ -83,4 +83,5 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   high_councilor: 'High Councilor',
   stake_clerk: 'Stake Clerk',
   exec_secretary: 'Executive Secretary',
+  stake_council: 'Stake Council',
 };

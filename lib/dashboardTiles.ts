@@ -2,14 +2,16 @@ import { TranslationKey } from '../constants/translations';
 import { TileSpec, WorkstreamSpec } from '../components/dashboard/cards';
 import {
   DashInterview, DashboardItem, StandardWorkRow, Workstream,
-  byDueDate, daysUntil, formatMonthDay,
+  URGENT_WINDOW_DAYS, byDueDate, daysUntil, formatMonthDay,
 } from './dashboard';
 import { WardRef } from './useDashboardData';
 
 type T = (key: TranslationKey) => string;
 type Lang = 'en' | 'es';
 
-export type Scope = 'mine' | 'everyone';
+/** `hc` is the counselor's second position: his own items plus every
+ *  high councilor's (design review 2026-09-19). */
+export type Scope = 'mine' | 'everyone' | 'hc';
 
 /** Drill targets. `standard` MUST route to the standard-work screen — a
  *  recurring duty is not an interview, and conflating them was a specific
@@ -39,8 +41,16 @@ export function isMine(item: DashboardItem, myId: string | null, myName: string 
 
 export function scopeItems(
   items: DashboardItem[], scope: Scope, myId: string | null, myName: string | null,
+  hcOwners?: { ids: Set<string>; names: Set<string> },
 ): DashboardItem[] {
-  return scope === 'mine' ? items.filter(i => isMine(i, myId, myName)) : items;
+  if (scope === 'mine') return items.filter(i => isMine(i, myId, myName));
+  if (scope === 'hc') {
+    return items.filter(i =>
+      isMine(i, myId, myName)
+      || (!!i.owner_user_id && !!hcOwners?.ids.has(i.owner_user_id))
+      || (!!i.owner_label && !!hcOwners?.names.has(i.owner_label)));
+  }
+  return items;
 }
 
 function countOverdue(items: DashboardItem[]): number {
@@ -98,7 +108,6 @@ export function presidencyTiles(input: TileInput): TileSpec[] {
 
   const recommends = openItems.filter(i => i.kind === 'recommend');
   const audits = openItems.filter(i => i.kind === 'audit');
-  const assignments = openItems.filter(i => i.kind === 'assignment');
   const directives = openItems.filter(i => i.kind === 'directive');
 
   // Recommends
@@ -140,10 +149,6 @@ export function presidencyTiles(input: TileInput): TileSpec[] {
   // Quarterly interviews
   const interviewsDone = interviews.filter(i => !!i.completed_at).length;
   const unassigned = interviews.filter(i => !i.assigned_to_user_id && !i.assignee_name).length;
-
-  const assignmentOwners = new Set(
-    assignments.map(a => a.owner_label ?? a.owner_user_id).filter(Boolean) as string[],
-  ).size;
 
   const oldestDirective = [...directives]
     .sort((a, b) => a.created_at.localeCompare(b.created_at))[0];
@@ -198,18 +203,7 @@ export function presidencyTiles(input: TileInput): TileSpec[] {
       ]),
       drill: 'interview',
     },
-    {
-      key: 'assignment',
-      kind: 'assignment',
-      value: String(assignments.length),
-      unit: t('dash.unit.open'),
-      label: t('dash.tile.assignments'),
-      sub: joinParts([
-        assignmentOwners ? `${t('dash.sub.across')} ${assignmentOwners} ${t('dash.sub.leaders')}` : null,
-      ]) || t('dash.sub.noneOutstanding'),
-      flag: lateFlag(assignments, t),
-      drill: 'assignment',
-    },
+    assignmentsTile(input),
     {
       key: 'directive',
       kind: 'directive',
@@ -221,7 +215,6 @@ export function presidencyTiles(input: TileInput): TileSpec[] {
         : t('dash.sub.noneOutstanding'),
       drill: 'directive',
     },
-    presidencyAssignmentTile(input),
     // The presidency's own recurring Steward duties. The first cut of this
     // screen gave the standard-work tile to high councilors only, which left
     // StandardWorkScreen with no route at all for a presidency member — the
@@ -232,30 +225,31 @@ export function presidencyTiles(input: TileInput): TileSpec[] {
 }
 
 /**
- * Stake presidency assignments — `kind: 'action'`.
+ * Assignments — one tile for `action` and `assignment` rows together.
  *
- * Scott's rule (2026-09-13): a meeting to-do owned by a high councilor IS an
- * HC assignment and a to-do owned by the presidency IS a presidency
- * assignment. A database trigger (migration 025) re-kinds every row by its
- * owner, so by the time rows reach this tile `action` means "the presidency's"
- * and `assignment` means "the high council's". There is no generic to-do tile.
+ * Items come from stake presidency, adult leadership, stake council or high
+ * council meetings, so the tile is source-agnostic and scoped by OWNER (the
+ * Mine / Everyone / High council switch), not by which meeting produced the
+ * row. The kind-by-owner trigger (025) still keeps `action` = presidency-owned
+ * and `assignment` = high-council-owned underneath; the tile just stops
+ * splitting them (design review 2026-09-19, replacing the two tiles of v2.56).
  */
-function presidencyAssignmentTile(input: TileInput): TileSpec {
+function assignmentsTile(input: TileInput): TileSpec {
   const { openItems, t } = input;
-  const actions = openItems.filter(i => i.kind === 'action');
-  const undated = actions.filter(i => !i.due_on).length;
+  const rows = openItems.filter(i => i.kind === 'action' || i.kind === 'assignment');
+  const dueThisWeek = rows.filter(i => { const d = daysUntil(i.due_on); return d !== null && d >= 0 && d <= URGENT_WINDOW_DAYS; }).length;
   return {
-    key: 'action',
-    kind: 'action',
-    value: String(actions.length),
+    key: 'assignment',
+    kind: 'assignment',
+    value: String(rows.length),
     unit: t('dash.unit.open'),
-    label: t('dash.tile.presidencyAssignments'),
+    label: t('dash.tile.assignmentsAll'),
     sub: joinParts([
-      t('dash.sub.fromMeetings'),
-      undated ? `${undated} ${t('dash.sub.needADate')}` : null,
+      dueThisWeek ? `${dueThisWeek} ${t('dash.sub.dueThisWeek')}` : null,
+      t('dash.sub.fromAnyMeeting'),
     ]),
-    flag: lateFlag(actions, t),
-    drill: 'action',
+    flag: lateFlag(rows, t),
+    drill: 'assignment',
   };
 }
 
@@ -288,18 +282,18 @@ function standardWorkTile(input: TileInput): TileSpec {
  * absent — a high counselor seeing the stake's audit backlog is noise he can do
  * nothing about, and the RLS in migration 019 doesn't serve him those rows anyway.
  */
-export function highCouncilTiles(input: TileInput): TileSpec[] {
+export function highCouncilTiles(input: TileInput, opts: { showBoard: boolean; showInterview: boolean } = { showBoard: true, showInterview: true }): TileSpec[] {
   const { openItems, interviews, myId, myName, hcVoteCount, t, language } = input;
 
   const mine = openItems.filter(i => isMine(i, myId, myName));
-  const myAssignments = mine.filter(i => i.kind === 'assignment');
+  const myAssignments = mine.filter(i => i.kind === 'assignment' || i.kind === 'action');
   const myInterviews = interviews.filter(
     i => (myId && i.assigned_to_user_id === myId) || (myName && i.assignee_name === myName),
   );
   const myInterviewsDone = myInterviews.filter(i => !!i.completed_at).length;
   const nextInterview = myInterviews.find(i => !i.completed_at && i.scheduled_for);
 
-  return [
+  const tiles: TileSpec[] = [
     {
       key: 'myAssignments',
       kind: 'assignment',
@@ -334,6 +328,10 @@ export function highCouncilTiles(input: TileInput): TileSpec[] {
     },
     standardWorkTile(input),
   ];
+  // A stake council member has no board and no interview row (design review
+  // 2026-09-19); the same layout minus those two tiles.
+  return tiles.filter(tile =>
+    (opts.showBoard || tile.key !== 'myVotes') && (opts.showInterview || tile.key !== 'myInterview'));
 }
 
 /** Zone 3. Progress is over ALL items in the workstream, done ones included. */
@@ -364,6 +362,9 @@ export function itemsForDrill(drill: DrillKey, openItems: DashboardItem[]): Dash
   if (drill.startsWith('ws:')) {
     const id = drill.slice(3);
     return openItems.filter(i => i.workstream_id === id).sort(byDueDate);
+  }
+  if (drill === 'assignment' || drill === 'action') {
+    return openItems.filter(i => i.kind === 'action' || i.kind === 'assignment').sort(byDueDate);
   }
   return openItems.filter(i => i.kind === drill).sort(byDueDate);
 }
