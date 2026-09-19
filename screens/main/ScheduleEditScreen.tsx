@@ -17,6 +17,8 @@ import {
   buildTimeline, bodiesForRole, fmtClock, formatSundayLong, quarterOf, toHHMM, toMinutes,
 } from '../../lib/schedule';
 import { ReferenceData, WeekBundle, loadReference, loadWeek, saveWeek } from '../../lib/scheduleData';
+import { useDemoMode, isReviewDemoUser } from '../../context/DemoModeContext';
+import { DEMO_SUNDAY } from '../../lib/demoSchedule';
 
 type T = (key: TranslationKey) => string;
 
@@ -35,7 +37,10 @@ export function ScheduleEditScreen() {
   const route = useRoute<any>();
   const sundayISO: string = route.params?.sunday;
   const { profile, isPresidency } = useAuth();
+  const { demoMode } = useDemoMode();
   const { t, language } = useLanguage();
+  // The demo edits fixtures in memory and never writes; RLS would refuse anyway.
+  const isDemo = demoMode || isReviewDemoUser(profile?.email) || profile?.is_demo === true;
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -54,10 +59,10 @@ export function ScheduleEditScreen() {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const r = await loadReference();
+      const r = isDemo ? DEMO_SUNDAY.reference : await loadReference();
       const names: Record<string, string> = {};
       for (const m of r.hcMembers) names[m.id] = m.name;
-      const b: WeekBundle = await loadWeek(sundayISO, names);
+      const b: WeekBundle = isDemo ? DEMO_SUNDAY.bundle(sundayISO) : await loadWeek(sundayISO, names);
       if (!alive) return;
       setRef(r);
       setWeekId(b.week?.id ?? null);
@@ -75,7 +80,7 @@ export function ScheduleEditScreen() {
       setLoading(false);
     })();
     return () => { alive = false; };
-  }, [sundayISO]);
+  }, [sundayISO, isDemo]);
 
   const wardName = (id: string) => ref?.wards.find(w => w.id === id)?.name ?? '';
 
@@ -146,6 +151,7 @@ export function ScheduleEditScreen() {
   }
 
   async function save() {
+    if (isDemo) { nav.goBack(); return; }
     setSaving(true);
     const res = await saveWeek({
       id: weekId,
