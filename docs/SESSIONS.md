@@ -2,6 +2,16 @@
 
 Append-only, newest first. Every working session adds one entry at the TOP: date, what changed, any infra facts touched (database, domain, auth, secrets). Infra changes also go into `CLAUDE.md` immediately, not just here.
 
+## 2026-09-19 — v2.58.0: Sunday schedule on the dashboard (release 1 of the exec-sec migration)
+
+- Built from `docs/design_handoff_sunday_schedule/` (Claude Design artboards + README). Scott chose the README's access model over the earlier chat version: clerks do not see the president's itinerary, President's Review or interviews; one merged Assignments tile; SC members get their own Sunday card.
+- DB: 027 (schedule tables, RLS, `stake_council` role, restrictive no-callings policies, role-gated interview RPC), 028 (Chicago reference data + 52 Sundays of 2026 from the sheet), 029 (`magnify_approve_member` accepts `stake_council`). All applied to `isogetmvnpimcmouakeg`. RLS verified by impersonating an HC user (0 assignments/settings/interviews), the 1st counselor (own interviews only) and Scott (all).
+- App: `lib/schedule.ts`, `lib/scheduleData.ts`, `lib/demoSchedule.ts`, `ThisSundayCard`, `ReminderSheets`, `CalendarScreen`, `ScheduleEditScreen`, Calendar tab on phone + web sidebar, `hc` scope for counselors, `highCouncilTiles` options for SC. 100+ EN/ES strings. Help section added.
+- Edge function `magnify-send-reminder-text` deployed (`--no-verify-jwt`; it verifies the JWT itself). Reuses Knit's `TIDINGS_SUPABASE_SERVICE_ROLE_KEY` secret.
+- Not done: Slack webhooks for #high-council / #stake-council / SP+RS do not exist yet, so Post Slack Reminders will only reach #stake-presidency until Scott adds them under Settings → Slack. Release 2 (LCR tiles, Requests) not started.
+- Next for the exec-sec task: cut segments D and G (and the Sunday-night Slack drafts) once Scott has used the card for a week.
+- State: v2.58.0 pushed to main; Vercel build in progress at time of writing. OTA not yet published.
+
 ## 2026-09-19 — Plan: exec-sec routine moves onto the dashboard (design handoff written)
 
 - Scott's decision: the chat-based executive-secretary routine (`~/claude-cos/.claude/commands/exec-sec.md`) is too hard to use; everything the app can hold moves to the Magnify dashboard. The Google Sheet stops being the meeting-schedule source of truth; the app owns it.
