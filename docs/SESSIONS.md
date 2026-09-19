@@ -2,6 +2,14 @@
 
 Append-only, newest first. Every working session adds one entry at the TOP: date, what changed, any infra facts touched (database, domain, auth, secrets). Infra changes also go into `CLAUDE.md` immediately, not just here.
 
+## 2026-09-19 (later) — v2.58.1: conference sessions, Calendar opens on this week, text-count fix
+
+- Bug found by Scott on first use: Send Text Reminder showed 0 recipients with "Could not find a relationship between list_members and contacts". Tidings has no FK between those tables, so PostgREST embedding fails; the edge function now runs two plain queries. Redeployed.
+- This morning's SC text (sent by the old exec-sec routine) was logged into `magnify_reminders_sent` by hand so the card shows it as sent and refuses a duplicate.
+- 030: `magnify_schedule_meetings.day_offset` (-1 = Saturday before), `CONFERENCE` body visible to every role. October 10–11 sessions seeded from "202610_Schedule of Meetings" (Drive). Card shows a Saturday block; Calendar rows prefix Saturday meetings with "Sat"; editor has a Sat/Sun toggle per meeting.
+- Calendar auto-scrolls to the coming Sunday (waits for quarter + card + row layouts before scrolling).
+- State: web live (bundle carries 2.58.1); OTA published, iOS update `01a0bbad-d144-…`.
+
 ## 2026-09-19 — v2.58.0: Sunday schedule on the dashboard (release 1 of the exec-sec migration)
 
 - Built from `docs/design_handoff_sunday_schedule/` (Claude Design artboards + README). Scott chose the README's access model over the earlier chat version: clerks do not see the president's itinerary, President's Review or interviews; one merged Assignments tile; SC members get their own Sunday card.
