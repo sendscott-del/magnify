@@ -11,7 +11,8 @@ import { useIsDesktopWeb } from '../../lib/useDeviceWidth';
 import { cardBase, CalmEmpty } from '../../components/dashboard/primitives';
 import { formatMonthDay, todayISO } from '../../lib/dashboard';
 import { Seat, SEATS, bodiesForRole, comingSundayISO, fmtClock, meetingTitle, quarterOf, toMinutes } from '../../lib/schedule';
-import { YearRow, loadYear } from '../../lib/scheduleData';
+import { YearRow, loadEvents, loadYear } from '../../lib/scheduleData';
+import { CalendarEvent, localDateISO, localMinutes } from '../../lib/schedule';
 import { WardRef } from '../../lib/useDashboardData';
 import { supabase } from '../../lib/supabase';
 import { useDemoMode, isReviewDemoUser } from '../../context/DemoModeContext';
@@ -41,6 +42,7 @@ export function CalendarScreen() {
   const [year, setYear] = useState(new Date().getFullYear());
   const [rows, setRows] = useState<YearRow[]>([]);
   const [wards, setWards] = useState<WardRef[]>([]);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   // Open on this week, not January: measure the coming Sunday's row and
@@ -69,14 +71,17 @@ export function CalendarScreen() {
       setLoading(false);
       return;
     }
-    const [r, w] = await Promise.all([
+    const [r, w, ev] = await Promise.all([
       loadYear(year),
       supabase.from('wards').select('id, name, abbreviation').order('sort_order'),
+      // Presidency + clerks only; RLS returns nothing for anyone else.
+      showSeats ? loadEvents(new Date(`${year}-01-01T00:00:00`).toISOString(), new Date(`${year + 1}-01-01T00:00:00`).toISOString()) : Promise.resolve([] as CalendarEvent[]),
     ]);
     setRows(r);
     setWards((w.data ?? []) as WardRef[]);
+    setEvents(ev);
     setLoading(false);
-  }, [year, isDemo]);
+  }, [year, isDemo, showSeats]);
 
   useEffect(() => { void load(); }, [load]);
   useFocusEffect(useCallback(() => { void load(); }, [load]));
@@ -86,6 +91,24 @@ export function CalendarScreen() {
   const abbrev = (id: string) => wards.find(w => w.id === id)?.abbreviation ?? '';
   const today = todayISO();
   const coming = comingSundayISO();
+
+  // Google Calendar events grouped under the Sunday that ends their week
+  // (Monday through Sunday), so a Tuesday meeting shows under the coming Sunday.
+  const eventsByWeek = useMemo(() => {
+    const out: Record<string, CalendarEvent[]> = {};
+    const sundays = rows.map(r => r.week.sunday_on).sort();
+    for (const ev of events) {
+      if (ev.all_day) continue;
+      const day = localDateISO(ev.starts_at);
+      const sunday = sundays.find(s => s >= day);
+      if (!sunday) continue;
+      const d = new Date(sunday + 'T00:00:00'); d.setDate(d.getDate() - 6);
+      const weekStart = `${d.getFullYear()}-${`${d.getMonth() + 1}`.padStart(2, '0')}-${`${d.getDate()}`.padStart(2, '0')}`;
+      if (day < weekStart) continue;
+      (out[sunday] ??= []).push(ev);
+    }
+    return out;
+  }, [events, rows]);
 
   const quarters = useMemo(() => {
     const out: Record<number, YearRow[]> = { 1: [], 2: [], 3: [], 4: [] };
@@ -157,7 +180,12 @@ export function CalendarScreen() {
                             {(m.day_offset ?? 0) === -1 ? `${t('schedule.sat')} · ` : ''}{meetingTitle(m, t)} · {fmtClock(toMinutes(m.starts_at))}–{fmtClock(toMinutes(m.ends_at))}{m.format === 'zoom' ? ` · ${t('schedule.format.zoom')}` : ''}
                           </Text>
                         ))}
-                        {!kindLabel && meetings.length === 0 && <Text style={styles.meetingMuted}>{t('schedule.noMeetingsListed')}</Text>}
+                        {!kindLabel && meetings.length === 0 && !(eventsByWeek[r.week.sunday_on]?.length) && <Text style={styles.meetingMuted}>{t('schedule.noMeetingsListed')}</Text>}
+                        {(eventsByWeek[r.week.sunday_on] ?? []).map(ev => (
+                          <Text key={ev.id} style={styles.event} numberOfLines={1}>
+                            {formatEventDay(ev.starts_at, r.week.sunday_on, language)} · {ev.title} · {fmtClock(localMinutes(ev.starts_at))}{localMinutes(ev.starts_at) < 720 ? ' AM' : ' PM'}
+                          </Text>
+                        ))}
                         {showSeats && (
                           <View style={styles.seatRow}>
                             {SEATS.map(seat => {
@@ -190,6 +218,14 @@ export function CalendarScreen() {
       )}
     </View>
   );
+}
+
+/** 'Tue 9/29' for a weekday event, 'Sun' for one on the Sunday itself. */
+function formatEventDay(iso: string, sunday: string, language: 'en' | 'es'): string {
+  const day = localDateISO(iso);
+  const d = new Date(iso);
+  const wd = d.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', { weekday: 'short' });
+  return day === sunday ? wd : `${wd} ${d.getMonth() + 1}/${d.getDate()}`;
 }
 
 /** The first Sunday from the coming one that has no row yet. */
@@ -230,6 +266,7 @@ const styles = StyleSheet.create({
   kind: { fontSize: FontSize.sm, fontWeight: '600', color: Colors.gray[600] },
   meeting: { fontSize: FontSize.sm, color: Colors.gray[900] },
   meetingMuted: { fontSize: FontSize.sm, color: Colors.gray[400] },
+  event: { fontSize: FontSize.xs, color: Colors.gray[600], marginTop: 1 },
   seatRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 },
   seatChip: { flexDirection: 'row', gap: 4, backgroundColor: Colors.gray[100], borderRadius: Radius.full, paddingHorizontal: 8, paddingVertical: 2 },
   seatKey: { fontSize: 10, fontWeight: '800', color: Colors.primary },

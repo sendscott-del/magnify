@@ -88,6 +88,38 @@ export interface HcRotation {
   member_name?: string | null;
 }
 
+/** A row from the presidency Google Calendar (magnify_calendar_events). */
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  starts_at: string;   // ISO timestamptz
+  ends_at: string;
+  all_day: boolean;
+  location?: string | null;
+}
+
+/** 'YYYY-MM-DD' of an ISO timestamp in the device's local zone. */
+export function localDateISO(iso: string): string {
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${`${d.getMonth() + 1}`.padStart(2, '0')}-${`${d.getDate()}`.padStart(2, '0')}`;
+}
+
+export function localMinutes(iso: string): number {
+  const d = new Date(iso);
+  return d.getHours() * 60 + d.getMinutes();
+}
+
+/** Match a free-text location to one of the stake's buildings, or null. */
+export function buildingForLocation(location: string | null | undefined, buildings: Building[]): string | null {
+  if (!location) return null;
+  const l = location.toLowerCase();
+  for (const b of buildings) {
+    if (l.includes(b.short_name.toLowerCase()) || l.includes(b.name.toLowerCase())) return b.id;
+    if (b.address && l.includes(b.address.toLowerCase().split(',')[0])) return b.id;
+  }
+  return null;
+}
+
 export interface ReminderSent {
   id: string;
   week_id: string;
@@ -182,6 +214,8 @@ export interface TimelineInput {
   settings: StakeSettings | null;
   /** Which meeting bodies this viewer attends. Others are dropped. */
   bodiesFor: (body: MeetingBody) => boolean;
+  /** Timed events from the presidency Google Calendar on this Sunday. */
+  calendarEvents?: CalendarEvent[];
   t: (key: TranslationKey) => string;
 }
 
@@ -217,9 +251,9 @@ function roundUpQuarter(min: number): number {
  * consecutive events in different buildings; conflicts named in words.
  */
 export function buildTimeline(input: TimelineInput): Timeline {
-  const { week, meetings, wardIds, wardNames, wardTimes, buildings, travel, settings, bodiesFor, t } = input;
+  const { week, meetings, wardIds, wardNames, wardTimes, buildings, travel, settings, bodiesFor, calendarEvents = [], t } = input;
   const conflicts: string[] = [];
-  if (!week) return { events: [], conflicts };
+  if (!week && !calendarEvents.length) return { events: [], conflicts };
 
   const bName = (id: string | null | undefined) => buildings.find(b => b.id === id)?.short_name ?? null;
   const officesId = settings?.offices_building_id ?? null;
@@ -227,7 +261,7 @@ export function buildTimeline(input: TimelineInput): Timeline {
 
   const base: TimelineEvent[] = [];
 
-  for (const m of meetings.filter(m => bodiesFor(m.body) && (m.day_offset ?? 0) === 0).sort((a, b) => toMinutes(a.starts_at) - toMinutes(b.starts_at) || a.sort_order - b.sort_order)) {
+  for (const m of (week ? meetings : []).filter(m => bodiesFor(m.body) && (m.day_offset ?? 0) === 0).sort((a, b) => toMinutes(a.starts_at) - toMinutes(b.starts_at) || a.sort_order - b.sort_order)) {
     const zoom = m.format === 'zoom';
     const start = toMinutes(m.starts_at);
     const end = toMinutes(m.ends_at);
@@ -242,7 +276,7 @@ export function buildTimeline(input: TimelineInput): Timeline {
     });
   }
 
-  for (const wardId of wardIds) {
+  for (const wardId of week ? wardIds : []) {
     const wt = wardTimes.find(w => w.ward_id === wardId);
     const name = wardNames[wardId] ?? wardId;
     if (!wt) {
@@ -257,6 +291,23 @@ export function buildTimeline(input: TimelineInput): Timeline {
       buildingId: wt.building_id,
       buildingName: bName(wt.building_id),
       meta: `${wt.duration_min} ${t('schedule.min')} · ${bName(wt.building_id) ?? ''}`.trim(),
+    });
+  }
+
+  // Google Calendar events on the day: a bishopric training, a set-apart, an
+  // interview. They join the day so the drive and overlap checks include them.
+  for (const ev of calendarEvents) {
+    if (ev.all_day) continue;
+    const start = localMinutes(ev.starts_at);
+    const end = Math.max(start + 1, localMinutes(ev.ends_at));
+    const bId = buildingForLocation(ev.location, buildings);
+    base.push({
+      kind: 'other',
+      title: ev.title,
+      start, end,
+      buildingId: bId,
+      buildingName: bName(bId),
+      meta: [ev.location || null, `${end - start} ${t('schedule.min')}`].filter(Boolean).join(' · '),
     });
   }
 

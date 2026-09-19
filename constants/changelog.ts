@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.58.2',
+    date: '2026-09-19',
+    enhancements: [
+      'Events from the Chicago Stake Presidency Google Calendar now appear in Magnify for the presidency and clerks. The Calendar lists each week\'s events under its Sunday (Monday through Sunday), and events on the Sunday itself join the This Sunday timeline, with drive times when the location matches a stake building. A sync runs every 30 minutes once the calendar address is configured on the server; the current events were imported today.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.58.1',
     date: '2026-09-19',
     enhancements: [

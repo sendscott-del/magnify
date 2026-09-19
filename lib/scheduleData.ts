@@ -3,7 +3,7 @@ import { supabase } from './supabase';
 import { useAuth } from '../context/AuthContext';
 import { useDemoMode, isReviewDemoUser } from '../context/DemoModeContext';
 import {
-  Building, HcRotation, ReminderSent, ScheduleAssignment, ScheduleMeeting,
+  Building, CalendarEvent, HcRotation, ReminderSent, ScheduleAssignment, ScheduleMeeting,
   ScheduleWeek, StakeSettings, TravelMinutes, WardMeetingTime, WeekKind, Seat,
   MeetingBody, MeetingFormat, comingSundayISO,
 } from './schedule';
@@ -34,6 +34,23 @@ export interface WeekBundle {
   rotation: HcRotation | null;
   reminders: ReminderSent[];
   note: string;
+  /** Presidency Google Calendar events on that Sunday (local day). */
+  events: CalendarEvent[];
+}
+
+const EVENT_COLS = 'id, title, starts_at, ends_at, all_day, location';
+
+/** Timed calendar events between two ISO timestamps (inclusive start). */
+export async function loadEvents(fromISO: string, toISO: string): Promise<CalendarEvent[]> {
+  const { data } = await supabase.from('magnify_calendar_events')
+    .select(EVENT_COLS).gte('starts_at', fromISO).lt('starts_at', toISO).order('starts_at');
+  return (data ?? []) as CalendarEvent[];
+}
+
+function dayRange(dateISO: string): [string, string] {
+  const start = new Date(dateISO + 'T00:00:00');
+  const end = new Date(start); end.setDate(end.getDate() + 1);
+  return [start.toISOString(), end.toISOString()];
 }
 
 export async function loadReference(): Promise<ReferenceData> {
@@ -61,14 +78,18 @@ export async function loadWeek(sundayISO: string, hcNames: Record<string, string
     .select('id, sunday_on, kind, holiday_label')
     .eq('sunday_on', sundayISO)
     .maybeSingle();
-  if (!week) return { week: null, meetings: [], assignments: [], rotation: null, reminders: [], note: '' };
+  const [dayStart, dayEnd] = dayRange(sundayISO);
+  if (!week) {
+    return { week: null, meetings: [], assignments: [], rotation: null, reminders: [], note: '', events: await loadEvents(dayStart, dayEnd) };
+  }
 
-  const [m, a, r, s, n] = await Promise.all([
+  const [m, a, r, s, n, ev] = await Promise.all([
     supabase.from('magnify_schedule_meetings').select('*').eq('week_id', week.id).order('sort_order'),
     supabase.from('magnify_schedule_assignments').select('week_id, seat, ward_id').eq('week_id', week.id),
     supabase.from('magnify_hc_rotation').select('week_id, hc_member_id, reason').eq('week_id', week.id).maybeSingle(),
     supabase.from('magnify_reminders_sent').select('id, week_id, channel, target, recipient_count, sent_at').eq('week_id', week.id),
     supabase.from('magnify_schedule_notes').select('note').eq('week_id', week.id).maybeSingle(),
+    loadEvents(dayStart, dayEnd),
   ]);
   const rot = (r.data ?? null) as HcRotation | null;
   return {
@@ -78,6 +99,7 @@ export async function loadWeek(sundayISO: string, hcNames: Record<string, string
     rotation: rot ? { ...rot, member_name: hcNames[rot.hc_member_id] ?? null } : null,
     reminders: (s.data ?? []) as ReminderSent[],
     note: (n.data as { note?: string } | null)?.note ?? '',
+    events: ev,
   };
 }
 
@@ -211,7 +233,7 @@ export interface SundayData {
 }
 
 const EMPTY_REF: ReferenceData = { buildings: [], wardTimes: [], travel: [], settings: null, wards: [], hcMembers: [] };
-const EMPTY_BUNDLE: WeekBundle = { week: null, meetings: [], assignments: [], rotation: null, reminders: [], note: '' };
+const EMPTY_BUNDLE: WeekBundle = { week: null, meetings: [], assignments: [], rotation: null, reminders: [], note: '', events: [] };
 
 /** The coming Sunday's schedule for the This Sunday card. */
 export function useSunday(): SundayData {

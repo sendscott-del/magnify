@@ -132,8 +132,9 @@ export function DashboardScreen() {
     travel: sunday.reference.travel,
     settings: sunday.reference.settings,
     bodiesFor,
+    calendarEvents: layout === 'member' ? [] : sunday.bundle.events,
     t,
-  }), [sunday.bundle.week, sunday.bundle.meetings, myWardIds, wardNames, sunday.reference, bodiesFor, t]);
+  }), [sunday.bundle.week, sunday.bundle.meetings, sunday.bundle.events, myWardIds, wardNames, sunday.reference, bodiesFor, layout, t]);
   const isCompanion = !!sunday.bundle.rotation && sunday.reference.hcMembers.some(
     m => m.id === sunday.bundle.rotation?.hc_member_id && (m.user_id === myId || m.name === myName));
   const ownInterviewDate = useMemo(() => {
@@ -143,6 +144,7 @@ export function DashboardScreen() {
   }, [layout, data.interviews, sunday.sundayISO]);
   // Friday–Sunday, or any day the coming Sunday has an unresolved conflict.
   const showSunday = !sunday.loading && (isCardWindow() || (layout !== 'member' && timeline.conflicts.length > 0));
+  const cardWeek = sunday.bundle.week ?? (sunday.bundle.events.length ? { id: '', sunday_on: sunday.sundayISO, kind: 'meetings' as const } : null);
   const canRemind = isPresidency || isClerk;
   const slackPosts = useMemo(
     () => slackReminders(sunday.sundayISO, sunday.bundle.meetings, sunday.reference.settings, t),
@@ -370,7 +372,7 @@ export function DashboardScreen() {
           <ThisSundayCard
             layout={layout}
             sundayISO={sunday.sundayISO}
-            week={sunday.bundle.week}
+            week={cardWeek}
             meetings={visibleMeetings}
             timeline={timeline}
             companion={layout === 'president' && sunday.bundle.rotation?.member_name

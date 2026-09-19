@@ -184,6 +184,7 @@ export function HelpScreen({ navigation }: any) {
           <Text style={[styles.body, { marginTop: Spacing.xs }]}>{t('help.sundayBody3')}</Text>
           <Text style={[styles.body, { marginTop: Spacing.xs }]}>{t('help.sundayBody4')}</Text>
           <Text style={[styles.body, { marginTop: Spacing.xs }]}>{t('help.sundayBody5')}</Text>
+          <Text style={[styles.body, { marginTop: Spacing.xs }]}>{t('help.sundayBody6')}</Text>
         </Section>
 
         <Section title={t('help.settings')}>

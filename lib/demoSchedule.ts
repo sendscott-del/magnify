@@ -62,6 +62,7 @@ function bundle(sundayISO: string): WeekBundle {
     rotation: { week_id: weekId, hc_member_id: 'demo-hc-1', reason: 'his own ward is Riverside', member_name: 'Br. Whitfield' },
     reminders: [],
     note: '',
+    events: [],
   };
 }
 
