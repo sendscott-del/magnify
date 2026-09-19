@@ -2,6 +2,15 @@
 
 Append-only, newest first. Every working session adds one entry at the TOP: date, what changed, any infra facts touched (database, domain, auth, secrets). Infra changes also go into `CLAUDE.md` immediately, not just here.
 
+## 2026-09-19 — Plan: exec-sec routine moves onto the dashboard (design handoff written)
+
+- Scott's decision: the chat-based executive-secretary routine (`~/claude-cos/.claude/commands/exec-sec.md`) is too hard to use; everything the app can hold moves to the Magnify dashboard. The Google Sheet stops being the meeting-schedule source of truth; the app owns it.
+- Wrote `docs/DESIGN_HANDOFF.md`: release 1 = Sunday schedule (schedule tables, This Sunday card with drives/conflicts, HC companion rotation, one-tap Slack + Tidings reminders); release 2 = LCR queue tiles (President's Review, statement status, training compliance, CES endorsements) fed by the on-demand Chrome pull, plus a Requests tile for inbox triage state.
+- Already covered by the app and retired from the routine's scope: interview tracking (Interviews tile), directive capture (Directives tile).
+- Stays outside the app: Gmail/iMessage/Slack drafting, LCR group email staging, Drive sharing.
+- Next: Claude Design artboards, then build release 1. No code yet.
+- State: v2.57.0 deployed, unchanged.
+
 ## 2026-08-02 — v2.38.1: web/PWA safe-area regression — viewport-fit=cover (postbuild)
 
 - Scott reported (with screenshots) the Gathered bar + content sliding under the iPhone status bar on the installed app. Root cause on web: Expo's web template emits a viewport meta WITHOUT `viewport-fit=cover`, so `env(safe-area-inset-top)` is 0 — and react-native-safe-area-context's web provider measures exactly that CSS value, so `insets.top` was 0 and the v2.31.1 `paddingTop: insets.top + 6` fix collapsed on web. Native was unaffected.
