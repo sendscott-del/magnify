@@ -33,7 +33,7 @@ Legend: SP = stake president; C = 1st/2nd counselor; Clk = stake clerk + executi
 
 | Part | SP | C | Clk | HC | SC |
 |---|---|---|---|---|---|
-| Callings board + callings tile | all | all | all | own wards | none |
+| Callings board + callings tile | all | all | all | all on the HC board (every calling needs his approval vote); the existing "needs me" filter narrows to his own wards' actions. Unchanged. | none |
 | SP assignments (`action`) | all | own only | all | none | none |
 | HC assignments (`assignment`) | all | all | all | own only | none |
 | SC assignments (`assignment`, SC owner) | all | none | all | none | own only |
