@@ -10,7 +10,7 @@ Append-only, newest first. Every working session adds one entry at the TOP: date
 - Edge function `magnify-send-reminder-text` deployed (`--no-verify-jwt`; it verifies the JWT itself). Reuses Knit's `TIDINGS_SUPABASE_SERVICE_ROLE_KEY` secret.
 - Not done: Slack webhooks for #high-council / #stake-council / SP+RS do not exist yet, so Post Slack Reminders will only reach #stake-presidency until Scott adds them under Settings → Slack. Release 2 (LCR tiles, Requests) not started.
 - Next for the exec-sec task: cut segments D and G (and the Sunday-night Slack drafts) once Scott has used the card for a week.
-- State: v2.58.0 pushed to main; Vercel build in progress at time of writing. OTA not yet published.
+- State: v2.58.0 live on magnify.gatheredin.app (bundle verified to contain the new code and version; demo walk-through of the card, Calendar and Edit Sunday in the browser). OTA published to branch `production`, runtime 1.1.0, update group `b1c82f39-…`; the manifest endpoint serves iOS update `01a0bb96-4b29-7f51-…` for runtime 1.1.0 / channel production. Applies on the second full launch of the App Store build; not yet confirmed applied on a device.
 
 ## 2026-09-19 — Plan: exec-sec routine moves onto the dashboard (design handoff written)
 
