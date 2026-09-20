@@ -36,6 +36,8 @@ export interface WeekBundle {
   note: string;
   /** Presidency Google Calendar events on that Sunday (local day). */
   events: CalendarEvent[];
+  /** Conflict keys the viewer cleared on this Sunday (034). */
+  dismissedKeys: string[];
 }
 
 const EVENT_COLS = 'id, title, starts_at, ends_at, all_day, location';
@@ -45,6 +47,36 @@ export async function loadEvents(fromISO: string, toISO: string): Promise<Calend
   const { data } = await supabase.from('magnify_calendar_events')
     .select(EVENT_COLS).gte('starts_at', fromISO).lt('starts_at', toISO).order('starts_at');
   return (data ?? []) as CalendarEvent[];
+}
+
+/**
+ * The conflicts this viewer has cleared on a Sunday. RLS already narrows the
+ * table to `auth.uid()`, so there is no user filter here to get wrong.
+ */
+export async function loadDismissals(sundayISO: string): Promise<string[]> {
+  const { data } = await supabase.from('magnify_schedule_conflict_dismissals')
+    .select('conflict_key').eq('sunday_on', sundayISO);
+  return (data ?? []).map(r => r.conflict_key as string);
+}
+
+/**
+ * Clear one. stake_id and user_id come from column defaults, which is also
+ * what the RLS policy checks — a client cannot write someone else's row.
+ * A double tap races to the same unique key; 23505 means it is already
+ * cleared, which is success, not failure.
+ */
+export async function dismissConflict(sundayISO: string, key: string): Promise<string | null> {
+  const { error } = await supabase.from('magnify_schedule_conflict_dismissals')
+    .insert({ sunday_on: sundayISO, conflict_key: key });
+  if (error && error.code !== '23505') return error.message;
+  return null;
+}
+
+/** Bring back everything cleared on this Sunday. */
+export async function restoreConflicts(sundayISO: string): Promise<string | null> {
+  const { error } = await supabase.from('magnify_schedule_conflict_dismissals')
+    .delete().eq('sunday_on', sundayISO);
+  return error ? error.message : null;
 }
 
 function dayRange(dateISO: string): [string, string] {
@@ -80,16 +112,18 @@ export async function loadWeek(sundayISO: string, hcNames: Record<string, string
     .maybeSingle();
   const [dayStart, dayEnd] = dayRange(sundayISO);
   if (!week) {
-    return { week: null, meetings: [], assignments: [], rotation: null, reminders: [], note: '', events: await loadEvents(dayStart, dayEnd) };
+    const [ev0, d0] = await Promise.all([loadEvents(dayStart, dayEnd), loadDismissals(sundayISO)]);
+    return { week: null, meetings: [], assignments: [], rotation: null, reminders: [], note: '', events: ev0, dismissedKeys: d0 };
   }
 
-  const [m, a, r, s, n, ev] = await Promise.all([
+  const [m, a, r, s, n, ev, dk] = await Promise.all([
     supabase.from('magnify_schedule_meetings').select('*').eq('week_id', week.id).order('sort_order'),
     supabase.from('magnify_schedule_assignments').select('week_id, seat, ward_id').eq('week_id', week.id),
     supabase.from('magnify_hc_rotation').select('week_id, hc_member_id, reason').eq('week_id', week.id).maybeSingle(),
     supabase.from('magnify_reminders_sent').select('id, week_id, channel, target, recipient_count, sent_at').eq('week_id', week.id),
     supabase.from('magnify_schedule_notes').select('note').eq('week_id', week.id).maybeSingle(),
     loadEvents(dayStart, dayEnd),
+    loadDismissals(sundayISO),
   ]);
   const rot = (r.data ?? null) as HcRotation | null;
   return {
@@ -100,6 +134,7 @@ export async function loadWeek(sundayISO: string, hcNames: Record<string, string
     reminders: (s.data ?? []) as ReminderSent[],
     note: (n.data as { note?: string } | null)?.note ?? '',
     events: ev,
+    dismissedKeys: dk,
   };
 }
 
@@ -136,7 +171,7 @@ export interface WeekDraft {
   sunday_on: string;
   kind: WeekKind;
   holiday_label: string | null;
-  meetings: Array<{ body: MeetingBody; starts_at: string; ends_at: string; format: MeetingFormat; label: string | null; day_offset?: number }>;
+  meetings: Array<{ body: MeetingBody; starts_at: string; ends_at: string; format: MeetingFormat; label: string | null; day_offset?: number; building_id?: string | null }>;
   assignments: Array<{ seat: Seat; ward_id: string }>;
   hc_member_id: string | null;
   reason: string | null;
@@ -169,7 +204,7 @@ export async function saveWeek(draft: WeekDraft): Promise<{ error: string | null
   if (delM.error) return { error: delM.error.message, weekId };
   if (draft.meetings.length) {
     const { error } = await supabase.from('magnify_schedule_meetings').insert(
-      draft.meetings.map((m, i) => ({ week_id: weekId, body: m.body, starts_at: m.starts_at, ends_at: m.ends_at, format: m.format, label: m.label, sort_order: i, day_offset: m.day_offset ?? 0 })),
+      draft.meetings.map((m, i) => ({ week_id: weekId, body: m.body, starts_at: m.starts_at, ends_at: m.ends_at, format: m.format, label: m.label, sort_order: i, day_offset: m.day_offset ?? 0, building_id: m.format === 'zoom' ? null : (m.building_id ?? null) })),
     );
     if (error) return { error: error.message, weekId };
   }
@@ -230,10 +265,14 @@ export interface SundayData {
   refresh: () => Promise<void>;
   /** Optimistic append after a reminder goes out. */
   addReminder: (r: ReminderSent) => void;
+  /** Clear one conflict; the red row goes at once, the write follows. */
+  clearConflict: (key: string) => Promise<string | null>;
+  /** Bring back every conflict cleared on this Sunday. */
+  restoreCleared: () => Promise<string | null>;
 }
 
 const EMPTY_REF: ReferenceData = { buildings: [], wardTimes: [], travel: [], settings: null, wards: [], hcMembers: [] };
-const EMPTY_BUNDLE: WeekBundle = { week: null, meetings: [], assignments: [], rotation: null, reminders: [], note: '', events: [] };
+const EMPTY_BUNDLE: WeekBundle = { week: null, meetings: [], assignments: [], rotation: null, reminders: [], note: '', events: [], dismissedKeys: [] };
 
 /** The coming Sunday's schedule for the This Sunday card. */
 export function useSunday(): SundayData {
@@ -272,5 +311,25 @@ export function useSunday(): SundayData {
     setBundle(prev => ({ ...prev, reminders: [...prev.reminders, r] }));
   }, []);
 
-  return { loading, sundayISO, reference, bundle, refresh, addReminder };
+  // Optimistic both ways: the card must respond to the tap, not to the round
+  // trip. On failure the key is put back and the caller shows the message —
+  // the alternative is a conflict that looks cleared and silently is not.
+  const clearConflict = useCallback(async (key: string): Promise<string | null> => {
+    setBundle(prev => ({ ...prev, dismissedKeys: [...prev.dismissedKeys, key] }));
+    if (isDemo) return null;
+    const err = await dismissConflict(sundayISO, key);
+    if (err) setBundle(prev => ({ ...prev, dismissedKeys: prev.dismissedKeys.filter(k => k !== key) }));
+    return err;
+  }, [isDemo, sundayISO]);
+
+  const restoreCleared = useCallback(async (): Promise<string | null> => {
+    const had = bundle.dismissedKeys;
+    setBundle(prev => ({ ...prev, dismissedKeys: [] }));
+    if (isDemo) return null;
+    const err = await restoreConflicts(sundayISO);
+    if (err) setBundle(prev => ({ ...prev, dismissedKeys: had }));
+    return err;
+  }, [isDemo, sundayISO, bundle.dismissedKeys]);
+
+  return { loading, sundayISO, reference, bundle, refresh, addReminder, clearConflict, restoreCleared };
 }

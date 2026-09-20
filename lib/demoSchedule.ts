@@ -63,6 +63,7 @@ function bundle(sundayISO: string): WeekBundle {
     reminders: [],
     note: '',
     events: [],
+    dismissedKeys: [],
   };
 }
 

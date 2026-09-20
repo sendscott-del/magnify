@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.59.0',
+    date: '2026-09-20',
+    enhancements: [
+      'A schedule conflict you know is fine can be cleared. Every red warning on This Sunday now carries a Clear button; tap it and the warning goes, for you only. A line underneath keeps count and brings them back if you want a second look. A cleared warning is tied to the times it was raised about, so if that meeting later moves, the check runs again and the warning returns rather than staying hidden.',
+      'A meeting can now say which building it is held in. Edit Sunday shows a building chip on every in-person meeting; leaving it on Stake offices keeps the old behaviour, which is right for stake presidency, high council and stake council. A bishopric training held in the ward building can now be marked as such.',
+    ],
+    bugFixes: [
+      'This Sunday invented drives and conflicts for meetings held outside the stake offices. Every in-person meeting was assumed to be at the offices, so a bishopric training in a ward building produced a drive to a building you were already in — and a red warning that the gap before the next sacrament meeting was 0 minutes. Meetings now use the building they name. The Hyde Park bishopric training on September 20 has been set to the Hyde Park building.',
+    ],
+  },
+  {
     version: '2.58.2',
     date: '2026-09-19',
     enhancements: [

@@ -1,6 +1,6 @@
 {
   "name": "magnify",
-  "version": "2.58.2",
+  "version": "2.59.0",
   "main": "index.ts",
   "scripts": {
     "start": "expo start",

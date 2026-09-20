@@ -7,12 +7,20 @@ import { parseDate, todayISO } from './dashboard';
  * and the conflicts, from schedule rows alone. No data access here so the
  * builder is testable and the same on every surface.
  *
- * Rules (docs/design_handoff_sunday_schedule/README.md): morning meetings are
- * at the stake offices unless format = zoom; one sacrament meeting per ward in
- * the viewer's column at the ward's start time, 70 minutes; a drive block
- * between consecutive events in different buildings; a conflict when events
- * overlap or the gap is shorter than the drive. The card states the fix in
- * words and never reorders the day itself.
+ * Rules (docs/design_handoff_sunday_schedule/README.md): a meeting is at the
+ * building it names, or the stake offices if it names none, or nowhere at all
+ * if format = zoom; one sacrament meeting per ward in the viewer's column at
+ * the ward's start time, 70 minutes; a drive block between consecutive events
+ * in different buildings; a conflict when events overlap or the gap is shorter
+ * than the drive. The card states the fix in words and never reorders the day
+ * itself.
+ *
+ * Meetings could not name a building until v2.59.0 — every in-person one was
+ * assumed to be at the offices. A bishopric training held in the ward building
+ * therefore invented a drive, and with it a conflict ("the gap before Hyde
+ * Park 1st sacrament is 0 mins") that was not real. See migration 033.
+ *
+ * A conflict the viewer knows is fine can be cleared; see Conflict below.
  */
 
 export type WeekKind = 'meetings' | 'holiday' | 'stake_conference' | 'general_conference' | 'ward_conference' | 'none';
@@ -42,6 +50,8 @@ export interface ScheduleMeeting {
   sort_order: number;
   /** 0 = that Sunday, -1 = the Saturday before (stake conference sessions). */
   day_offset?: number;
+  /** Where it is held. NULL/undefined = the stake offices (migration 033). */
+  building_id?: string | null;
 }
 
 export interface ScheduleAssignment {
@@ -198,8 +208,21 @@ export interface TimelineEvent {
   meta?: string;
   /** For drives: minutes. */
   minutes?: number;
-  /** A conflict message attached to this row. */
-  conflict?: string;
+  /** A conflict attached to this row. */
+  conflict?: Conflict;
+}
+
+/**
+ * One red flag on the day, plus the identity a dismissal is stored against.
+ *
+ * `key` is built from clock times and building ids — never from `message`,
+ * which is translated. A Spanish speaker clearing a conflict must clear the
+ * same one an English speaker sees. It DOES move when the schedule moves, so
+ * editing the Sunday retires the dismissal and the check runs fresh.
+ */
+export interface Conflict {
+  key: string;
+  message: string;
 }
 
 export interface TimelineInput {
@@ -216,12 +239,17 @@ export interface TimelineInput {
   bodiesFor: (body: MeetingBody) => boolean;
   /** Timed events from the presidency Google Calendar on this Sunday. */
   calendarEvents?: CalendarEvent[];
+  /** Conflict keys this viewer has cleared (migration 034). */
+  dismissedKeys?: string[];
   t: (key: TranslationKey) => string;
 }
 
 export interface Timeline {
   events: TimelineEvent[];
-  conflicts: string[];
+  /** Conflicts still standing — anything the viewer cleared is already gone. */
+  conflicts: Conflict[];
+  /** How many this viewer cleared, so the card can offer to bring them back. */
+  dismissedCount: number;
 }
 
 function bodyLabel(body: MeetingBody, t: (k: TranslationKey) => string): string {
@@ -251,9 +279,20 @@ function roundUpQuarter(min: number): number {
  * consecutive events in different buildings; conflicts named in words.
  */
 export function buildTimeline(input: TimelineInput): Timeline {
-  const { week, meetings, wardIds, wardNames, wardTimes, buildings, travel, settings, bodiesFor, calendarEvents = [], t } = input;
-  const conflicts: string[] = [];
-  if (!week && !calendarEvents.length) return { events: [], conflicts };
+  const { week, meetings, wardIds, wardNames, wardTimes, buildings, travel, settings, bodiesFor, calendarEvents = [], dismissedKeys = [], t } = input;
+  const dismissed = new Set(dismissedKeys);
+  let dismissedCount = 0;
+  const conflicts: Conflict[] = [];
+
+  /** Raise one, unless this viewer already cleared it. Returns it for the row. */
+  const flag = (key: string, message: string): Conflict | undefined => {
+    if (dismissed.has(key)) { dismissedCount++; return undefined; }
+    const c = { key, message };
+    conflicts.push(c);
+    return c;
+  };
+
+  if (!week && !calendarEvents.length) return { events: [], conflicts, dismissedCount };
 
   const bName = (id: string | null | undefined) => buildings.find(b => b.id === id)?.short_name ?? null;
   const officesId = settings?.offices_building_id ?? null;
@@ -265,13 +304,17 @@ export function buildTimeline(input: TimelineInput): Timeline {
     const zoom = m.format === 'zoom';
     const start = toMinutes(m.starts_at);
     const end = toMinutes(m.ends_at);
+    // Where it actually is. A meeting may name its own building (033); an
+    // unset one means the stake offices, which is where SP/HC/SC always meet.
+    const placeId = zoom ? null : (m.building_id ?? officesId);
+    const placeName = zoom ? null : (bName(placeId) ?? officesName);
     base.push({
       kind: 'meeting',
       title: meetingTitle(m, t),
       start, end,
-      buildingId: zoom ? null : officesId,
-      buildingName: zoom ? null : officesName,
-      meta: [zoom ? t('schedule.format.zoom') : `${officesName} · ${t('schedule.format.inPerson')}`, `${end - start} ${t('schedule.min')}`,
+      buildingId: placeId,
+      buildingName: placeName,
+      meta: [zoom ? t('schedule.format.zoom') : `${placeName} · ${t('schedule.format.inPerson')}`, `${end - start} ${t('schedule.min')}`,
         m.label && !usesLabelAsTitle(m.body) ? m.label : null].filter(Boolean).join(' · '),
     });
   }
@@ -280,7 +323,7 @@ export function buildTimeline(input: TimelineInput): Timeline {
     const wt = wardTimes.find(w => w.ward_id === wardId);
     const name = wardNames[wardId] ?? wardId;
     if (!wt) {
-      conflicts.push(`${name}: ${t('schedule.conflict.noTime')}`);
+      flag(`notime:${wardId}`, `${name}: ${t('schedule.conflict.noTime')}`);
       continue;
     }
     const start = toMinutes(wt.sacrament_at);
@@ -329,16 +372,14 @@ export function buildTimeline(input: TimelineInput): Timeline {
         const msg = ev.start === prev.start
           ? t('schedule.conflict.sameTime').replace('{a}', prev.title).replace('{b}', ev.title).replace('{time}', fmtClock(ev.start))
           : t('schedule.conflict.overlap').replace('{a}', prev.title).replace('{b}', ev.title).replace('{end}', fmtClock(prev.end));
-        conflicts.push(msg);
-        ev.conflict = msg;
+        ev.conflict = flag(`overlap:${prev.start}-${prev.end}:${ev.start}-${ev.end}`, msg);
         out.push(ev);
         continue;
       }
       const drive = minutesBetween(prev.buildingId, ev.buildingId);
       if (drive === null && prev.buildingId && ev.buildingId) {
         const msg = t('schedule.conflict.noDrive').replace('{a}', prev.buildingName ?? '').replace('{b}', ev.buildingName ?? '');
-        conflicts.push(msg);
-        ev.conflict = msg;
+        ev.conflict = flag(`nodrive:${prev.buildingId}>${ev.buildingId}:${ev.start}`, msg);
       } else if (drive && drive > 0) {
         const leaveBy = ev.start - drive;
         out.push({
@@ -354,15 +395,14 @@ export function buildTimeline(input: TimelineInput): Timeline {
           const msg = t('schedule.conflict.gap')
             .replace('{b}', ev.title).replace('{gap}', String(ev.start - prev.end))
             .replace('{drive}', String(drive)).replace('{time}', fmtClock(proposed));
-          conflicts.push(msg);
-          ev.conflict = msg;
+          ev.conflict = flag(`gap:${prev.buildingId}>${ev.buildingId}:${prev.end}-${ev.start}:${drive}`, msg);
         }
       }
     }
     out.push(ev);
   }
 
-  return { events: out, conflicts };
+  return { events: out, conflicts, dismissedCount };
 }
 
 // ---------------------------------------------------------- role filters --

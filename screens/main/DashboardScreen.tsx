@@ -133,8 +133,9 @@ export function DashboardScreen() {
     settings: sunday.reference.settings,
     bodiesFor,
     calendarEvents: layout === 'member' ? [] : sunday.bundle.events,
+    dismissedKeys: sunday.bundle.dismissedKeys,
     t,
-  }), [sunday.bundle.week, sunday.bundle.meetings, sunday.bundle.events, myWardIds, wardNames, sunday.reference, bodiesFor, layout, t]);
+  }), [sunday.bundle.week, sunday.bundle.meetings, sunday.bundle.events, sunday.bundle.dismissedKeys, myWardIds, wardNames, sunday.reference, bodiesFor, layout, t]);
   const isCompanion = !!sunday.bundle.rotation && sunday.reference.hcMembers.some(
     m => m.id === sunday.bundle.rotation?.hc_member_id && (m.user_id === myId || m.name === myName));
   const ownInterviewDate = useMemo(() => {
@@ -387,6 +388,8 @@ export function DashboardScreen() {
             onPostSlack={() => { void openSlack(); }}
             onSendText={() => { void openText(); }}
             onEdit={() => nav.navigate('ScheduleEdit', { sunday: sunday.sundayISO })}
+            onClearConflict={key => { void sunday.clearConflict(key).then(e => e && setToast({ message: e })); }}
+            onRestoreConflicts={() => { void sunday.restoreCleared().then(e => e && setToast({ message: e })); }}
             language={language}
             t={t}
           />

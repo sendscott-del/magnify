@@ -22,7 +22,7 @@ import { DEMO_SUNDAY } from '../../lib/demoSchedule';
 
 type T = (key: TranslationKey) => string;
 
-interface MeetingRow { key: string; body: MeetingBody; starts_at: string; ends_at: string; format: MeetingFormat; label: string; day_offset: number }
+interface MeetingRow { key: string; body: MeetingBody; starts_at: string; ends_at: string; format: MeetingFormat; label: string; day_offset: number; building_id: string | null }
 
 /**
  * Edit Sunday — Settings → Meeting schedule → a Sunday, or "Edit Sunday" on
@@ -53,7 +53,7 @@ export function ScheduleEditScreen() {
   const [companion, setCompanion] = useState<string | null>(null);
   const [reason, setReason] = useState('');
   const [note, setNote] = useState('');
-  const [picker, setPicker] = useState<{ type: 'seat'; seat: Seat } | { type: 'companion' } | { type: 'body'; key: string } | null>(null);
+  const [picker, setPicker] = useState<{ type: 'seat'; seat: Seat } | { type: 'companion' } | { type: 'body'; key: string } | { type: 'building'; key: string } | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
@@ -73,6 +73,7 @@ export function ScheduleEditScreen() {
       setAssignments(a);
       setMeetings(b.meetings.map(m => ({
         key: m.id, body: m.body, starts_at: m.starts_at.slice(0, 5), ends_at: m.ends_at.slice(0, 5), format: m.format, label: m.label ?? '', day_offset: m.day_offset ?? 0,
+        building_id: m.building_id ?? null,
       })));
       setCompanion(b.rotation?.hc_member_id ?? null);
       setReason(b.rotation?.reason ?? '');
@@ -84,6 +85,16 @@ export function ScheduleEditScreen() {
 
   const wardName = (id: string) => ref?.wards.find(w => w.id === id)?.name ?? '';
 
+  /**
+   * Where a meeting is held. An unset building means the stake offices —
+   * which is true of SP, HC and SC every week, so the chip says so rather
+   * than looking empty.
+   */
+  const buildingLabel = (id: string | null) => {
+    if (!id) return t('schedule.edit.atOffices');
+    return ref?.buildings.find(b => b.id === id)?.short_name ?? t('schedule.edit.atOffices');
+  };
+
   // Per-seat conflict preview, so a clashing P column shows red before Save.
   const seatConflicts = useMemo(() => {
     const out: Record<Seat, string | null> = { P: null, '1C': null, '2C': null };
@@ -93,7 +104,7 @@ export function ScheduleEditScreen() {
     for (const seat of SEATS) {
       const tl = buildTimeline({
         week: { id: weekId ?? 'draft', sunday_on: sundayISO, kind, holiday_label: holidayLabel || null },
-        meetings: meetings.map((m, i) => ({ id: m.key, week_id: weekId ?? 'draft', body: m.body, starts_at: m.starts_at, ends_at: m.ends_at, format: m.format, label: m.label || null, sort_order: i, day_offset: m.day_offset })),
+        meetings: meetings.map((m, i) => ({ id: m.key, week_id: weekId ?? 'draft', body: m.body, starts_at: m.starts_at, ends_at: m.ends_at, format: m.format, label: m.label || null, sort_order: i, day_offset: m.day_offset, building_id: m.building_id })),
         wardIds: assignments[seat],
         wardNames,
         wardTimes: ref.wardTimes,
@@ -103,7 +114,7 @@ export function ScheduleEditScreen() {
         bodiesFor: bodiesForRole('stake_president'),
         t,
       });
-      out[seat] = tl.conflicts[0] ?? null;
+      out[seat] = tl.conflicts[0]?.message ?? null;
     }
     return out;
   }, [ref, assignments, meetings, kind, holidayLabel, sundayISO, weekId, t]);
@@ -130,6 +141,7 @@ export function ScheduleEditScreen() {
     const start = last ? toMinutes(last.ends_at) : 7 * 60;
     setMeetings(prev => [...prev, {
       key: `new-${Date.now()}`, body: 'SP', starts_at: toHHMM(start), ends_at: toHHMM(start + 30), format: 'in_person', label: '', day_offset: 0,
+      building_id: null,
     }]);
   }
 
@@ -158,7 +170,7 @@ export function ScheduleEditScreen() {
       sunday_on: sundayISO,
       kind,
       holiday_label: holidayLabel.trim() || null,
-      meetings: meetings.map(m => ({ body: m.body, starts_at: m.starts_at, ends_at: m.ends_at, format: m.format, label: m.label.trim() || null, day_offset: m.day_offset })),
+      meetings: meetings.map(m => ({ body: m.body, starts_at: m.starts_at, ends_at: m.ends_at, format: m.format, label: m.label.trim() || null, day_offset: m.day_offset, building_id: m.building_id })),
       assignments: SEATS.flatMap(seat => assignments[seat].map(ward_id => ({ seat, ward_id }))),
       hc_member_id: companion,
       reason: reason.trim() || null,
@@ -265,6 +277,13 @@ export function ScheduleEditScreen() {
                   <Text style={styles.formatText}>{t(m.format === 'zoom' ? 'schedule.format.zoom' : 'schedule.format.inPerson')}</Text>
                 </TouchableOpacity>
               </View>
+              {m.format !== 'zoom' && (
+                <TouchableOpacity style={styles.whereChip} onPress={() => setPicker({ type: 'building', key: m.key })} activeOpacity={0.8}>
+                  <Ionicons name="location-outline" size={13} color={Colors.gray[600]} />
+                  <Text style={styles.whereText} numberOfLines={1}>{buildingLabel(m.building_id)}</Text>
+                  <Ionicons name="chevron-down" size={13} color={Colors.gray[500]} />
+                </TouchableOpacity>
+              )}
               <TextInput
                 style={styles.labelInput}
                 value={m.label}
@@ -335,6 +354,18 @@ export function ScheduleEditScreen() {
         options={[{ id: '', label: t('schedule.edit.noCompanion'), sub: '' }, ...ref.hcMembers.map(m => ({ id: m.id, label: m.name, sub: '' }))]}
         selected={[companion ?? '']}
         onToggle={id => { setCompanion(id || null); setPicker(null); }}
+        onClose={() => setPicker(null)}
+        doneLabel={t('dash.edit.done')}
+      />
+      <Picker
+        visible={picker?.type === 'building'}
+        title={t('schedule.edit.meetingWhere')}
+        options={[
+          { id: '', label: t('schedule.edit.atOffices'), sub: t('schedule.edit.atOfficesHint') },
+          ...ref.buildings.map(b => ({ id: b.id, label: b.short_name, sub: b.address ?? '' })),
+        ]}
+        selected={picker?.type === 'building' ? [meetings.find(m => m.key === picker.key)?.building_id ?? ''] : []}
+        onToggle={id => { if (picker?.type === 'building') updateMeeting(picker.key, { building_id: id || null }); setPicker(null); }}
         onClose={() => setPicker(null)}
         doneLabel={t('dash.edit.done')}
       />
@@ -429,6 +460,12 @@ const styles = StyleSheet.create({
   bodyChipText: { fontSize: FontSize.xs, fontWeight: '800', color: Colors.gray[700] },
   meetingName: { flex: 1, fontSize: FontSize.md, fontWeight: '700', color: Colors.gray[900] },
   timeRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
+  whereChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start',
+    paddingHorizontal: 8, paddingVertical: 5, borderRadius: Radius.sm,
+    backgroundColor: Colors.gray[50], borderWidth: 1, borderColor: Colors.gray[200],
+  },
+  whereText: { fontSize: FontSize.xs, fontWeight: '700', color: Colors.gray[700], maxWidth: 160 },
   stepper: { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: Colors.gray[200], borderRadius: Radius.md, backgroundColor: Colors.white },
   stepBtn: { width: 32, height: 34, alignItems: 'center', justifyContent: 'center' },
   stepText: { minWidth: 48, textAlign: 'center', fontSize: FontSize.sm, fontWeight: '700', color: Colors.gray[900] },
