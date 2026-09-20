@@ -37,6 +37,10 @@ interface Props {
   onPostSlack: () => void;
   onSendText: () => void;
   onEdit: () => void;
+  /** Clear one flagged conflict. Absent for viewers who only read the day. */
+  onClearConflict?: (key: string) => void;
+  /** Bring every cleared conflict back on this Sunday. */
+  onRestoreConflicts?: () => void;
   language: 'en' | 'es';
   t: T;
 }
@@ -50,7 +54,8 @@ interface Props {
  */
 export function ThisSundayCard({
   layout, sundayISO, week, meetings, timeline, companion, isCompanion, ownInterviewDate,
-  reminders, canPostSlack, canSendText, canEdit, onPostSlack, onSendText, onEdit, language, t,
+  reminders, canPostSlack, canSendText, canEdit, onPostSlack, onSendText, onEdit,
+  onClearConflict, onRestoreConflicts, language, t,
 }: Props) {
   const eyebrow = layout === 'president' ? t('sunday.eyebrow')
     : layout === 'counselor' ? t('sunday.eyebrowYourDay')
@@ -101,7 +106,12 @@ export function ThisSundayCard({
           language={language}
         />
       ) : (
-        <TimelineView timeline={timeline} t={t} />
+        <TimelineView
+          timeline={timeline}
+          onClearConflict={onClearConflict}
+          onRestoreConflicts={onRestoreConflicts}
+          t={t}
+        />
       )}
 
       {layout === 'clerk' && (
@@ -163,10 +173,16 @@ function SentState({ label, half }: { label: string; half?: boolean }) {
   );
 }
 
-function TimelineView({ timeline, t }: { timeline: Timeline; t: T }) {
+function TimelineView({ timeline, onClearConflict, onRestoreConflicts, t }: {
+  timeline: Timeline;
+  onClearConflict?: (key: string) => void;
+  onRestoreConflicts?: () => void;
+  t: T;
+}) {
   if (!timeline.events.length) {
     return <Text style={styles.empty}>{t('sunday.nothingOnYourDay')}</Text>;
   }
+  const cleared = timeline.dismissedCount;
   return (
     <View style={styles.timeline}>
       {timeline.events.map((ev, i) => (
@@ -175,11 +191,31 @@ function TimelineView({ timeline, t }: { timeline: Timeline; t: T }) {
           {!!ev.conflict && (
             <View style={styles.conflict}>
               <Ionicons name="alert-circle-outline" size={18} color={Colors.error} />
-              <Text style={styles.conflictText}>{ev.conflict}</Text>
+              <Text style={styles.conflictText}>{ev.conflict.message}</Text>
+              {!!onClearConflict && (
+                <TouchableOpacity
+                  onPress={() => onClearConflict(ev.conflict!.key)}
+                  style={styles.clearBtn}
+                  hitSlop={10}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('sunday.clearConflict')}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.clearText}>{t('sunday.clearConflict')}</Text>
+                </TouchableOpacity>
+              )}
             </View>
           )}
         </React.Fragment>
       ))}
+      {cleared > 0 && !!onRestoreConflicts && (
+        <TouchableOpacity onPress={onRestoreConflicts} style={styles.clearedRow} hitSlop={8} activeOpacity={0.7}>
+          <Ionicons name="checkmark-circle-outline" size={14} color={Colors.gray[400]} />
+          <Text style={styles.clearedText}>
+            {`${cleared} ${t(cleared === 1 ? 'sunday.clearedOne' : 'sunday.clearedMany')} · ${t('sunday.undoClear')}`}
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -276,6 +312,13 @@ const styles = StyleSheet.create({
     borderRadius: Radius.md, padding: 10,
   },
   conflictText: { flex: 1, fontSize: 12, lineHeight: 17, color: '#7F1D1D' },
+  clearBtn: {
+    paddingHorizontal: 10, paddingVertical: 5, borderRadius: Radius.sm,
+    backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#FCA5A5',
+  },
+  clearText: { fontSize: 11, fontWeight: '800', color: '#7F1D1D', letterSpacing: 0.2 },
+  clearedRow: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingTop: 2 },
+  clearedText: { fontSize: 11, color: Colors.gray[400] },
   hint: { fontSize: FontSize.xs, color: Colors.gray[500] },
   saturday: { gap: 6, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: Colors.gray[100] },
   saturdayLabel: { fontSize: 10, fontWeight: '800', color: Colors.gray[400], letterSpacing: 0.5 },
