@@ -109,6 +109,80 @@ State on 2026-09-13: every unit completed all six stages for the current
 period — **no audit items created**. The rules are recorded here for the
 next period.
 
+## 4. Protecting Children and Youth training — overdue follow-ups
+
+Scott's ask, 2026-09-20: anyone overdue for the training becomes a follow-up
+assigned to the stake leader who covers them.
+
+**No names in this file.** The overdue people are members; their names live
+only in the `magnify_items` rows. Nothing about an individual goes in the repo,
+a commit message, or a log. From the report take **name, ward, calling, and
+training status/date only** — never a record number, email, birthdate, or
+anything else the page shows.
+
+### Where it is
+
+A standard report in the LCR **Reports** menu. Confirm the exact path in
+Scott's Chrome before the first pull and record it here; it was not verified
+when this section was written.
+
+### Routing — who chases whom
+
+One item **per overdue person** (Scott's call, 2026-09-20), owned by:
+
+| Report category | Follow-up owner | How the owner is resolved |
+|---|---|---|
+| Stake leaders / officers | Stake President's 2nd counselor | `profiles` where `role = 'second_counselor'` |
+| Ward Young Women leaders | Stake Young Women President | `owner_label` only — no account |
+| Ward Elders Quorum | that ward's high councilor | `hc_member_wards` → `high_council_members` |
+| Relief Society leaders | Stake Relief Society President | `owner_label` only — no account |
+| Primary leaders | Stake Primary President | `owner_label` only — no account |
+| Seminary teachers | high councilor over seminary | **not recorded anywhere — see below** |
+
+**The three auxiliary presidents have no Magnify account** (the only accounts
+are the presidency, 11 high councilors, 3 clerks and the executive secretary).
+Scott chose 2026-09-20 to name them in `owner_label` and leave `owner_user_id`
+null: the row exists and the presidency and clerks work it, but she does not
+see it in the app. Use the office as the label ("Stake Young Women President"),
+not a personal name — it survives a release and keeps a name out of the label.
+
+### Two things the database cannot answer
+
+1. **Hyde Park 1st and Hyde Park 2nd each have two active high councilors** in
+   `hc_member_wards`. Every other ward resolves to exactly one. Ask Scott which
+   of the two covers each ward before creating those rows; do not guess, and do
+   not create one item for each.
+2. **There is no "over seminary" anywhere.** `high_council_members` is name,
+   active, sort order, user id, Slack id — no portfolio or stewardship column.
+   Either Scott names the person per pull, or the table gains a portfolio
+   column. Until then seminary rows cannot be routed.
+
+One more, worth knowing rather than solving: the Westchester 2nd high
+councilor has no Magnify account, so his items need `owner_label` too.
+
+### Item shape
+
+- `kind`: `assignment` when the owner is a high councilor, `action` when it is
+  the 2nd counselor — **both are set by the `magnify_items_kind_by_owner`
+  trigger from the owner, so do not set them by hand.** For an `owner_label`-only
+  row the trigger does not fire (it keys on `owner_user_id`), so pass `action`
+  explicitly: the presidency is who actually chases it.
+- `title`: `Protecting Children and Youth training overdue — {ward abbr}`
+- `detail`: the person and their calling, one line.
+- `ward_id`: set from the report's ward.
+- `due_on`: Scott's call per pull; leave null if he does not set one.
+- `review_state`: `approved` — same as the other LCR-sourced rows (his rule
+  from 2026-09-13; the review queue is for meeting extractions).
+- `source`: `lcr`; `source_ref`:
+  `{"lcr":"protecting_children_youth","ward":"<abbr>","person":"<name>","pulled":"<date>"}`.
+
+### Re-running
+
+`source_ref->>'person'` plus `->>'lcr'` is the dedupe key: on a later pull,
+skip anyone who already has an open item, and mark done the items for anyone
+no longer on the overdue list. Do not delete them — completing them is the
+record that the follow-up worked.
+
 ## What the home page also shows (for Phase 3 metrics, not yet used)
 
 The LCR home card set carries live stake numbers: Endowed with Recommend
