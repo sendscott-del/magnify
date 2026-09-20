@@ -12,6 +12,7 @@ import { Colors, Spacing, FontSize, Radius, Shadow } from '../../constants/theme
 import { KeyboardAwareScrollView } from '../../components/ui/KeyboardAwareScrollView';
 import { useLanguage } from '../../context/LanguageContext';
 import { Ward } from '../../lib/database.types';
+import { STEWARDSHIPS, Stewardship, stewardshipKey } from '../../constants/stewardships';
 
 interface HCMember { id: string; name: string; active: boolean; sort_order: number; user_id: string | null; }
 interface Account { id: string; full_name: string; email: string; }
@@ -23,6 +24,7 @@ export function HighCouncilScreen({ navigation }: any) {
   const [wards, setWards] = useState<Ward[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [memberWards, setMemberWards] = useState<Record<string, Set<string>>>({});
+  const [memberStewardships, setMemberStewardships] = useState<Record<string, Set<string>>>({});
   const [newName, setNewName] = useState('');
   const [adding, setAdding] = useState(false);
   const [busy, setBusy] = useState<Record<string, boolean>>({});
@@ -32,11 +34,12 @@ export function HighCouncilScreen({ navigation }: any) {
   const [nameDraft, setNameDraft] = useState('');
 
   const fetchAll = useCallback(async () => {
-    const [mRes, wRes, mwRes, aRes] = await Promise.all([
+    const [mRes, wRes, mwRes, aRes, msRes] = await Promise.all([
       supabase.from('high_council_members').select('id, name, active, sort_order, user_id').order('sort_order'),
       supabase.from('wards').select('*').order('name'),
       supabase.from('hc_member_wards').select('hc_member_id, ward_id'),
       supabase.from('profiles').select('id, full_name, email').eq('app', 'magnify').eq('status', 'approved').order('full_name'),
+      supabase.from('hc_member_stewardships').select('hc_member_id, stewardship'),
     ]);
     setMembers((mRes.data as HCMember[]) ?? []);
     setWards((wRes.data as Ward[]) ?? []);
@@ -46,6 +49,11 @@ export function HighCouncilScreen({ navigation }: any) {
       (map[r.hc_member_id] ??= new Set<string>()).add(r.ward_id);
     });
     setMemberWards(map);
+    const smap: Record<string, Set<string>> = {};
+    ((msRes.data as { hc_member_id: string; stewardship: string }[]) ?? []).forEach(r => {
+      (smap[r.hc_member_id] ??= new Set<string>()).add(r.stewardship);
+    });
+    setMemberStewardships(smap);
     setLoading(false);
   }, []);
 
@@ -106,6 +114,18 @@ export function HighCouncilScreen({ navigation }: any) {
     const { error } = assigned
       ? await supabase.from('hc_member_wards').delete().eq('hc_member_id', memberId).eq('ward_id', wardId)
       : await supabase.from('hc_member_wards').insert({ hc_member_id: memberId, ward_id: wardId });
+    if (error) showError(error.message);
+    await fetchAll();
+    setBusy(p => ({ ...p, [key]: false }));
+  }
+
+  async function toggleStewardship(memberId: string, stewardship: Stewardship) {
+    const key = `${memberId}:s:${stewardship}`;
+    setBusy(p => ({ ...p, [key]: true }));
+    const on = memberStewardships[memberId]?.has(stewardship);
+    const { error } = on
+      ? await supabase.from('hc_member_stewardships').delete().eq('hc_member_id', memberId).eq('stewardship', stewardship)
+      : await supabase.from('hc_member_stewardships').insert({ hc_member_id: memberId, stewardship });
     if (error) showError(error.message);
     await fetchAll();
     setBusy(p => ({ ...p, [key]: false }));
@@ -208,6 +228,7 @@ export function HighCouncilScreen({ navigation }: any) {
         ) : (
           members.map(m => {
             const assigned = memberWards[m.id] ?? new Set<string>();
+            const overSee = memberStewardships[m.id] ?? new Set<string>();
             const memberBusy = !!busy[m.id];
             const linkedAccount = m.user_id ? accountById[m.user_id] : null;
             const isEditing = editingId === m.id;
@@ -302,6 +323,24 @@ export function HighCouncilScreen({ navigation }: any) {
                         disabled={!!busy[chipKey]}
                       >
                         <Text style={[styles.chipText, on && styles.chipTextOn]}>{w.name}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+
+                <Text style={styles.wardsLabel}>{t('highCouncil.stewardshipsLabel')}</Text>
+                <View style={styles.chipWrap}>
+                  {STEWARDSHIPS.map(sw => {
+                    const on = overSee.has(sw);
+                    const chipKey = `${m.id}:s:${sw}`;
+                    return (
+                      <TouchableOpacity
+                        key={sw}
+                        style={[styles.chip, on && styles.chipOn, busy[chipKey] && styles.btnDisabled]}
+                        onPress={() => toggleStewardship(m.id, sw)}
+                        disabled={!!busy[chipKey]}
+                      >
+                        <Text style={[styles.chipText, on && styles.chipTextOn]}>{t(stewardshipKey(sw))}</Text>
                       </TouchableOpacity>
                     );
                   })}

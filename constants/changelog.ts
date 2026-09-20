@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.60.0',
+    date: '2026-09-20',
+    enhancements: [
+      'A high councilor can now be recorded as over an organization, not just over wards. Settings \u2192 High Council gains an "Also over" row on each member \u2014 Elders Quorum, Relief Society, Young Men, Young Women, Primary, Sunday School, Seminary, Temple & Family History, Missionary, Welfare & Self-Reliance, Single Adults, Emergency Preparedness \u2014 and a member can hold more than one. The president, clerks and executive secretary can change them; everyone else sees them read-only. Brighton Mushonga is set as over Seminary.',
+    ],
+    bugFixes: [],
+  },
+  {
     version: '2.59.0',
     date: '2026-09-20',
     enhancements: [
