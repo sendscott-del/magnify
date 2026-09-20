@@ -137,7 +137,7 @@ One item **per overdue person** (Scott's call, 2026-09-20), owned by:
 | Ward Elders Quorum | that ward's high councilor | `hc_member_wards` → `high_council_members` |
 | Relief Society leaders | Stake Relief Society President | `owner_label` only — no account |
 | Primary leaders | Stake Primary President | `owner_label` only — no account |
-| Seminary teachers | high councilor over seminary | **not recorded anywhere — see below** |
+| Seminary teachers | high councilor over seminary | `hc_member_stewardships` where `stewardship = 'seminary'` |
 
 **The three auxiliary presidents have no Magnify account** (the only accounts
 are the presidency, 11 high councilors, 3 clerks and the executive secretary).
@@ -146,16 +146,18 @@ null: the row exists and the presidency and clerks work it, but she does not
 see it in the app. Use the office as the label ("Stake Young Women President"),
 not a personal name — it survives a release and keeps a name out of the label.
 
-### Two things the database cannot answer
+### What the database still cannot answer
 
-1. **Hyde Park 1st and Hyde Park 2nd each have two active high councilors** in
-   `hc_member_wards`. Every other ward resolves to exactly one. Ask Scott which
-   of the two covers each ward before creating those rows; do not guess, and do
-   not create one item for each.
-2. **There is no "over seminary" anywhere.** `high_council_members` is name,
-   active, sort order, user id, Slack id — no portfolio or stewardship column.
-   Either Scott names the person per pull, or the table gains a portfolio
-   column. Until then seminary rows cannot be routed.
+**Hyde Park 1st and Hyde Park 2nd each have two active high councilors** in
+`hc_member_wards`. Every other ward resolves to exactly one. Ask Scott which of
+the two covers each ward before creating those rows; do not guess, and do not
+create one item for each.
+
+Resolved 2026-09-20: "over seminary" used to be unanswerable — there was no
+portfolio anywhere on `high_council_members`. Migration 035 added
+`hc_member_stewardships`, editable at Settings → High Council, and Scott named
+the seminary high councilor. Query the table; do not hardcode the person, and
+do not ask him again.
 
 One more, worth knowing rather than solving: the Westchester 2nd high
 councilor has no Magnify account, so his items need `owner_label` too.
