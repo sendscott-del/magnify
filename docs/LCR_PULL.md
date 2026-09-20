@@ -122,9 +122,32 @@ anything else the page shows.
 
 ### Where it is
 
-A standard report in the LCR **Reports** menu. Confirm the exact path in
-Scott's Chrome before the first pull and record it here; it was not verified
-when this section was written.
+**Reports › Supporting Youth › Protecting Children and Youth Training**
+`https://lcr.churchofjesuschrist.org/report/child-protection?lang=eng`
+(confirmed from Scott's screen 2026-09-20).
+
+Columns: Name · Position · Sustained · Training Status · Expiration. Training
+Status is the one that matters — "Completed" or a red **Past Due**.
+
+Two dropdowns above the table. The first is the **organization** filter, and
+its values ARE the routing key, so read the routing table below against it:
+All Organizations · Stake Presidency · High Council · Patriarch · Stake Relief
+Society · Stake Young Men · Stake Young Women · Stake Primary · Other Callings.
+The second narrows by status — set it to Past Due rather than reading every row.
+
+Stake scope shows stake callings; each ward's callings are behind the unit
+switch ("My Stake" / "Other Units and Leaders" on the LCR home page).
+
+### Getting the list to the agent
+
+**The egress proxy blocks `lcr.churchofjesuschrist.org` outright** — verified
+2026-09-20, not a login problem and not fixable by Scott signing in. A remote
+session cannot open this report at all, whatever the state of his browser.
+
+So the rows have to be handed over. Screenshots of the filtered table work
+fine and are the least effort: set status to Past Due, then capture stake
+scope and each ward. Name, position and unit is all that is needed — record
+numbers, emails and birthdates stay on the page.
 
 ### Routing — who chases whom
 
