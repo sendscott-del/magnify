@@ -1,7 +1,9 @@
 // Syncs the stake presidency Google Calendar into magnify_calendar_events.
 //
-// Reads the calendar's secret iCal address from MAGNIFY_GCAL_ICS_URL (a
-// Supabase secret; never stored in a table), expands recurring events over a
+// Reads the calendar's secret iCal address from the project secret
+// MAGNIFY_GCAL_ICS_URL, or failing that from Vault (`magnify_gcal_ics_url`,
+// via the service-role-only RPC in migration 038). Never stored in a table.
+// Expands recurring events over a
 // rolling window, and replaces the window's rows for the stake. Called by
 // pg_cron every 30 minutes with the INTERNAL_FN_SECRET bearer token, or by a
 // stake admin from the app with their own JWT.
@@ -18,7 +20,7 @@ import ical from "npm:node-ical@0.18.0";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const INTERNAL_FN_SECRET = Deno.env.get("INTERNAL_FN_SECRET") ?? "";
-const ICS_URL = Deno.env.get("MAGNIFY_GCAL_ICS_URL") ?? "";
+const ICS_URL_ENV = Deno.env.get("MAGNIFY_GCAL_ICS_URL") ?? "";
 // One stake for now; the secret is per project. A second stake gets its own
 // secret name and a stake_id → secret map here.
 const STAKE_ID = Deno.env.get("MAGNIFY_GCAL_STAKE_ID") ?? "5ad851a1-f94d-4afb-b539-8d27e56c51b2";
@@ -44,8 +46,6 @@ interface Row {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json({ error: "POST only" }, 405);
-  if (!ICS_URL) return json({ error: "MAGNIFY_GCAL_ICS_URL is not set" }, 500);
-
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, { auth: { persistSession: false } });
   const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
   let allowed = INTERNAL_FN_SECRET && token === INTERNAL_FN_SECRET;
@@ -58,6 +58,14 @@ Deno.serve(async (req) => {
     }
   }
   if (!allowed) return json({ error: "Not allowed" }, 403);
+
+  let ICS_URL = ICS_URL_ENV;
+  if (!ICS_URL) {
+    const { data } = await admin.rpc("magnify_gcal_ics_url");
+    ICS_URL = typeof data === "string" ? data : "";
+  }
+  // The app matches "is not set" to show its "calendar not connected" message.
+  if (!ICS_URL) return json({ error: "MAGNIFY_GCAL_ICS_URL is not set" }, 500);
 
   const res = await fetch(ICS_URL);
   if (!res.ok) return json({ error: `Calendar fetch failed: ${res.status}` }, 502);
