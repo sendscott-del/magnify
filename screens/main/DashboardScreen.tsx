@@ -25,6 +25,7 @@ import { NewWorkstreamSheet } from '../../components/dashboard/NewWorkstreamShee
 import { CalmEmpty, Segmented, SectionHeader } from '../../components/dashboard/primitives';
 import { ThisSundayCard, SundayLayout } from '../../components/dashboard/ThisSundayCard';
 import { SlackReminderSheet, TextReminderSheet } from '../../components/dashboard/ReminderSheets';
+import { SlackRemindersSection } from '../../components/dashboard/SlackRemindersSection';
 import { useSunday, loadReminderWebhooks, logReminder } from '../../lib/scheduleData';
 import {
   ReminderSent, bodiesForRole, buildTimeline, formatSundayLong, isCardWindow, seatForRole,
@@ -144,9 +145,14 @@ export function DashboardScreen() {
     return iv?.scheduled_for ?? null;
   }, [layout, data.interviews, sunday.sundayISO]);
   // Friday–Sunday, or any day the coming Sunday has an unresolved conflict.
-  const showSunday = !sunday.loading && (isCardWindow() || (layout !== 'member' && timeline.conflicts.length > 0));
-  const cardWeek = sunday.bundle.week ?? (sunday.bundle.events.length ? { id: '', sunday_on: sunday.sundayISO, kind: 'meetings' as const } : null);
   const canRemind = isPresidency || isClerk;
+  // Friday–Sunday, or any day the coming Sunday has an unresolved conflict —
+  // and ANY day for the people who run the schedule. Scott asked (2026-09-27)
+  // to be able to sync the calendar "anytime", and the sync button lives on
+  // this card; hiding the card Monday to Thursday would hide the button too.
+  const showSunday = !sunday.loading && (
+    canRemind || isCardWindow() || (layout !== 'member' && timeline.conflicts.length > 0));
+  const cardWeek = sunday.bundle.week ?? (sunday.bundle.events.length ? { id: '', sunday_on: sunday.sundayISO, kind: 'meetings' as const } : null);
   const slackPosts = useMemo(
     () => slackReminders(sunday.sundayISO, sunday.bundle.meetings, sunday.reference.settings, t),
     [sunday.sundayISO, sunday.bundle.meetings, sunday.reference.settings, t],
@@ -154,6 +160,36 @@ export function DashboardScreen() {
   const textPost = useMemo(() => textReminder(sunday.sundayISO, sunday.bundle.meetings, t), [sunday.sundayISO, sunday.bundle.meetings, t]);
   const slackAlready = sunday.bundle.reminders.some(r => r.channel === 'slack');
   const textAlready = sunday.bundle.reminders.some(r => r.channel === 'tidings');
+
+  const [syncing, setSyncing] = useState(false);
+
+  /**
+   * Pull the presidency Google Calendar now instead of waiting for the
+   * 30-minute job. The function (031/032) accepts a signed-in admin's token,
+   * so this is a plain invoke.
+   *
+   * Until MAGNIFY_GCAL_ICS_URL is set on the server it answers 500 "is not
+   * set" — every scheduled run has (48 of 48 on 2026-09-27). Say that plainly
+   * instead of a generic failure, because the fix is one setting and nobody
+   * would guess it from "something went wrong".
+   */
+  async function syncCalendar() {
+    setSyncing(true);
+    const { data: res, error } = await supabase.functions.invoke('magnify-sync-google-calendar', { body: {} });
+    setSyncing(false);
+    if (error) {
+      let msg = error.message;
+      try {
+        const ctx = (error as { context?: Response }).context;
+        if (ctx) { const j = await ctx.json(); if (j?.error) msg = j.error; }
+      } catch { /* keep message */ }
+      setToast({ message: /is not set/i.test(msg) ? t('sunday.syncNotConnected') : `${t('sunday.syncFailed')}: ${msg}` });
+      return;
+    }
+    await sunday.refresh();
+    const n = (res as { upserted?: number } | null)?.upserted;
+    setToast({ message: typeof n === 'number' ? `${t('sunday.synced')} · ${n} ${t('sunday.syncedEvents')}` : t('sunday.synced') });
+  }
 
   async function openSlack() {
     setWebhooks(await loadReminderWebhooks());
@@ -292,8 +328,14 @@ export function DashboardScreen() {
   function onTilePress(key: string, drill: string | undefined, label: string) {
     // The callings tiles have no drill list on purpose — they report on the
     // kanban, so they open the board that actually owns the data.
-    if (key === 'calling') { nav.navigate(isAdmin ? 'PresidencyBoard' : 'HC'); return; }
-    if (key === 'myVotes') { nav.navigate('HC'); return; }
+    // "Awaiting me" tiles land on the board already filtered to Just mine; the
+    // whole-board tile ("Everyone") lands unfiltered, because that is what it
+    // counted.
+    if (key === 'calling') {
+      nav.navigate(isAdmin ? 'PresidencyBoard' : 'HC', scope === 'mine' ? { mineOnlyAt: Date.now() } : undefined);
+      return;
+    }
+    if (key === 'myVotes') { nav.navigate('HC', { mineOnlyAt: Date.now() }); return; }
     if (drill === 'standard') { nav.navigate('StandardWork'); return; }
     if (drill) goDrill(drill, label);
   }
@@ -382,15 +424,25 @@ export function DashboardScreen() {
             isCompanion={isCompanion}
             ownInterviewDate={ownInterviewDate}
             reminders={sunday.bundle.reminders}
-            canPostSlack={canRemind && !!sunday.bundle.week}
             canSendText={canRemind && !!textPost}
             canEdit={canRemind}
-            onPostSlack={() => { void openSlack(); }}
             onSendText={() => { void openText(); }}
+            onSyncCalendar={canRemind ? () => { void syncCalendar(); } : undefined}
+            syncing={syncing}
             onEdit={() => nav.navigate('ScheduleEdit', { sunday: sunday.sundayISO })}
             onClearConflict={key => { void sunday.clearConflict(key).then(e => e && setToast({ message: e })); }}
             onRestoreConflicts={() => { void sunday.restoreCleared().then(e => e && setToast({ message: e })); }}
             language={language}
+            t={t}
+          />
+        )}
+
+        {/* Slack reminders — own section, text on screen (2026-09-27). */}
+        {canRemind && !!sunday.bundle.week && (
+          <SlackRemindersSection
+            posts={slackPosts}
+            sentAt={sunday.bundle.reminders.find(r => r.channel === 'slack')?.sent_at ?? null}
+            onPost={() => { void openSlack(); }}
             t={t}
           />
         )}

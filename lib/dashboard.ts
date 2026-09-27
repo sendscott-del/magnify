@@ -18,7 +18,12 @@ export type ItemKind =
   | 'interview'
   | 'audit'
   | 'recommend'
-  | 'directive';
+  | 'directive'
+  // A leader overdue for Protecting Children and Youth training (037). Its own
+  // kind, not an assignment, so it has its own tile and never lands in the
+  // Assignments tile — Scott asked for it as a separate section, named the way
+  // LCR names the report.
+  | 'pcy';
 
 // Two more kinds exist only for display. `standard` is a recurring Steward
 // duty and `calling` is a kanban card — neither is ever a magnify_items row,
@@ -68,6 +73,8 @@ export interface DashInterview {
   assignee_name?: string | null;
   scheduled_for?: string | null;
   completed_at?: string | null;
+  /** steward_interviews.notes. The RPC returns NULL to a high councilor (037). */
+  notes?: string | null;
 }
 
 export interface StandardWorkRow {
@@ -78,6 +85,8 @@ export interface StandardWorkRow {
   period_start: string;
   value?: 'y' | 'n' | 'na' | null;
   shared_task_id?: string | null;
+  /** This period's comment, from Steward's steward_cell_comments (037). */
+  note?: string | null;
 }
 
 export interface MetricPoint {
@@ -119,6 +128,7 @@ export const KIND: Record<DisplayKind, KindConfig> = {
   calling:    { color: Colors.primary,   icon: 'git-branch-outline',    eyebrowKey: 'dash.kind.calling' },
   directive:  { color: '#EC4899',        icon: 'megaphone-outline',     eyebrowKey: 'dash.kind.directive' },
   action:     { color: Colors.info,      icon: 'ellipse-outline',       eyebrowKey: 'dash.kind.action' },
+  pcy:        { color: '#7C3AED',        icon: 'shield-checkmark-outline', eyebrowKey: 'dash.kind.pcy' },
 };
 
 /** Glyph chips are the kind color at 13% alpha — the design system's recipe. */

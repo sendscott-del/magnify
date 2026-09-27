@@ -187,11 +187,17 @@ councilor has no Magnify account, so his items need `owner_label` too.
 
 ### Item shape
 
-- `kind`: `assignment` when the owner is a high councilor, `action` when it is
-  the 2nd counselor — **both are set by the `magnify_items_kind_by_owner`
-  trigger from the owner, so do not set them by hand.** For an `owner_label`-only
-  row the trigger does not fire (it keys on `owner_user_id`), so pass `action`
-  explicitly: the presidency is who actually chases it.
+- `kind`: **`pcy`**, always, whoever owns it (037, 2026-09-27). Scott asked
+  for these as their own dashboard section, named as LCR names the report, so
+  they have their own kind and tile — "Protecting Children and Youth
+  Training" — and never land in Assignments. The kind-by-owner trigger only
+  rewrites `action`/`assignment`, so it leaves `pcy` alone; set the owner and
+  the kind independently. (This replaces the earlier plan of routing them as
+  `assignment`/`action`.)
+- Visibility needs nothing extra: `magnify_items_select` already lets the
+  presidency and clerks see every row, a high councilor see the rows he owns,
+  and keeps label-only rows (the auxiliary presidents) with the presidency.
+  A high councilor gets the tile only when at least one row is his.
 - `title`: `Protecting Children and Youth training overdue — {ward abbr}`
 - `detail`: the person and their calling, one line.
 - `ward_id`: set from the report's ward.

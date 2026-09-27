@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import {
   View, Text, StyleSheet, ScrollView,
   RefreshControl, TouchableOpacity, FlatList, Platform, Share, Alert,
@@ -21,7 +21,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { useIsDesktopWeb } from '../../lib/useDeviceWidth';
 import { notifyHcApprovalReminder } from '../../lib/slack';
 
-export function HCKanbanScreen({ navigation }: any) {
+export function HCKanbanScreen({ navigation, route }: any) {
   const insets = useSafeAreaInsets();
   const { profile } = useAuth();
   const { t, tc, language } = useLanguage();
@@ -101,6 +101,19 @@ export function HCKanbanScreen({ navigation }: any) {
     return assigneeOptions.some(o => o.name === me) ? me : null;
   }, [profile?.id, profile?.full_name, rawHcMembers, assigneeOptions]);
   const showingJustMine = myAssigneeName !== null && assigneeFilter === myAssigneeName;
+
+  // Same as the SP board: the "callings awaiting me" tile lands here on Just
+  // mine. myAssigneeName resolves only after the roster loads, so the request
+  // is held until it does rather than applied to a null name and lost.
+  const mineOnlyAt = route?.params?.mineOnlyAt as number | undefined;
+  const pendingMine = useRef<number | null>(null);
+  useEffect(() => { if (mineOnlyAt) pendingMine.current = mineOnlyAt; }, [mineOnlyAt]);
+  useEffect(() => {
+    if (pendingMine.current && myAssigneeName) {
+      setAssigneeFilter(myAssigneeName);
+      pendingMine.current = null;
+    }
+  }, [myAssigneeName, mineOnlyAt]);
 
   const { demoMode } = useDemoMode();
   const { refresh: refreshActionCounts } = useActionCounts();

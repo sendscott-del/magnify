@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   View, Text, StyleSheet, ScrollView,
   RefreshControl, TouchableOpacity, Alert, Platform,
@@ -24,7 +24,7 @@ import { notifySpApprovalReminder } from '../../lib/slack';
 // empty one.
 const ACTIVE_STAGES = ['ideas', 'for_approval', 'pending_interview', 'stake_approved'];
 
-export function PresidencyKanbanScreen({ navigation }: any) {
+export function PresidencyKanbanScreen({ navigation, route }: any) {
   const insets = useSafeAreaInsets();
   const { profile, isPresidency, isClerk } = useAuth();
   const { t } = useLanguage();
@@ -71,6 +71,17 @@ export function PresidencyKanbanScreen({ navigation }: any) {
   // or cards where my name is in extend / sustain / set_apart / record_by.
   const myName = profile?.full_name ?? null;
   const canFilterMine = !!myName && (isPresidency || isClerk);
+
+  // The dashboard's "callings awaiting me" tile opens this board already on
+  // Just mine (Scott, 2026-09-27) — landing on the whole board after tapping a
+  // number that counted only yours made the number look wrong. A timestamp
+  // rather than a boolean, because tab screens stay mounted: a plain initial
+  // value would apply on the first tap and never again. The chip still turns
+  // it off; this only sets where you land.
+  const mineOnlyAt = route?.params?.mineOnlyAt as number | undefined;
+  useEffect(() => {
+    if (mineOnlyAt && canFilterMine) setMineOnly(true);
+  }, [mineOnlyAt, canFilterMine]);
   const isMine = useCallback((c: Calling) => {
     if (!myName) return false;
     if (c.stage === 'for_approval' && (isPresidency || isClerk)) return true;

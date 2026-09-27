@@ -18,7 +18,7 @@ export type Scope = 'mine' | 'everyone' | 'hc';
  *  correction during design review. */
 export type DrillKey =
   | 'action' | 'recommend' | 'audit' | 'interview' | 'assignment' | 'directive'
-  | 'standard' | 'myInterview'
+  | 'standard' | 'myInterview' | 'pcy'
   | `ws:${string}`;
 
 export const OPEN_STATUSES: DashboardItem['status'][] = ['open', 'in_progress', 'blocked'];
@@ -168,19 +168,6 @@ export function presidencyTiles(input: TileInput): TileSpec[] {
       drill: 'recommend',
     },
     {
-      key: 'audit',
-      kind: 'audit',
-      value: String(auditWardCount),
-      unit: `${t('dash.unit.of')} ${wardCount} ${t('dash.unit.wards')}`,
-      label: t('dash.tile.audits'),
-      sub: joinParts([
-        auditDeadline ? `${t('dash.sub.deadline')} ${formatMonthDay(auditDeadline, language)}` : null,
-        auditWardNames || null,
-      ]) || t('dash.sub.noneOutstanding'),
-      flag: lateFlag(audits, t),
-      drill: 'audit',
-    },
-    {
       key: 'calling',
       kind: 'calling',
       value: String(callingValue),
@@ -215,13 +202,61 @@ export function presidencyTiles(input: TileInput): TileSpec[] {
         : t('dash.sub.noneOutstanding'),
       drill: 'directive',
     },
+    pcyTile(input, false),
     // The presidency's own recurring Steward duties. The first cut of this
     // screen gave the standard-work tile to high councilors only, which left
     // StandardWorkScreen with no route at all for a presidency member — the
-    // data loaded and nothing on the dashboard opened it. Last in the grid
-    // because it is the one personal tile in a zone about the stake.
+    // data loaded and nothing on the dashboard opened it.
     standardWorkTile(input),
+    // Audits last (Scott, 2026-09-27). They come up twice a year; a tile that
+    // is empty ten months out of twelve should not hold the second slot.
+    {
+      key: 'audit',
+      kind: 'audit',
+      value: String(auditWardCount),
+      unit: `${t('dash.unit.of')} ${wardCount} ${t('dash.unit.wards')}`,
+      label: t('dash.tile.audits'),
+      sub: joinParts([
+        auditDeadline ? `${t('dash.sub.deadline')} ${formatMonthDay(auditDeadline, language)}` : null,
+        auditWardNames || null,
+      ]) || t('dash.sub.noneOutstanding'),
+      flag: lateFlag(audits, t),
+      drill: 'audit',
+    },
   ];
+}
+
+/**
+ * Protecting Children and Youth Training — leaders overdue for it, each a
+ * `pcy` item owned by whoever follows up (docs/LCR_PULL.md §4). Named exactly
+ * as the LCR report is, so the tile and the report are recognisably the same
+ * thing.
+ *
+ * The presidency sees every overdue leader; a high councilor sees only the
+ * ones routed to him (his elders quorum, or seminary if he is over it). The
+ * rows are few and the stakes are real — anyone past due should not be
+ * working with youth — so "mine" gets its own line.
+ */
+function pcyTile(input: TileInput, mineOnly: boolean): TileSpec {
+  const { openItems, myId, myName, t } = input;
+  const all = openItems.filter(i => i.kind === 'pcy');
+  const rows = mineOnly ? all.filter(i => isMine(i, myId, myName)) : all;
+  const mineCount = all.filter(i => isMine(i, myId, myName)).length;
+  return {
+    key: 'pcy',
+    kind: 'pcy',
+    value: String(rows.length),
+    unit: t('dash.unit.overdue'),
+    label: t('dash.tile.pcy'),
+    sub: rows.length
+      ? joinParts([
+        !mineOnly && mineCount ? `${mineCount} ${t('dash.sub.areMine')}` : null,
+        t('dash.sub.pcyFollowUp'),
+      ])
+      : t('dash.sub.noneOverdue'),
+    flag: lateFlag(rows, t),
+    drill: 'pcy',
+  };
 }
 
 /**
@@ -236,7 +271,7 @@ export function presidencyTiles(input: TileInput): TileSpec[] {
  */
 function assignmentsTile(input: TileInput): TileSpec {
   const { openItems, t } = input;
-  const rows = openItems.filter(i => i.kind === 'action' || i.kind === 'assignment');
+  const rows = openItems.filter(isLooseAssignment);
   const dueThisWeek = rows.filter(i => { const d = daysUntil(i.due_on); return d !== null && d >= 0 && d <= URGENT_WINDOW_DAYS; }).length;
   return {
     key: 'assignment',
@@ -286,7 +321,7 @@ export function highCouncilTiles(input: TileInput, opts: { showBoard: boolean; s
   const { openItems, interviews, myId, myName, hcVoteCount, t, language } = input;
 
   const mine = openItems.filter(i => isMine(i, myId, myName));
-  const myAssignments = mine.filter(i => i.kind === 'assignment' || i.kind === 'action');
+  const myAssignments = mine.filter(isLooseAssignment);
   const myInterviews = interviews.filter(
     i => (myId && i.assigned_to_user_id === myId) || (myName && i.assignee_name === myName),
   );
@@ -328,6 +363,10 @@ export function highCouncilTiles(input: TileInput, opts: { showBoard: boolean; s
     },
     standardWorkTile(input),
   ];
+  // Only when something is actually his: most high councilors own none, and a
+  // permanent "0 overdue" tile for them is noise.
+  const myPcy = mine.filter(i => i.kind === 'pcy').length;
+  if (myPcy > 0) tiles.splice(1, 0, pcyTile(input, true));
   // A stake council member has no board and no interview row (design review
   // 2026-09-19); the same layout minus those two tiles.
   return tiles.filter(tile =>
@@ -358,13 +397,29 @@ export function workstreamSpecs(
 
 /** Rows behind a tile. Kept next to the tile builders so a tile and its
  *  drill-down can never disagree about what the number meant. */
+/**
+ * An assignment that belongs in the Assignments tile: an action or assignment
+ * that is NOT filed under a workstream.
+ *
+ * A workstream item is still owned by someone, but it lives in its workstream
+ * and nowhere else. Before 2026-09-27 the tile counted every action regardless
+ * of workstream, so one row showed in both places — Scott saw "use the new
+ * text messaging app to send stake conference reminders" under the Stake
+ * Conference workstream AND in Assignments and reasonably called it a
+ * duplicate. It was one row counted twice. The tile and its drill both call
+ * this, so the number and the list behind it cannot drift apart.
+ */
+export function isLooseAssignment(i: DashboardItem): boolean {
+  return (i.kind === 'action' || i.kind === 'assignment') && !i.workstream_id;
+}
+
 export function itemsForDrill(drill: DrillKey, openItems: DashboardItem[]): DashboardItem[] {
   if (drill.startsWith('ws:')) {
     const id = drill.slice(3);
     return openItems.filter(i => i.workstream_id === id).sort(byDueDate);
   }
   if (drill === 'assignment' || drill === 'action') {
-    return openItems.filter(i => i.kind === 'action' || i.kind === 'assignment').sort(byDueDate);
+    return openItems.filter(isLooseAssignment).sort(byDueDate);
   }
   return openItems.filter(i => i.kind === drill).sort(byDueDate);
 }

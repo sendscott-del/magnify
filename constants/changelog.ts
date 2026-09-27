@@ -9,6 +9,21 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.61.0',
+    date: '2026-09-27',
+    enhancements: [
+      'Assignments, quarterly interviews and standard work now work the same way. Each row has a circle you tap to mark it done without opening it, and tapping the rest of the row opens it with a Notes field. Standard work had the button but nowhere to write; assignments and interviews had neither an inline button nor editable notes. Interview notes are saved in Steward, and so are standard-work notes, so they show there too.',
+      'Slack reminders have their own section on the dashboard, and every message is printed in full above the Post button — you can read exactly what will go out before you press it.',
+      'A Sync calendar button on This Sunday pulls the presidency Google Calendar on demand instead of waiting for the half-hourly sync. For the stake presidency and clerks, This Sunday now shows every day of the week so the button is always there.',
+      'A new Protecting Children and Youth Training section, named as it is in LCR. Leaders overdue for the training appear here, each assigned to the stake leader who follows up. A high councilor sees it only when one of them is his.',
+      'Tapping "callings awaiting me" opens the board with Just mine already selected, instead of the whole board.',
+      'Audits moved to the end of the dashboard — they come up twice a year.',
+    ],
+    bugFixes: [
+      'An assignment filed under a workstream showed up twice — in its workstream and again in Assignments. It was one item counted in both places. Workstream items now appear only in their workstream.',
+    ],
+  },
+  {
     version: '2.60.0',
     date: '2026-09-20',
     enhancements: [

@@ -19,6 +19,8 @@ export interface InterviewDraft {
   interviewee_calling?: string | null;
   assigned_to_user_id?: string | null;
   scheduled_for?: string | null;
+  /** Only sent for an existing interview — a new one has no id to attach to yet. */
+  notes?: string | null;
 }
 
 interface Props {
@@ -53,6 +55,7 @@ export function InterviewSheet({
   const [calling, setCalling] = useState('');
   const [assignee, setAssignee] = useState<string | null>(null);
   const [scheduled, setScheduled] = useState<string | null>(null);
+  const [notes, setNotes] = useState('');
   const [pickerOpen, setPickerOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -62,6 +65,7 @@ export function InterviewSheet({
     setCalling(interview?.interviewee_calling ?? '');
     setAssignee(interview?.assigned_to_user_id ?? null);
     setScheduled(interview?.scheduled_for ?? null);
+    setNotes(interview?.notes ?? '');
     setPickerOpen(false);
     setConfirmDelete(false);
     anim.setValue(0);
@@ -89,6 +93,7 @@ export function InterviewSheet({
       interviewee_calling: calling.trim() || null,
       assigned_to_user_id: assignee,
       scheduled_for: scheduled,
+      notes: interview ? notes : undefined,
     });
     onClose();
   }
@@ -152,6 +157,24 @@ export function InterviewSheet({
                 onChangeText={setCalling}
                 placeholderTextColor={Colors.gray[400]}
               />
+
+              {/* Notes — the same field assignments and standard work now have
+                  (2026-09-27). Stored in steward_interviews.notes, so Steward
+                  shows them too. Only on an existing interview. */}
+              {!!interview && (
+                <>
+                  <Text style={styles.label}>{t('dash.row.notes')}</Text>
+                  <TextInput
+                    style={[styles.input, styles.notesInput]}
+                    value={notes}
+                    onChangeText={setNotes}
+                    placeholder={t('dash.row.notesPlaceholder')}
+                    placeholderTextColor={Colors.gray[400]}
+                    multiline
+                    textAlignVertical="top"
+                  />
+                </>
+              )}
 
               <Text style={styles.label}>{t('dash.interview.assigneeLabel')}</Text>
               <TouchableOpacity style={styles.pickerRow} onPress={() => setPickerOpen(o => !o)} activeOpacity={0.8}>
@@ -247,6 +270,7 @@ export function InterviewSheet({
 }
 
 const styles = StyleSheet.create({
+  notesInput: { minHeight: 84, paddingTop: 10 },
   scrim: { flex: 1, backgroundColor: 'rgba(17,17,17,0.35)', justifyContent: 'flex-end', alignItems: 'center' },
   wrap: { width: '100%', maxWidth: 640, maxHeight: '88%' },
   sheet: {

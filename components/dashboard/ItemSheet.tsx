@@ -306,6 +306,20 @@ export function ItemSheet({
           placeholderTextColor={Colors.gray[400]}
         />
 
+        {/* Notes — `detail`, editable at last (2026-09-27). It used to display
+            only, so anything extracted from a meeting could be read but never
+            added to. Same label and field as interviews and standard work. */}
+        <Text style={styles.fieldLabel}>{t('dash.row.notes')}</Text>
+        <TextInput
+          style={[styles.input, styles.notesInput]}
+          value={merged!.detail ?? ''}
+          onChangeText={v => patch({ detail: v || null })}
+          placeholder={t('dash.row.notesPlaceholder')}
+          placeholderTextColor={Colors.gray[400]}
+          multiline
+          textAlignVertical="top"
+        />
+
         {createMode && (
           <>
             <Text style={styles.fieldLabel}>{t('dash.edit.kindLabel')}</Text>
@@ -441,6 +455,7 @@ function FieldRow({ label, value, last }: { label: string; value: string; last?:
 }
 
 const styles = StyleSheet.create({
+  notesInput: { minHeight: 84, paddingTop: 10 },
   scrim: {
     flex: 1,
     backgroundColor: 'rgba(17,17,17,0.35)',
