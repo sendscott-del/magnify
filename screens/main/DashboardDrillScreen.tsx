@@ -17,6 +17,7 @@ import { ItemSheet } from '../../components/dashboard/ItemSheet';
 import { InterviewSheet } from '../../components/dashboard/InterviewSheet';
 import { Toast } from '../../components/dashboard/Toast';
 import { CalmEmpty, cardBase } from '../../components/dashboard/primitives';
+import { CheckRow } from '../../components/dashboard/CheckRow';
 
 /**
  * The list behind a tile or a workstream.
@@ -123,57 +124,51 @@ export function DashboardDrillScreen() {
           const owner = item.owner_label
             ?? (item.owner_user_id ? data.ownerNames[item.owner_user_id] : null);
           return (
-            <TouchableOpacity
+            <CheckRow
               key={item.id}
-              style={[styles.row, { borderLeftColor: KIND[item.kind].color }]}
-              onPress={() => setOpenItem(item)}
-              activeOpacity={0.8}
-            >
-              <View style={styles.rowLeft}>
-                <Text style={styles.rowTitle}>{item.title}</Text>
-                {!!item.detail && <Text style={styles.rowSub} numberOfLines={1}>{item.detail}</Text>}
-              </View>
-              <View style={styles.rowRight}>
-                {pill && <Text style={[styles.rowDue, { color: pill.color }]}>{pill.label}</Text>}
-                {!!owner && <Text style={styles.rowOwner} numberOfLines={1}>{owner}</Text>}
-              </View>
-            </TouchableOpacity>
+              title={item.title}
+              note={item.detail}
+              right={pill?.label ?? null}
+              rightColor={pill?.color}
+              rightSub={owner}
+              done={false}
+              accent={KIND[item.kind].color}
+              onToggle={() => markDone(item)}
+              onOpen={() => setOpenItem(item)}
+              toggleLabel={t('dash.row.markDone')}
+            />
           );
         })}
 
-        {interviewRows.map(iv => (
-          <TouchableOpacity
-            key={iv.id}
-            style={[styles.row, { borderLeftColor: KIND.interview.color }]}
-            onPress={canEditInterviews ? () => setOpenInterview(iv) : undefined}
-            disabled={!canEditInterviews}
-            activeOpacity={0.8}
-          >
-            <View style={styles.rowLeft}>
-              <Text style={styles.rowTitle}>{iv.interviewee_name}</Text>
-              {!!iv.interviewee_calling && (
-                <Text style={styles.rowSub} numberOfLines={1}>{iv.interviewee_calling}</Text>
-              )}
-            </View>
-            <View style={styles.rowRight}>
-              <Text
-                style={[
-                  styles.rowDue,
-                  { color: iv.completed_at ? Colors.success : Colors.gray[600] },
-                ]}
-              >
-                {iv.completed_at
-                  ? t('dash.drill.interviewDone')
-                  : iv.scheduled_for
-                    ? formatMonthDay(iv.scheduled_for, language)
-                    : t('dash.drill.notScheduled')}
-              </Text>
-              {!!iv.assignee_name && (
-                <Text style={styles.rowOwner} numberOfLines={1}>{iv.assignee_name}</Text>
-              )}
-            </View>
-          </TouchableOpacity>
-        ))}
+        {interviewRows.map(iv => {
+          const done = !!iv.completed_at;
+          return (
+            <CheckRow
+              key={iv.id}
+              title={iv.interviewee_name}
+              sub={iv.interviewee_calling}
+              note={iv.notes}
+              right={done
+                ? t('dash.drill.interviewDone')
+                : iv.scheduled_for
+                  ? formatMonthDay(iv.scheduled_for, language)
+                  : t('dash.drill.notScheduled')}
+              rightColor={done ? Colors.success : Colors.gray[600]}
+              rightSub={iv.assignee_name}
+              done={done}
+              accent={KIND.interview.color}
+              onToggle={canEditInterviews ? () => {
+                void data.completeInterview(iv.id, !done);
+                setToast({
+                  message: done ? t('dash.toast.interviewReopened') : t('dash.toast.interviewDone'),
+                  undo: () => { void data.completeInterview(iv.id, done); setToast(null); },
+                });
+              } : undefined}
+              onOpen={canEditInterviews ? () => setOpenInterview(iv) : undefined}
+              toggleLabel={t('dash.row.markDone')}
+            />
+          );
+        })}
 
         {isInterviewDrill && interviewRows.length > 0 && (
           <Text style={styles.readOnlyNote}>{t('dash.drill.interviewsWriteThrough')}</Text>
@@ -214,7 +209,13 @@ export function DashboardDrillScreen() {
         t={t}
         onClose={() => { setOpenInterview(null); setNewInterview(false); }}
         onSave={draft => {
-          void data.saveInterview(draft);
+          const { notes, ...rest } = draft;
+          void data.saveInterview(rest);
+          // Notes go through their own RPC (037) — only when they changed, so an
+          // unrelated edit never rewrites them.
+          if (draft.id && notes !== undefined && (notes ?? '') !== (openInterview?.notes ?? '')) {
+            void data.setInterviewNotes(draft.id, notes ?? '');
+          }
           setToast({ message: t('dash.toast.interviewSaved') });
         }}
         onComplete={done => {

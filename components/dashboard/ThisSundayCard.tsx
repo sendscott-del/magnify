@@ -31,12 +31,13 @@ interface Props {
   /** HC/SC: the viewer's own interview date, if scheduled this Sunday. */
   ownInterviewDate?: string | null;
   reminders: ReminderSent[];
-  canPostSlack: boolean;
   canSendText: boolean;
   canEdit: boolean;
-  onPostSlack: () => void;
   onSendText: () => void;
   onEdit: () => void;
+  /** Pull the presidency Google Calendar now, rather than waiting for the 30-minute job. */
+  onSyncCalendar?: () => void;
+  syncing?: boolean;
   /** Clear one flagged conflict. Absent for viewers who only read the day. */
   onClearConflict?: (key: string) => void;
   /** Bring every cleared conflict back on this Sunday. */
@@ -54,7 +55,7 @@ interface Props {
  */
 export function ThisSundayCard({
   layout, sundayISO, week, meetings, timeline, companion, isCompanion, ownInterviewDate,
-  reminders, canPostSlack, canSendText, canEdit, onPostSlack, onSendText, onEdit,
+  reminders, canSendText, canEdit, onSendText, onEdit, onSyncCalendar, syncing,
   onClearConflict, onRestoreConflicts, language, t,
 }: Props) {
   const eyebrow = layout === 'president' ? t('sunday.eyebrow')
@@ -62,7 +63,6 @@ export function ThisSundayCard({
     : layout === 'clerk' ? t('sunday.eyebrowMeetings')
     : t('sunday.eyebrowYours');
 
-  const slackSent = reminders.find(r => r.channel === 'slack');
   const textSent = reminders.find(r => r.channel === 'tidings');
   const conflictCount = timeline.conflicts.length;
   const nonMeetingKind = week && week.kind !== 'meetings';
@@ -81,6 +81,19 @@ export function ThisSundayCard({
           <Text style={styles.date}>{formatSundayLong(sundayISO, language)}</Text>
         </View>
         {layout === 'clerk' && <FlagPill label={t('sunday.meetingsOnly')} tone="neutral" />}
+        {!!onSyncCalendar && (
+          <TouchableOpacity
+            onPress={onSyncCalendar}
+            disabled={syncing}
+            style={[styles.syncBtn, syncing && styles.syncBtnBusy]}
+            accessibilityRole="button"
+            accessibilityLabel={t('sunday.syncCalendar')}
+            activeOpacity={0.7}
+          >
+            <Ionicons name={syncing ? 'hourglass-outline' : 'sync-outline'} size={15} color={Colors.primary} />
+            <Text style={styles.syncText}>{syncing ? t('sunday.syncing') : t('sunday.syncCalendar')}</Text>
+          </TouchableOpacity>
+        )}
         {layout !== 'clerk' && conflictCount > 0 && (
           <FlagPill label={`${conflictCount} ${conflictCount === 1 ? t('sunday.conflict') : t('sunday.conflicts')}`} tone="late" />
         )}
@@ -129,15 +142,10 @@ export function ThisSundayCard({
         </View>
       )}
 
-      {(canPostSlack || canSendText || canEdit) && (
+      {/* Slack reminders moved to their own section with the text on screen
+          (2026-09-27); the text reminder and Edit Sunday stay here. */}
+      {(canSendText || canEdit) && (
         <View style={styles.actions}>
-          {canPostSlack && (
-            slackSent ? (
-              <SentState label={`${t('sunday.slackPosted')} ${clockOf(slackSent.sent_at)}`} />
-            ) : (
-              <Button title={t('sunday.postSlack')} onPress={onPostSlack} variant="primary" fullWidth style={styles.btn} />
-            )
-          )}
           <View style={styles.actionRow}>
             {canSendText && (
               textSent ? (
@@ -341,4 +349,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   sentText: { fontSize: FontSize.sm, fontWeight: '600', color: Colors.gray[700] },
+  syncBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    paddingHorizontal: 10, paddingVertical: 6, borderRadius: Radius.sm,
+    borderWidth: 1, borderColor: Colors.primary, backgroundColor: Colors.white,
+  },
+  syncBtnBusy: { opacity: 0.6 },
+  syncText: { fontSize: 12, fontWeight: '700', color: Colors.primary },
 });

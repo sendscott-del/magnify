@@ -90,6 +90,9 @@ export interface DashboardData {
   }) => Promise<void>;
   completeInterview: (id: string, done: boolean) => Promise<void>;
   deleteInterview: (id: string) => Promise<void>;
+  /** Notes live where each thing already lives (037): Steward for these two. */
+  setInterviewNotes: (id: string, notes: string) => Promise<void>;
+  setStandardWorkNote: (behaviorId: string, note: string) => Promise<void>;
 }
 
 
@@ -363,6 +366,19 @@ export function useDashboardData(): DashboardData {
     fail('Could not update standard work', error);
   }, [isDemo, fail]);
 
+  // Optimistic, and the failure is loud: a note that looks saved and is not is
+  // worse than one that says it failed. Blank clears — the RPC deletes the row.
+  const setStandardWorkNote = useCallback(async (behaviorId: string, note: string) => {
+    const clean = note.trim() || null;
+    setStandardWork(prev => prev.map(r => (r.id === behaviorId ? { ...r, note: clean } : r)));
+    if (isDemo) return;
+    const { error } = await supabase.rpc('magnify_dash_set_standard_work_note', {
+      p_behavior_id: behaviorId,
+      p_note: note,
+    });
+    fail('Could not save the note', error);
+  }, [isDemo, fail]);
+
   const deleteItem = useCallback(async (id: string) => {
     setItems(prev => prev.filter(i => i.id !== id));
     setPending(prev => prev.filter(i => i.id !== id));
@@ -411,6 +427,14 @@ export function useDashboardData(): DashboardData {
     fail('Could not update the interview', error);
   }, [isDemo, fail]);
 
+  const setInterviewNotes = useCallback(async (id: string, notes: string) => {
+    const clean = notes.trim() || null;
+    setInterviews(prev => prev.map(i => (i.id === id ? { ...i, notes: clean } : i)));
+    if (isDemo) return;
+    const { error } = await supabase.rpc('magnify_dash_interview_set_notes', { p_id: id, p_notes: notes });
+    fail('Could not save the interview notes', error);
+  }, [isDemo, fail]);
+
   const deleteInterview = useCallback(async (id: string) => {
     setInterviews(prev => prev.filter(i => i.id !== id));
     if (isDemo) return;
@@ -431,5 +455,6 @@ export function useDashboardData(): DashboardData {
     refresh, createItem, createWorkstream, setItemStatus, updateItem,
     approvePending, discardPending, setStandardWorkDone,
     deleteItem, saveInterview, completeInterview, deleteInterview,
+    setInterviewNotes, setStandardWorkNote,
   };
 }
