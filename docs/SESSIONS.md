@@ -9,7 +9,7 @@ Append-only, newest first. Every working session adds one entry at the TOP: date
 - Doc fix: §4 said `source: lcr`, which the check constraint rejects — it is `lcr_sync`.
 - Bug (Scott): the Google Calendar event "Hyde Park 1" and the HP1 ward visit showed twice on This Sunday with a same-time conflict. `wardAliases` / `isWardVisitEvent` in `lib/schedule.ts` treat name, abbreviation and short forms (Hyde Park 1st / Hyde Park 1 / HP1 / HP 1; Westchester 1st / WC1 / W1) as one ward. The timeline and the Calendar screen skip a Sunday event that only names a ward being visited that day. "HP1 Bishopric Training" still shows.
 - Local checkout had been 7 commits behind origin (v2.59–2.61 were made from another machine); pulled before starting.
-- State: v2.61.1 pushed to main (web). OTA status in the entry below / next session.
+- State: v2.61.1 live on web (deployed bundle verified). OTA published, iOS update `01a0e582-7b75-75a2-…`; the manifest endpoint serves it for runtime 1.1.0 / channel production. Applies on the second full launch; not confirmed on a device.
 
 ## 2026-09-19 (evening) — v2.58.2: presidency calendar events; conference workstream filled; EQ email staged
 
