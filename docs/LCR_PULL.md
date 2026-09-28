@@ -144,7 +144,13 @@ switch ("My Stake" / "Other Units and Leaders" on the LCR home page).
 2026-09-20, not a login problem and not fixable by Scott signing in. A remote
 session cannot open this report at all, whatever the state of his browser.
 
-So the rows have to be handed over. Screenshots of the filtered table work
+So from a remote session the rows have to be handed over. **A local session
+(Claude desktop on Scott's Mac) can drive his Chrome directly** — done
+2026-09-27. The unit switch is the dropdown at the top right of the report
+(Chicago Illinois Stake, then each ward); it reloads the table, which can take
+several seconds — confirm the dropdown shows the ward before reading. The
+table is not paginated. Read Name and Position from the Past Due rows only;
+"Not Started" is not past due. Screenshots of the filtered table work
 fine and are the least effort: set status to Past Due, then capture stake
 scope and each ward. Name, position and unit is all that is needed — record
 numbers, emails and birthdates stay on the page.
@@ -161,6 +167,13 @@ One item **per overdue person** (Scott's call, 2026-09-20), owned by:
 | Relief Society leaders | Stake Relief Society President | `owner_label` only — no account |
 | Primary leaders | Stake Primary President | `owner_label` only — no account |
 | Seminary teachers | high councilor over seminary | `hc_member_stewardships` where `stewardship = 'seminary'` |
+| Ward bishopric (bishop and counselors) | **Scott** | `41c69a38-a325-4456-92a8-46b5a68221e2` (Scott, 2026-09-27) |
+| Ward Sunday School (presidency, teachers, Builders of Faith) | that ward's high councilor | `hc_member_wards` → `high_council_members` (Scott, 2026-09-27) |
+| Aaronic Priesthood quorum advisers and specialists | Stake Young Men presidency | `owner_label` = "Stake Young Men Presidency" — no account (Scott, 2026-09-27) |
+
+Primary includes nursery and Valiant activities leaders. A person with callings
+in two categories gets ONE item; the bishopric route wins. Still unrouted: a
+ward **daycare leader** — ask Scott; none created on 2026-09-27.
 
 **The three auxiliary presidents have no Magnify account** (the only accounts
 are the presidency, 11 high councilors, 3 clerks and the executive secretary).
@@ -171,10 +184,10 @@ not a personal name — it survives a release and keeps a name out of the label.
 
 ### What the database still cannot answer
 
-**Hyde Park 1st and Hyde Park 2nd each have two active high councilors** in
-`hc_member_wards`. Every other ward resolves to exactly one. Ask Scott which of
-the two covers each ward before creating those rows; do not guess, and do not
-create one item for each.
+Resolved 2026-09-27: Hyde Park 1st and 2nd used to list two high councilors
+each. `hc_member_wards` now has exactly one for each, and Scott confirmed that
+is who covers both. Every ward resolves to one; if a ward ever returns two,
+ask — do not guess, and do not create one item for each.
 
 Resolved 2026-09-20: "over seminary" used to be unanswerable — there was no
 portfolio anywhere on `high_council_members`. Migration 035 added
@@ -204,8 +217,11 @@ councilor has no Magnify account, so his items need `owner_label` too.
 - `due_on`: Scott's call per pull; leave null if he does not set one.
 - `review_state`: `approved` — same as the other LCR-sourced rows (his rule
   from 2026-09-13; the review queue is for meeting extractions).
-- `source`: `lcr`; `source_ref`:
-  `{"lcr":"protecting_children_youth","ward":"<abbr>","person":"<name>","pulled":"<date>"}`.
+- `source`: **`lcr_sync`** — the check constraint allows only manual /
+  meeting / lcr_sync / email; plain `lcr` fails. `source_ref`:
+  `{"lcr":"protecting_children_youth","ward":"<abbr>|STAKE","person":"<Last, First as LCR prints it>","pulled":"<date>"}`.
+  Stake-level rows have `ward_id` null, `ward` = `STAKE`, and the title ends
+  "— Stake". `detail` is "First Last — Calling; Calling".
 
 ### Re-running
 

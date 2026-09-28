@@ -2,6 +2,15 @@
 
 Append-only, newest first. Every working session adds one entry at the TOP: date, what changed, any infra facts touched (database, domain, auth, secrets). Infra changes also go into `CLAUDE.md` immediately, not just here.
 
+## 2026-09-27 — First PCY pull; v2.61.1: ward visits no longer count twice
+
+- Ran LCR_PULL §4 from Scott's Chrome (local session, signed in by Scott). 73 people past due across the stake and nine wards; **72 `kind='pcy'` items created** on `isogetmvnpimcmouakeg`, due 2026-10-11, `review_state='approved'`, `source='lcr_sync'`. One (a ward daycare leader) held — no route yet. Verified as a high councilor under RLS that he sees only his own rows.
+- Scott's routing additions (recorded in §4): bishopric → Scott; ward Sunday School → the ward's high councilor; Aaronic Priesthood advisers → Stake Young Men presidency (label only). HP1/HP2 now resolve to one high councilor each in `hc_member_wards`; §4 updated.
+- Doc fix: §4 said `source: lcr`, which the check constraint rejects — it is `lcr_sync`.
+- Bug (Scott): the Google Calendar event "Hyde Park 1" and the HP1 ward visit showed twice on This Sunday with a same-time conflict. `wardAliases` / `isWardVisitEvent` in `lib/schedule.ts` treat name, abbreviation and short forms (Hyde Park 1st / Hyde Park 1 / HP1 / HP 1; Westchester 1st / WC1 / W1) as one ward. The timeline and the Calendar screen skip a Sunday event that only names a ward being visited that day. "HP1 Bishopric Training" still shows.
+- Local checkout had been 7 commits behind origin (v2.59–2.61 were made from another machine); pulled before starting.
+- State: v2.61.1 pushed to main (web). OTA status in the entry below / next session.
+
 ## 2026-09-19 (evening) — v2.58.2: presidency calendar events; conference workstream filled; EQ email staged
 
 - `magnify_calendar_events` (031) + sync edge function + pg_cron (032). Events show on the Calendar (grouped Mon–Sun under each Sunday) and on the This Sunday timeline for presidency/clerks, with drives when the location matches a building. 27 timed events imported by hand from today's Google Calendar read; the 30-minute sync is a no-op until Scott sets `MAGNIFY_GCAL_ICS_URL` (the classifier blocked reading the secret address from the Google Calendar settings page).
@@ -183,3 +192,8 @@ Append-only, newest first. Every working session adds one entry at the TOP: date
   - Callings tile / "awaiting me" pass `mineOnlyAt: Date.now()` to the boards (tab screens stay mounted, so a param + effect, not initial state). Audits tile moved last.
   - tsc clean; translations parity 934/934; tile ordering/duplicate/pcy logic checked against the real `dashboardTiles` build. Needs an OTA after merge.
 - 2026-09-27 (later): **Presidency calendar connected.** v2.61.0 (PRs #38, #39, #40) merged and OTA run #9 published. Scott supplied the calendar's secret iCal address. No CLI in the cloud session, so it went into Vault as `magnify_gcal_ics_url` (by hand, not in any file); migration **038** adds `magnify_gcal_ics_url()` (SECURITY DEFINER, EXECUTE revoked from anon/authenticated, granted to service_role — verified with `has_function_privilege`), and the edge function (v2) falls back to it after the permission check. A manual `magnify_calendar_sync_tick()` returned 200 `{upserted: 81, removed: 27}` — the first successful sync since the cron was created. LCR is still unreachable from a cloud session (proxy 403 on `lcr.churchofjesuschrist.org`); the PCY pull has to run where Scott's Chrome is.
+
+## 2026-09-27 — data fix only (from claude-cos exec-sec session)
+- Sunday 2026-09-27 schedule edited to match Scott's calendar: removed the cancelled "Expanded Stake Adult Leadership" TRAINING meeting row; P assignment HP1 → CH2 (P now HP3, CH2, HP2). Direct SQL on `magnify_schedule_meetings` / `magnify_schedule_assignments`, on Scott's instruction. No code change, no version bump.
+- exec-sec now reads Scott's Sunday from Magnify + Google Calendar (Google Sheet fully retired); calendar wins on disagreement.
+- Correction (same day, per Scott): he visited HP1 only. 2026-09-27 P assignment is now HP1 alone (HP2, HP3, CH2 removed). The afternoon member meetings were at the stake center.

@@ -130,6 +130,56 @@ export function buildingForLocation(location: string | null | undefined, buildin
   return null;
 }
 
+/** Lower case, no accents, "1st" → "1", punctuation to spaces. */
+function normWard(s: string): string {
+  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+    .replace(/\(spanish\)/g, ' ')
+    .replace(/(\d+)(st|nd|rd|th)\b/g, '$1')
+    .replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+/**
+ * Every way a calendar title names a ward: the name ("Hyde Park 1st",
+ * "Hyde Park 1"), the abbreviation ("HP1", "HP 1") and the initials with the
+ * number ("W1" for Westchester 1st). Scott, 2026-09-27: HP1 and Hyde Park 1st
+ * are the same ward and must never count twice.
+ */
+export function wardAliases(w: { name: string; abbreviation: string }): string[] {
+  const out = new Set<string>();
+  const add = (a: string) => {
+    const m = a.match(/^([a-z]+) ?(\d+)$/);
+    if (m) { out.add(`${m[1]}${m[2]}`); out.add(`${m[1]} ${m[2]}`); }
+    else if (a.length >= 2) out.add(a);
+  };
+  const name = normWard(w.name).replace(/\bward\b/g, ' ').replace(/\s+/g, ' ').trim();
+  if (name) out.add(name);
+  add(normWard(w.abbreviation));
+  const words = name.split(' ').filter(Boolean);
+  const num = words.length > 1 && /^\d+$/.test(words[words.length - 1]) ? words.pop()! : '';
+  const initials = words.map(x => x[0]).join('');
+  if (num) add(`${initials}${num}`);
+  else if (initials.length >= 2) add(initials);
+  return [...out];
+}
+
+const VISIT_WORDS = new Set(['sacrament', 'meeting', 'mtg', 'sm', 'ward', 'visit', 'attend', 'reunion', 'sacramental', 'barrio', 'de']);
+
+/**
+ * True when a calendar event is only a ward visit ("Hyde Park 1", "HP1
+ * sacrament") for one of the given wards — the schedule already shows that
+ * visit, so the event would count it twice. "HP1 Bishopric Training" is a
+ * different meeting and stays.
+ */
+export function isWardVisitEvent(title: string, wards: Array<{ name: string; abbreviation: string }>): boolean {
+  let s = ` ${normWard(title)} `;
+  let hit = false;
+  const aliases = wards.flatMap(wardAliases).sort((a, b) => b.length - a.length);
+  for (const a of aliases) {
+    if (s.includes(` ${a} `)) { s = s.split(` ${a} `).join('  '); hit = true; }
+  }
+  return hit && s.split(' ').filter(Boolean).every(x => VISIT_WORDS.has(x));
+}
+
 export interface ReminderSent {
   id: string;
   week_id: string;
@@ -231,6 +281,8 @@ export interface TimelineInput {
   /** Wards the viewer visits (already narrowed to their seat). */
   wardIds: string[];
   wardNames: Record<string, string>;
+  /** Ward abbreviations, so a calendar event titled "HP1" matches Hyde Park 1st. */
+  wardAbbrevs?: Record<string, string>;
   wardTimes: WardMeetingTime[];
   buildings: Building[];
   travel: TravelMinutes[];
@@ -279,7 +331,7 @@ function roundUpQuarter(min: number): number {
  * consecutive events in different buildings; conflicts named in words.
  */
 export function buildTimeline(input: TimelineInput): Timeline {
-  const { week, meetings, wardIds, wardNames, wardTimes, buildings, travel, settings, bodiesFor, calendarEvents = [], dismissedKeys = [], t } = input;
+  const { week, meetings, wardIds, wardNames, wardAbbrevs = {}, wardTimes, buildings, travel, settings, bodiesFor, calendarEvents = [], dismissedKeys = [], t } = input;
   const dismissed = new Set(dismissedKeys);
   let dismissedCount = 0;
   const conflicts: Conflict[] = [];
@@ -339,8 +391,11 @@ export function buildTimeline(input: TimelineInput): Timeline {
 
   // Google Calendar events on the day: a bishopric training, a set-apart, an
   // interview. They join the day so the drive and overlap checks include them.
+  // An event that is only one of these ward visits is already on the timeline.
+  const visiting = (week ? wardIds : []).map(id => ({ name: wardNames[id] ?? '', abbreviation: wardAbbrevs[id] ?? '' }));
   for (const ev of calendarEvents) {
     if (ev.all_day) continue;
+    if (isWardVisitEvent(ev.title, visiting)) continue;
     const start = localMinutes(ev.starts_at);
     const end = Math.max(start + 1, localMinutes(ev.ends_at));
     const bId = buildingForLocation(ev.location, buildings);

@@ -12,7 +12,7 @@ import { cardBase, CalmEmpty } from '../../components/dashboard/primitives';
 import { formatMonthDay, todayISO } from '../../lib/dashboard';
 import { Seat, SEATS, bodiesForRole, comingSundayISO, fmtClock, meetingTitle, quarterOf, toMinutes } from '../../lib/schedule';
 import { YearRow, loadEvents, loadYear } from '../../lib/scheduleData';
-import { CalendarEvent, localDateISO, localMinutes } from '../../lib/schedule';
+import { CalendarEvent, isWardVisitEvent, localDateISO, localMinutes } from '../../lib/schedule';
 import { WardRef } from '../../lib/useDashboardData';
 import { supabase } from '../../lib/supabase';
 import { useDemoMode, isReviewDemoUser } from '../../context/DemoModeContext';
@@ -105,10 +105,17 @@ export function CalendarScreen() {
       const d = new Date(sunday + 'T00:00:00'); d.setDate(d.getDate() - 6);
       const weekStart = `${d.getFullYear()}-${`${d.getMonth() + 1}`.padStart(2, '0')}-${`${d.getDate()}`.padStart(2, '0')}`;
       if (day < weekStart) continue;
+      // A Sunday event that only names a ward already visited that day
+      // ("Hyde Park 1" next to the HP1 chip) is the same visit — skip it.
+      if (day === sunday) {
+        const row = rows.find(r => r.week.sunday_on === sunday);
+        const visited = wards.filter(w => row?.assignments.some(a => a.ward_id === w.id));
+        if (isWardVisitEvent(ev.title, visited)) continue;
+      }
       (out[sunday] ??= []).push(ev);
     }
     return out;
-  }, [events, rows]);
+  }, [events, rows, wards]);
 
   const quarters = useMemo(() => {
     const out: Record<number, YearRow[]> = { 1: [], 2: [], 3: [], 4: [] };

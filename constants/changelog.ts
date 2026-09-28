@@ -9,6 +9,14 @@ export interface ChangelogEntry {
 // To add release notes manually, add an entry to the array below.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.61.1',
+    date: '2026-09-27',
+    enhancements: [],
+    bugFixes: [
+      'A ward visit counted twice when the Google Calendar named the ward differently from the schedule. "Hyde Park 1" on the calendar and the HP1 visit are the same thing, and This Sunday showed both and flagged them as a same-time conflict. Magnify now treats a ward\'s name, its abbreviation and short forms (Hyde Park 1st, Hyde Park 1, HP1, HP 1; Westchester 1st, WC1, W1) as one ward, and skips a Sunday event that only names a ward already being visited. Events that name a ward plus something else, such as "HP1 Bishopric Training", still show.',
+    ],
+  },
+  {
     version: '2.61.0',
     date: '2026-09-27',
     enhancements: [

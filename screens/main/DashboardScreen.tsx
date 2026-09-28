@@ -119,6 +119,11 @@ export function DashboardScreen() {
     for (const w of sunday.reference.wards) out[w.id] = w.name;
     return out;
   }, [sunday.reference.wards]);
+  const wardAbbrevs = useMemo(() => {
+    const out: Record<string, string> = {};
+    for (const w of sunday.reference.wards) out[w.id] = w.abbreviation;
+    return out;
+  }, [sunday.reference.wards]);
   const visibleMeetings = useMemo(
     () => sunday.bundle.meetings.filter(m => bodiesFor(m.body)),
     [sunday.bundle.meetings, bodiesFor],
@@ -128,6 +133,7 @@ export function DashboardScreen() {
     meetings: sunday.bundle.meetings,
     wardIds: myWardIds,
     wardNames,
+    wardAbbrevs,
     wardTimes: sunday.reference.wardTimes,
     buildings: sunday.reference.buildings,
     travel: sunday.reference.travel,
@@ -136,7 +142,7 @@ export function DashboardScreen() {
     calendarEvents: layout === 'member' ? [] : sunday.bundle.events,
     dismissedKeys: sunday.bundle.dismissedKeys,
     t,
-  }), [sunday.bundle.week, sunday.bundle.meetings, sunday.bundle.events, sunday.bundle.dismissedKeys, myWardIds, wardNames, sunday.reference, bodiesFor, layout, t]);
+  }), [sunday.bundle.week, sunday.bundle.meetings, sunday.bundle.events, sunday.bundle.dismissedKeys, myWardIds, wardNames, wardAbbrevs, sunday.reference, bodiesFor, layout, t]);
   const isCompanion = !!sunday.bundle.rotation && sunday.reference.hcMembers.some(
     m => m.id === sunday.bundle.rotation?.hc_member_id && (m.user_id === myId || m.name === myName));
   const ownInterviewDate = useMemo(() => {
